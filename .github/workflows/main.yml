@@ -1,0 +1,143 @@
+name: TipMolde Frontend CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+env:
+  SOLUTION_FILE: "TipMolde.sln"
+  PROJECT_FILE: "TipMolde/TipMolde.csproj"
+  ANDROID_TFM: "net8.0-android"
+  WINDOWS_TFM: "net8.0-windows10.0.19041.0"
+  SONAR_PROJECT_KEY: "Gob2005_TipMolde_Frontend"
+  SONAR_ORG_KEY: "gob2005"
+
+jobs:
+  build:
+    name: Build MAUI App
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "zulu"
+
+      - name: Check local .NET SDK
+        shell: powershell
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+          dotnet workload list
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore MAUI workloads
+        run: dotnet workload restore ${{ env.PROJECT_FILE }}
+
+      - name: Restore solution
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Build Android target
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore
+
+      - name: Build Windows target
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: maui-build-output
+          path: |
+            TipMolde/bin/Release/**
+          if-no-files-found: warn
+
+  sonar-analysis:
+    name: SonarQube Analysis
+    runs-on: self-hosted
+    needs: [ build ]
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "zulu"
+
+      - name: Install Sonar Scanner
+        run: dotnet tool update --global dotnet-sonarscanner
+
+      - name: Restore MAUI workloads
+        run: dotnet workload restore ${{ env.PROJECT_FILE }}
+
+      - name: Sonar Begin
+        shell: powershell
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_HOST_URL)) {
+            throw "GitHub secret SONAR_HOST_URL is missing or empty."
+          }
+
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_TOKEN)) {
+            throw "GitHub secret SONAR_TOKEN is missing or empty."
+          }
+
+          dotnet-sonarscanner begin `
+            /k:"${{ env.SONAR_PROJECT_KEY }}" `
+            /o:"${{ env.SONAR_ORG_KEY }}" `
+            "/d:sonar.host.url=$env:SONAR_HOST_URL" `
+            "/d:sonar.token=$env:SONAR_TOKEN"
+
+      - name: Restore for Sonar
+        run: dotnet restore ${{ env.SOLUTION_FILE }} --disable-build-servers
+
+      - name: Build Android for Sonar
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore --disable-build-servers
+
+      - name: Build Windows for Sonar
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore --disable-build-servers
+
+      - name: Sonar End
+        shell: powershell
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:SONAR_TOKEN)) {
+            throw "GitHub secret SONAR_TOKEN is missing or empty."
+          }
+
+          dotnet-sonarscanner end `
+            "/d:sonar.token=$env:SONAR_TOKEN"
+
+      - name: Shutdown .NET build servers
+        if: always()
+        run: dotnet build-server shutdown
+
+      - name: Cleanup Sonar workspace
+        if: always()
+        shell: powershell
+        run: |
+          $sonarPath = Join-Path $env:GITHUB_WORKSPACE ".sonarqube"
+          if (Test-Path $sonarPath) {
+            Remove-Item -LiteralPath $sonarPath -Recurse -Force
+          }
