@@ -15,22 +15,31 @@ env:
   SONAR_ORG_KEY: "gob2005"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
 
 jobs:
   build:
     name: Build MAUI App
     runs-on: self-hosted
     env:
-      DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet
+      DOTNET_CLI_HOME: ${{ runner.temp }}\.dotnet
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Prepare .NET CLI home
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.414"
+
+      - name: Prepare .NET directories
         shell: powershell
-        run: New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -48,16 +57,58 @@ jobs:
       - name: Cache NuGet
         uses: actions/cache@v4
         with:
-          path: ~/.nuget/packages
+          path: ${{ env.NUGET_PACKAGES }}
           key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             nuget-${{ runner.os }}-
 
-      - name: Restore MAUI workloads
-        run: dotnet workload restore ${{ env.PROJECT_FILE }} --skip-manifest-update
+      - name: Repair cached AndroidX package if needed
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $packageRoot = Join-Path $env:NUGET_PACKAGES 'xamarin.androidx.versionedparcelable\1.1.1.19'
+          $aarFile = Join-Path $packageRoot 'aar\androidx.versionedparcelable.versionedparcelable.aar'
+
+          if (-not (Test-Path $aarFile)) {
+            Write-Host "AndroidX cache not present yet."
+            exit 0
+          }
+
+          try {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($aarFile)
+            $archive.Dispose()
+            Write-Host "AndroidX cache looks healthy."
+          }
+          catch {
+            Write-Warning "Corrupt AndroidX cache detected. Removing package folder."
+            if (Test-Path $packageRoot) {
+              Remove-Item -LiteralPath $packageRoot -Recurse -Force
+            }
+          }
+
+      - name: Ensure required MAUI workloads
+        shell: powershell
+        run: |
+          $installed = dotnet workload list | Out-String
+          $required = @('android', 'maui-windows')
+          $missing = @()
+
+          foreach ($workload in $required) {
+            if ($installed -notmatch "(?m)^\s*$([regex]::Escape($workload))\s") {
+              $missing += $workload
+            }
+          }
+
+          if ($missing.Count -eq 0) {
+            Write-Host "Required workloads already installed."
+            exit 0
+          }
+
+          Write-Host "Installing missing workloads: $($missing -join ', ')"
+          dotnet workload install $missing --skip-manifest-update
 
       - name: Restore solution
-        run: dotnet restore ${{ env.SOLUTION_FILE }}
+        run: dotnet restore ${{ env.SOLUTION_FILE }} --disable-build-servers
 
       - name: Build Android target
         run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore
@@ -79,16 +130,24 @@ jobs:
     needs: [ build ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     env:
-      DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet
+      DOTNET_CLI_HOME: ${{ runner.temp }}\.dotnet
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Prepare .NET CLI home
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.414"
+
+      - name: Prepare .NET directories
         shell: powershell
-        run: New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -96,11 +155,61 @@ jobs:
           java-version: "17"
           distribution: "zulu"
 
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Repair cached AndroidX package if needed
+        shell: powershell
+        run: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $packageRoot = Join-Path $env:NUGET_PACKAGES 'xamarin.androidx.versionedparcelable\1.1.1.19'
+          $aarFile = Join-Path $packageRoot 'aar\androidx.versionedparcelable.versionedparcelable.aar'
+
+          if (-not (Test-Path $aarFile)) {
+            Write-Host "AndroidX cache not present yet."
+            exit 0
+          }
+
+          try {
+            $archive = [System.IO.Compression.ZipFile]::OpenRead($aarFile)
+            $archive.Dispose()
+            Write-Host "AndroidX cache looks healthy."
+          }
+          catch {
+            Write-Warning "Corrupt AndroidX cache detected. Removing package folder."
+            if (Test-Path $packageRoot) {
+              Remove-Item -LiteralPath $packageRoot -Recurse -Force
+            }
+          }
+
       - name: Install Sonar Scanner
         run: dotnet tool update --global dotnet-sonarscanner
 
-      - name: Restore MAUI workloads
-        run: dotnet workload restore ${{ env.PROJECT_FILE }} --skip-manifest-update
+      - name: Ensure required MAUI workloads
+        shell: powershell
+        run: |
+          $installed = dotnet workload list | Out-String
+          $required = @('android', 'maui-windows')
+          $missing = @()
+
+          foreach ($workload in $required) {
+            if ($installed -notmatch "(?m)^\s*$([regex]::Escape($workload))\s") {
+              $missing += $workload
+            }
+          }
+
+          if ($missing.Count -eq 0) {
+            Write-Host "Required workloads already installed."
+            exit 0
+          }
+
+          Write-Host "Installing missing workloads: $($missing -join ', ')"
+          dotnet workload install $missing --skip-manifest-update
 
       - name: Sonar Begin
         shell: powershell

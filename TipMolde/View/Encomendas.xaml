@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TipMolde.View.Encomendas"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1" RowDefinitions="Auto,*" BackgroundColor="{StaticResource Surface}">
+            <shared:TopBarView Grid.Row="0"
+               TitleText="Gestão de Encomendas"
+               UserNameText="Ricardo Magalhaes" />
+        </Grid>
+    </Grid>
+</ContentPage>

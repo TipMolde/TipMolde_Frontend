@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="TipMolde.View.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:TipMolde.View"
+    Shell.FlyoutBehavior="Disabled"
+    Title="TipMolde">
+
+    <ShellContent
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage" />
+
+    <ShellContent
+         ContentTemplate="{DataTemplate local:Utilizadores}"
+         Route="Utilizadores" />
+
+    <ShellContent
+         ContentTemplate="{DataTemplate local:Clientes}"
+         Route="Clientes" />
+
+    <ShellContent
+         ContentTemplate="{DataTemplate local:Encomendas}"
+         Route="Encomendas" />
+
+    <ShellContent
+         ContentTemplate="{DataTemplate local:Producao}"
+         Route="Producao" />
+
+    <ShellContent
+         ContentTemplate="{DataTemplate local:Definicoes}"
+         Route="Definicoes" />
+
+</Shell>

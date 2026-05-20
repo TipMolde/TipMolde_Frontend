@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TipMolde.View.Shared.TopBarView"
+             x:Name="Self">
+
+    <Border Padding="{OnIdiom Phone='16,14', Desktop='28,22'}"
+            Margin="0,0,0,2"
+            BackgroundColor="#F8FAFC"
+            Stroke="#E2E8F0"
+            StrokeThickness="1">
+
+        <FlexLayout Direction="Row"
+                    Wrap="Wrap"
+                    JustifyContent="SpaceBetween"
+                    AlignItems="Center"
+                    AlignContent="Start">
+
+            <VerticalStackLayout FlexLayout.Grow="1"
+                                 WidthRequest="{OnIdiom Phone='180', Desktop='320'}"
+                                 Spacing="2">
+                <Label Text="{Binding TitleText, Source={x:Reference Self}}"
+                       FontFamily="OpenSansSemibold"
+                       FontSize="{OnIdiom Phone='22', Desktop='28'}"
+                       TextColor="{StaticResource TextPrimary}"
+                       LineBreakMode="WordWrap" />
+            </VerticalStackLayout>
+
+            <HorizontalStackLayout Spacing="{OnIdiom Phone='8', Desktop='12'}"
+                                   Margin="{OnIdiom Phone='0,12,0,0', Desktop='0'}"
+                                   HorizontalOptions="End"
+                                   VerticalOptions="Center">
+
+                <Border Background="#E2E8F0"
+                        StrokeThickness="0"
+                        Padding="{OnIdiom Phone='12,8', Desktop='16,8'}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Label Text="{Binding DisplayUserName, Source={x:Reference Self}}"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="{OnIdiom Phone='13', Desktop='14'}"
+                               VerticalOptions="Center"
+                               TextColor="{StaticResource TextPrimary}"
+                               MaxLines="1"
+                               LineBreakMode="TailTruncation" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Button Text="Terminar sessão"
+                        Clicked="OnLogoutClicked"
+                        BackgroundColor="Red"
+                        TextColor="White"
+                        FontSize="{OnIdiom Phone='12', Desktop='14'}"
+                        CornerRadius="18"
+                        Padding="{OnIdiom Phone='12,8', Desktop='18,10'}"
+                        MinimumHeightRequest="44" />
+            </HorizontalStackLayout>
+        </FlexLayout>
+    </Border>
+</ContentView>
