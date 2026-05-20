@@ -30,16 +30,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.414"
-
       - name: Prepare .NET directories
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+
+      - name: Select .NET 8 SDK for CI
+        id: sdk-selector
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+
+          if (Test-Path $globalJsonPath) {
+            Write-Host "Repository global.json found. Keeping existing file."
+            "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          @'
+          {
+            "sdk": {
+              "version": "8.0.414",
+              "rollForward": "latestPatch"
+            }
+          }
+          '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
+
+          Write-Host "Temporary global.json created for CI."
+          "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -50,6 +69,7 @@ jobs:
       - name: Check local .NET SDK
         shell: powershell
         run: |
+          dotnet --version
           dotnet --info
           dotnet --list-sdks
           dotnet workload list
@@ -124,6 +144,15 @@ jobs:
             TipMolde/bin/Release/**
           if-no-files-found: warn
 
+      - name: Cleanup temporary SDK selector
+        if: always() && steps.sdk-selector.outputs.created == 'true'
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+          if (Test-Path $globalJsonPath) {
+            Remove-Item -LiteralPath $globalJsonPath -Force
+          }
+
   sonar-analysis:
     name: SonarQube Analysis
     runs-on: self-hosted
@@ -138,16 +167,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "8.0.414"
-
       - name: Prepare .NET directories
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+
+      - name: Select .NET 8 SDK for CI
+        id: sdk-selector
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+
+          if (Test-Path $globalJsonPath) {
+            Write-Host "Repository global.json found. Keeping existing file."
+            "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          @'
+          {
+            "sdk": {
+              "version": "8.0.414",
+              "rollForward": "latestPatch"
+            }
+          }
+          '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
+
+          Write-Host "Temporary global.json created for CI."
+          "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -263,4 +311,13 @@ jobs:
           $sonarPath = Join-Path $env:GITHUB_WORKSPACE ".sonarqube"
           if (Test-Path $sonarPath) {
             Remove-Item -LiteralPath $sonarPath -Recurse -Force
+          }
+
+      - name: Cleanup temporary SDK selector
+        if: always() && steps.sdk-selector.outputs.created == 'true'
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+          if (Test-Path $globalJsonPath) {
+            Remove-Item -LiteralPath $globalJsonPath -Force
           }
