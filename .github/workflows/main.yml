@@ -110,7 +110,7 @@ jobs:
         shell: powershell
         run: |
           $installed = dotnet workload list | Out-String
-          $required = @('android', 'maui-windows')
+          $required = @('maui-android', 'maui-windows')
           $missing = @()
 
           foreach ($workload in $required) {
@@ -242,7 +242,7 @@ jobs:
         shell: powershell
         run: |
           $installed = dotnet workload list | Out-String
-          $required = @('android', 'maui-windows')
+          $required = @('maui-android', 'maui-windows')
           $missing = @()
 
           foreach ($workload in $required) {
