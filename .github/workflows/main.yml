@@ -22,7 +22,7 @@ jobs:
     name: Build MAUI App
     runs-on: self-hosted
     env:
-      DOTNET_CLI_HOME: ${{ runner.temp }}\.dotnet
+      DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
     steps:
@@ -130,7 +130,7 @@ jobs:
     needs: [ build ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     env:
-      DOTNET_CLI_HOME: ${{ runner.temp }}\.dotnet
+      DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
 
     steps:
