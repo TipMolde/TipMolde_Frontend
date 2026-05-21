@@ -42,6 +42,33 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
+      - name: Shutdown .NET build servers before Windows build
+        shell: powershell
+        run: |
+          dotnet build-server shutdown
+
+      - name: Reset Windows build outputs
+        shell: powershell
+        run: |
+          $pathsToReset = @(
+            "${{ github.workspace }}\TipMolde\bin",
+            "${{ github.workspace }}\TipMolde\obj"
+          )
+
+          foreach ($path in $pathsToReset) {
+            if (Test-Path $path) {
+              try {
+                Remove-Item -LiteralPath $path -Recurse -Force
+              }
+              catch {
+                Write-Warning "Could not fully remove $path. Continuing with build."
+              }
+            }
+          }
+
+          dotnet nuget locals http-cache --clear
+          dotnet nuget locals temp --clear
+
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
         shell: powershell
@@ -76,11 +103,8 @@ jobs:
 
           dotnet workload install maui-windows --skip-manifest-update
 
-      - name: Restore Windows target
-        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.WINDOWS_TFM }} --force-evaluate --no-http-cache --disable-parallel
-
       - name: Build Windows target
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --force --disable-parallel
 
       # Future release packaging:
       # - name: Publish Windows app
@@ -129,6 +153,30 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
+      - name: Shutdown .NET build servers before Android build
+        shell: powershell
+        run: |
+          dotnet build-server shutdown
+
+      - name: Reset Android build outputs
+        shell: powershell
+        run: |
+          $pathsToReset = @(
+            "${{ github.workspace }}\TipMolde\bin",
+            "${{ github.workspace }}\TipMolde\obj"
+          )
+
+          foreach ($path in $pathsToReset) {
+            if (Test-Path $path) {
+              try {
+                Remove-Item -LiteralPath $path -Recurse -Force
+              }
+              catch {
+                Write-Warning "Could not fully remove $path. Continuing with build."
+              }
+            }
+          }
+
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
         shell: powershell
@@ -173,8 +221,8 @@ jobs:
         run: |
           & "${{ github.workspace }}\scripts\ci\Clear-AndroidAarPackages.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
 
-      - name: Repair Android AAR cache before restore
-        id: repair-before-restore
+      - name: Repair Android AAR cache before build
+        id: repair-before-build
         shell: powershell
         run: |
           $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
@@ -191,36 +239,20 @@ jobs:
 
           dotnet workload install maui-android --skip-manifest-update
 
-      - name: Restore Android target
-        shell: powershell
-        run: |
-          $restoreArgs = @(
-            '${{ env.PROJECT_FILE }}',
-            '--disable-build-servers',
-            '-p:TargetFramework=${{ env.ANDROID_TFM }}'
-          )
-          if ('${{ steps.repair-before-restore.outputs.removed }}' -eq 'true') {
-            $restoreArgs += '--force'
-          }
-          $restoreArgs += '--force-evaluate'
-          $restoreArgs += '--no-http-cache'
-          $restoreArgs += '--disable-parallel'
-
-          dotnet restore @restoreArgs
-
-      - name: Repair Android AAR cache after restore
-        id: repair-after-restore
-        shell: powershell
-        run: |
-          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Restore Android target after cache cleanup
-        if: steps.repair-after-restore.outputs.removed == 'true'
-        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.ANDROID_TFM }} --force --force-evaluate --no-http-cache --disable-parallel
-
       - name: Build Android target
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore
+        shell: powershell
+        run: |
+          $buildArgs = @(
+            '${{ env.PROJECT_FILE }}',
+            '--configuration', 'Release',
+            '--framework', '${{ env.ANDROID_TFM }}',
+            '--disable-build-servers',
+            '--disable-parallel'
+          )
+
+          $buildArgs += '--force'
+
+          dotnet build @buildArgs
 
       # Future release signing and packaging:
       # - name: Import Android keystore
@@ -318,6 +350,31 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
+      - name: Shutdown .NET build servers before Sonar
+        shell: powershell
+        run: |
+          dotnet build-server shutdown
+
+      - name: Reset Sonar build outputs
+        shell: powershell
+        run: |
+          $pathsToReset = @(
+            "${{ github.workspace }}\TipMolde\bin",
+            "${{ github.workspace }}\TipMolde\obj",
+            "${{ github.workspace }}\.sonarqube"
+          )
+
+          foreach ($path in $pathsToReset) {
+            if (Test-Path $path) {
+              try {
+                Remove-Item -LiteralPath $path -Recurse -Force
+              }
+              catch {
+                Write-Warning "Could not fully remove $path. Continuing with build."
+              }
+            }
+          }
+
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
         shell: powershell
@@ -362,8 +419,8 @@ jobs:
         run: |
           & "${{ github.workspace }}\scripts\ci\Clear-AndroidAarPackages.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
 
-      - name: Repair Android AAR cache before Sonar restore
-        id: repair-before-restore
+      - name: Repair Android AAR cache before Sonar build
+        id: repair-before-build
         shell: powershell
         run: |
           $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
@@ -412,42 +469,22 @@ jobs:
             "/d:sonar.host.url=$env:SONAR_HOST_URL" `
             "/d:sonar.token=$env:SONAR_TOKEN"
 
-      - name: Restore Android target for Sonar
-        shell: powershell
-        run: |
-          $restoreArgs = @(
-            '${{ env.PROJECT_FILE }}',
-            '--disable-build-servers',
-            '-p:TargetFramework=${{ env.ANDROID_TFM }}'
-          )
-          if ('${{ steps.repair-before-restore.outputs.removed }}' -eq 'true') {
-            $restoreArgs += '--force'
-          }
-          $restoreArgs += '--force-evaluate'
-          $restoreArgs += '--no-http-cache'
-          $restoreArgs += '--disable-parallel'
-
-          dotnet restore @restoreArgs
-
-      - name: Restore Windows target for Sonar
-        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.WINDOWS_TFM }} --force-evaluate --no-http-cache --disable-parallel
-
-      - name: Repair Android AAR cache after Sonar restore
-        id: repair-after-restore
-        shell: powershell
-        run: |
-          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Restore Android target for Sonar after cache cleanup
-        if: steps.repair-after-restore.outputs.removed == 'true'
-        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.ANDROID_TFM }} --force --force-evaluate --no-http-cache --disable-parallel
-
       - name: Build Android for Sonar
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore --disable-build-servers
+        shell: powershell
+        run: |
+          $buildArgs = @(
+            '${{ env.PROJECT_FILE }}',
+            '--configuration', 'Release',
+            '--framework', '${{ env.ANDROID_TFM }}',
+            '--disable-build-servers',
+            '--disable-parallel',
+            '--force'
+          )
+
+          dotnet build @buildArgs
 
       - name: Build Windows for Sonar
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore --disable-build-servers
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --force
 
       - name: Sonar End
         shell: powershell

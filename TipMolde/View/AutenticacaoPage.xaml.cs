@@ -9,4 +9,14 @@ public partial class AutenticacaoPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is AutenticacaoViewModel vm)
+        {
+            await vm.EnsureInitialLoadCommand.ExecuteAsync(null);
+        }
+    }
 }

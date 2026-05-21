@@ -260,17 +260,7 @@
                                 </Grid>
                             </VerticalStackLayout>
                         </Border>
-
-                        <Border BackgroundColor="White"
-                                Stroke="{StaticResource CardBorderBrush}"
-                                StrokeThickness="1"
-                                Padding="22">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="26" />
-                            </Border.StrokeShape>
-                        </Border>
                     </VerticalStackLayout>
-
                 </VerticalStackLayout>
             </ScrollView>
         </Grid>

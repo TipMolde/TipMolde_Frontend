@@ -134,6 +134,8 @@
                                             </Border.StrokeShape>
                                             <Entry x:Name="UtilizadorEntry"
                                                    Placeholder="exemplo@tipmolde.pt"
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   PlaceholderColor="{StaticResource TextSecondary}"
                                                    ClearButtonVisibility="WhileEditing" />
                                         </Border>
                                     </VerticalStackLayout>
@@ -151,6 +153,8 @@
                                             </Border.StrokeShape>
                                             <Entry x:Name="PasswordEntry"
                                                    Placeholder="Introduza a sua palavra-passe"
+                                                   TextColor="{StaticResource TextPrimary}"
+                                                   PlaceholderColor="{StaticResource TextSecondary}"
                                                    IsPassword="True" />
                                         </Border>
                                     </VerticalStackLayout>
