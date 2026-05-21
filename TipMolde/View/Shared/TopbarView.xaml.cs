@@ -41,7 +41,7 @@ public partial class TopBarView : ContentView
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("//MainPage");
+        await Shell.Current.GoToAsync("//AutenticacaoPage");
     }
 
     private static void OnUserNameTextChanged(BindableObject bindable, object oldValue, object newValue)

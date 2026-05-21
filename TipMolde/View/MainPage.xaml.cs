@@ -1,5 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using TipMolde.Services;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;

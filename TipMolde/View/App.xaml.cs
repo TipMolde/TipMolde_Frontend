@@ -1,6 +1,4 @@
-﻿using TipMolde.View;
-
-namespace TipMolde.View;
+﻿namespace TipMolde.View;
 
 public partial class App : Application
 {

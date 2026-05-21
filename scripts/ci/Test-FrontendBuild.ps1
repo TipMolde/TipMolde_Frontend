@@ -32,9 +32,9 @@ if (-not (Test-Path $temporaryGlobalJson)) {
 }
 
 try {
-    & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null
-
     if ($Target -eq 'android') {
+        & (Join-Path $PSScriptRoot 'Clear-AndroidAarPackages.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null
+        & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null
         dotnet workload install maui-android --skip-manifest-update
         dotnet restore TipMolde/TipMolde.csproj --disable-build-servers -p:TargetFramework=net8.0-android --force
         & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null

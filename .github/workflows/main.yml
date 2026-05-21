@@ -158,6 +158,11 @@ jobs:
           restore-keys: |
             nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
 
+      - name: Reset Android AAR package cache
+        shell: powershell
+        run: |
+          & "${{ github.workspace }}\scripts\ci\Clear-AndroidAarPackages.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+
       - name: Repair Android AAR cache before restore
         id: repair-before-restore
         shell: powershell
@@ -328,6 +333,11 @@ jobs:
           key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
+
+      - name: Reset Android AAR package cache before Sonar
+        shell: powershell
+        run: |
+          & "${{ github.workspace }}\scripts\ci\Clear-AndroidAarPackages.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
 
       - name: Repair Android AAR cache before Sonar restore
         id: repair-before-restore

@@ -45,6 +45,9 @@ namespace TipMolde
 
             builder.Services.AddSingleton<ApiConnectivityService>();
 
+            builder.Services.AddSingleton<AutenticacaoPage>();
+            builder.Services.AddScoped<AutenticacaoViewModel>();
+
             builder.Services.AddSingleton<MainViewModel>();
             builder.Services.AddSingleton<MainPage>();
 

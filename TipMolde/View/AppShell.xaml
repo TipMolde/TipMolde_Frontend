@@ -8,6 +8,10 @@
     Title="TipMolde">
 
     <ShellContent
+    ContentTemplate="{DataTemplate local:AutenticacaoPage}"
+    Route="AutenticacaoPage" />
+
+    <ShellContent
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 
