@@ -19,14 +19,14 @@
                 </Border.GestureRecognizers>
 
                 <HorizontalStackLayout Spacing="14">
-                    <Grid WidthRequest="56"
+                    <Grid WidthRequest="84"
                           HeightRequest="56">
                         <Grid.Clip>
-                            <RoundRectangleGeometry CornerRadius="16"
-                                                    Rect="0,0,56,56" />
+                            <RoundRectangleGeometry CornerRadius="14"
+                                                    Rect="0,0,84,56" />
                         </Grid.Clip>
                         <Image Source="image.png"
-                               Aspect="AspectFill" />
+                               Aspect="AspectFit" />
                     </Grid>
 
                     <VerticalStackLayout Spacing="2"

@@ -16,3 +16,8 @@
 TestResults/
 *.log
 *.tmp
+
+# Local CI/test artifacts
+.dotnet-cli-home/
+.nuget/
+artifacts/

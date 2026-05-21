@@ -7,10 +7,12 @@ on:
     branches: [ "main", "master" ]
 
 env:
+  DOTNET_VERSION: "8.0.414"
   SOLUTION_FILE: "TipMolde.sln"
   PROJECT_FILE: "TipMolde/TipMolde.csproj"
   ANDROID_TFM: "net8.0-android"
   WINDOWS_TFM: "net8.0-windows10.0.19041.0"
+  WINDOWS_RUNTIME_ID: "win10-x64"
   SONAR_PROJECT_KEY: "Gob2005_TipMolde_Frontend"
   SONAR_ORG_KEY: "gob2005"
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
@@ -18,8 +20,8 @@ env:
   DOTNET_NOLOGO: "1"
 
 jobs:
-  build:
-    name: Build MAUI App
+  windows-build:
+    name: Build Windows App
     runs-on: self-hosted
     env:
       DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
@@ -57,7 +59,89 @@ jobs:
           }
           '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
 
-          Write-Host "Temporary global.json created for CI."
+          "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
+
+      - name: Ensure Windows MAUI workload
+        shell: powershell
+        run: |
+          $installed = dotnet workload list | Out-String
+          if ($installed -match '(?m)^\s*maui-windows\s') {
+            Write-Host "maui-windows workload already installed."
+            exit 0
+          }
+
+          dotnet workload install maui-windows --skip-manifest-update
+
+      - name: Publish Windows app
+        run: dotnet publish ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None --output "${{ github.workspace }}\artifacts\Windows"
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: ${{ github.workspace }}\artifacts\Windows
+          if-no-files-found: error
+
+      - name: Cleanup temporary SDK selector
+        if: always() && steps.sdk-selector.outputs.created == 'true'
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+          if (Test-Path $globalJsonPath) {
+            Remove-Item -LiteralPath $globalJsonPath -Force
+          }
+
+  android-build:
+    name: Build Android App
+    runs-on: self-hosted
+    env:
+      DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare .NET directories
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+
+      - name: Select .NET 8 SDK for CI
+        id: sdk-selector
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+
+          if (Test-Path $globalJsonPath) {
+            Write-Host "Repository global.json found. Keeping existing file."
+            "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          @'
+          {
+            "sdk": {
+              "version": "8.0.414",
+              "rollForward": "latestPatch"
+            }
+          }
+          '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
+
           "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Setup Java
@@ -66,83 +150,118 @@ jobs:
           java-version: "17"
           distribution: "zulu"
 
-      - name: Check local .NET SDK
-        shell: powershell
-        run: |
-          dotnet --version
-          dotnet --info
-          dotnet --list-sdks
-          dotnet workload list
-
       - name: Cache NuGet
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
-            nuget-${{ runner.os }}-
+            nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
 
-      - name: Repair cached AndroidX package if needed
+      - name: Repair Android AAR cache before restore
+        id: repair-before-restore
         shell: powershell
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $packageRoot = Join-Path $env:NUGET_PACKAGES 'xamarin.androidx.versionedparcelable\1.1.1.19'
-          $aarFile = Join-Path $packageRoot 'aar\androidx.versionedparcelable.versionedparcelable.aar'
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-          if (-not (Test-Path $aarFile)) {
-            Write-Host "AndroidX cache not present yet."
-            exit 0
-          }
-
-          try {
-            $archive = [System.IO.Compression.ZipFile]::OpenRead($aarFile)
-            $archive.Dispose()
-            Write-Host "AndroidX cache looks healthy."
-          }
-          catch {
-            Write-Warning "Corrupt AndroidX cache detected. Removing package folder."
-            if (Test-Path $packageRoot) {
-              Remove-Item -LiteralPath $packageRoot -Recurse -Force
-            }
-          }
-
-      - name: Ensure required MAUI workloads
+      - name: Ensure Android MAUI workload
         shell: powershell
         run: |
           $installed = dotnet workload list | Out-String
-          $required = @('maui-android', 'maui-windows')
-          $missing = @()
-
-          foreach ($workload in $required) {
-            if ($installed -notmatch "(?m)^\s*$([regex]::Escape($workload))\s") {
-              $missing += $workload
-            }
-          }
-
-          if ($missing.Count -eq 0) {
-            Write-Host "Required workloads already installed."
+          if ($installed -match '(?m)^\s*maui-android\s') {
+            Write-Host "maui-android workload already installed."
             exit 0
           }
 
-          Write-Host "Installing missing workloads: $($missing -join ', ')"
-          dotnet workload install $missing --skip-manifest-update
+          dotnet workload install maui-android --skip-manifest-update
 
-      - name: Restore solution
-        run: dotnet restore ${{ env.SOLUTION_FILE }} --disable-build-servers
+      - name: Restore Android target
+        shell: powershell
+        run: |
+          $restoreArgs = @(
+            '${{ env.PROJECT_FILE }}',
+            '--disable-build-servers',
+            '-p:TargetFramework=${{ env.ANDROID_TFM }}'
+          )
+          if ('${{ steps.repair-before-restore.outputs.removed }}' -eq 'true') {
+            $restoreArgs += '--force'
+          }
 
-      - name: Build Android target
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore
+          dotnet restore @restoreArgs
 
-      - name: Build Windows target
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore
+      - name: Repair Android AAR cache after restore
+        id: repair-after-restore
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Upload build artifacts
+      - name: Restore Android target after cache cleanup
+        if: steps.repair-after-restore.outputs.removed == 'true'
+        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.ANDROID_TFM }} --force
+
+      - name: Import Android keystore
+        id: android-keystore
+        shell: powershell
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_PASSWORD) -or
+              [string]::IsNullOrWhiteSpace($env:ANDROID_KEY_ALIAS)) {
+            Write-Host "Android signing secrets not configured. Building unsigned artifact."
+            "enabled=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          $keystorePath = Join-Path $env:GITHUB_WORKSPACE 'android-signing.keystore'
+          [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+
+          "enabled=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "path=$keystorePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Publish Android app
+        shell: powershell
+        run: |
+          $publishArgs = @(
+            '${{ env.PROJECT_FILE }}',
+            '--configuration', 'Release',
+            '--framework', '${{ env.ANDROID_TFM }}',
+            '--no-restore',
+            '--output', "${{ github.workspace }}\artifacts\Android"
+          )
+
+          if ('${{ steps.android-keystore.outputs.enabled }}' -eq 'true') {
+            $aliasPassword = $env:ANDROID_KEY_ALIAS_PASSWORD
+            if ([string]::IsNullOrWhiteSpace($aliasPassword)) {
+              $aliasPassword = $env:ANDROID_KEYSTORE_PASSWORD
+            }
+
+            $publishArgs += @(
+              '-p:AndroidKeyStore=true',
+              "-p:AndroidSigningKeyStore=${{ steps.android-keystore.outputs.path }}",
+              "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS",
+              "-p:AndroidSigningKeyPass=$aliasPassword",
+              "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
+            )
+          }
+
+          dotnet publish @publishArgs
+
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: maui-build-output
-          path: |
-            TipMolde/bin/Release/**
-          if-no-files-found: warn
+          name: android-build
+          path: ${{ github.workspace }}\artifacts\Android
+          if-no-files-found: error
+
+      - name: Cleanup Android signing file
+        if: always() && steps.android-keystore.outputs.enabled == 'true'
+        shell: powershell
+        run: |
+          $keystorePath = "${{ steps.android-keystore.outputs.path }}"
+          if ($keystorePath -and (Test-Path $keystorePath)) {
+            Remove-Item -LiteralPath $keystorePath -Force
+          }
 
       - name: Cleanup temporary SDK selector
         if: always() && steps.sdk-selector.outputs.created == 'true'
@@ -156,7 +275,7 @@ jobs:
   sonar-analysis:
     name: SonarQube Analysis
     runs-on: self-hosted
-    needs: [ build ]
+    needs: [ windows-build, android-build ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     env:
       DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
@@ -194,7 +313,6 @@ jobs:
           }
           '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
 
-          Write-Host "Temporary global.json created for CI."
           "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Setup Java
@@ -207,33 +325,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NUGET_PACKAGES }}
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
-            nuget-${{ runner.os }}-
+            nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
 
-      - name: Repair cached AndroidX package if needed
+      - name: Repair Android AAR cache before Sonar restore
+        id: repair-before-restore
         shell: powershell
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
-          $packageRoot = Join-Path $env:NUGET_PACKAGES 'xamarin.androidx.versionedparcelable\1.1.1.19'
-          $aarFile = Join-Path $packageRoot 'aar\androidx.versionedparcelable.versionedparcelable.aar'
-
-          if (-not (Test-Path $aarFile)) {
-            Write-Host "AndroidX cache not present yet."
-            exit 0
-          }
-
-          try {
-            $archive = [System.IO.Compression.ZipFile]::OpenRead($aarFile)
-            $archive.Dispose()
-            Write-Host "AndroidX cache looks healthy."
-          }
-          catch {
-            Write-Warning "Corrupt AndroidX cache detected. Removing package folder."
-            if (Test-Path $packageRoot) {
-              Remove-Item -LiteralPath $packageRoot -Recurse -Force
-            }
-          }
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Install Sonar Scanner
         run: dotnet tool update --global dotnet-sonarscanner
@@ -256,7 +357,6 @@ jobs:
             exit 0
           }
 
-          Write-Host "Installing missing workloads: $($missing -join ', ')"
           dotnet workload install $missing --skip-manifest-update
 
       - name: Sonar Begin
@@ -279,8 +379,33 @@ jobs:
             "/d:sonar.host.url=$env:SONAR_HOST_URL" `
             "/d:sonar.token=$env:SONAR_TOKEN"
 
-      - name: Restore for Sonar
-        run: dotnet restore ${{ env.SOLUTION_FILE }} --disable-build-servers
+      - name: Restore Android target for Sonar
+        shell: powershell
+        run: |
+          $restoreArgs = @(
+            '${{ env.PROJECT_FILE }}',
+            '--disable-build-servers',
+            '-p:TargetFramework=${{ env.ANDROID_TFM }}'
+          )
+          if ('${{ steps.repair-before-restore.outputs.removed }}' -eq 'true') {
+            $restoreArgs += '--force'
+          }
+
+          dotnet restore @restoreArgs
+
+      - name: Restore Windows target for Sonar
+        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.WINDOWS_TFM }}
+
+      - name: Repair Android AAR cache after Sonar restore
+        id: repair-after-restore
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Restore Android target for Sonar after cache cleanup
+        if: steps.repair-after-restore.outputs.removed == 'true'
+        run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.ANDROID_TFM }} --force
 
       - name: Build Android for Sonar
         run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore --disable-build-servers
