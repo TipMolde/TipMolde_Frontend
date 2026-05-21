@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TipMolde.View.Utilizadores"
+             x:Name="PaginaUtilizadores"
              xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
              xmlns:shared="clr-namespace:TipMolde.View.Shared"
              BackgroundColor="{StaticResource Surface}">
@@ -15,12 +16,56 @@
               BackgroundColor="{StaticResource Surface}">
 
             <shared:TopBarView Grid.Row="0"
-               TitleText="Gestão Utilizadores"
-               UserNameText="Ricardo Magalhaes" />
+                               TitleText="Gestão Utilizadores"
+                               UserNameText="Ricardo Magalhães" />
 
             <ScrollView Grid.Row="1">
                 <VerticalStackLayout Padding="28"
                                      Spacing="20">
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Pesquisar utilizadores"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                  ColumnSpacing="12">
+
+                                <SearchBar Grid.Column="0"
+                                           Placeholder="Pesquisar por nome"
+                                           Text="{Binding SearchTerm}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           SearchCommand="{Binding PesquisarCommand}" />
+
+                                <Button Grid.Column="1"
+                                        Text="Pesquisar"
+                                        Command="{Binding PesquisarCommand}"
+                                        HeightRequest="44" />
+
+                                <Button Grid.Column="2"
+                                        Text="Limpar"
+                                        Command="{Binding LimparPesquisaCommand}"
+                                        IsEnabled="{Binding HasSearch}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="44" />
+                            </Grid>
+
+                            <Label Text="{Binding ErrorMessage}"
+                                   IsVisible="{Binding HasError}"
+                                   TextColor="{StaticResource Danger}"
+                                   FontSize="13" />
+                        </VerticalStackLayout>
+                    </Border>
 
                     <ActivityIndicator IsRunning="{Binding IsLoading}"
                                        IsVisible="{Binding IsLoading}"
@@ -89,7 +134,7 @@
                                                              Spacing="10"
                                                              VerticalOptions="Center">
                                             <Button Text="Editar cargo"
-                                                    Clicked="OnEditRoleClicked"
+                                                    Command="{Binding BindingContext.EditarCargoCommand, Source={x:Reference Name=PaginaUtilizadores}}"
                                                     CommandParameter="{Binding .}"
                                                     BackgroundColor="#E2E8F0"
                                                     TextColor="#0F172A"
@@ -97,7 +142,7 @@
                                                     HeightRequest="44" />
 
                                             <Button Text="Repor password"
-                                                    Clicked="OnResetPasswordClicked"
+                                                    Command="{Binding BindingContext.ReporPasswordCommand, Source={x:Reference Name=PaginaUtilizadores}}"
                                                     CommandParameter="{Binding .}"
                                                     BackgroundColor="#0F172A"
                                                     TextColor="White"
@@ -105,17 +150,19 @@
                                                     HeightRequest="44" />
                                         </VerticalStackLayout>
 
-                                        <Grid Grid.Column="2"
-                                              WidthRequest="18"
-                                              VerticalOptions="Center">
-                                            <VerticalStackLayout Spacing="5"
-                                                                 HorizontalOptions="Center"
-                                                                 VerticalOptions="Center">
-                                                <BoxView WidthRequest="4" HeightRequest="4" CornerRadius="2" Color="#94A3B8" />
-                                                <BoxView WidthRequest="4" HeightRequest="4" CornerRadius="2" Color="#94A3B8" />
-                                                <BoxView WidthRequest="4" HeightRequest="4" CornerRadius="2" Color="#94A3B8" />
-                                            </VerticalStackLayout>
-                                        </Grid>
+                                        <Button Grid.Column="2"
+                                            Text="⋮"
+                                            Command="{Binding BindingContext.AbrirOpcoesCommand, Source={x:Reference Name=PaginaUtilizadores}}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="Transparent"
+                                            TextColor="#94A3B8"
+                                            FontSize="24"
+                                            WidthRequest="36"
+                                            HeightRequest="36"
+                                            Padding="0"
+                                            BorderWidth="0"
+                                            VerticalOptions="Center"
+                                            HorizontalOptions="Center" />
                                     </Grid>
                                 </Border>
                             </DataTemplate>

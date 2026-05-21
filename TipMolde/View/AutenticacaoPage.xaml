@@ -58,32 +58,6 @@
                                        FontSize="32"
                                        TextColor="White"
                                        LineBreakMode="WordWrap" />
-
-                                <HorizontalStackLayout Spacing="10">
-                                    <Border BackgroundColor="#FFFFFF1C"
-                                            StrokeThickness="0"
-                                            Padding="14,10">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="18" />
-                                        </Border.StrokeShape>
-                                        <Label Text="Validacao de utilizadores"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="13"
-                                               TextColor="White" />
-                                    </Border>
-
-                                    <Border BackgroundColor="#FFFFFF1C"
-                                            StrokeThickness="0"
-                                            Padding="14,10">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="18" />
-                                        </Border.StrokeShape>
-                                        <Label Text="Ligacao a API no login"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="13"
-                                               TextColor="White" />
-                                    </Border>
-                                </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Border>
 
@@ -110,95 +84,118 @@
                                 </Border.StrokeShape>
 
                                 <VerticalStackLayout Spacing="18">
+                                    <Border IsVisible="{Binding HasError}"
+            BackgroundColor="#FEF2F2"
+            Stroke="{StaticResource Danger}"
+            StrokeThickness="1"
+            Padding="16">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="22" />
+                                        </Border.StrokeShape>
+                                        <Border.Shadow>
+                                            <Shadow Brush="#220F172A"
+                    Offset="0,8"
+                    Radius="18"
+                    Opacity="0.18" />
+                                        </Border.Shadow>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+              ColumnSpacing="12">
+                                            <Border BackgroundColor="#FEE2E2"
+                    StrokeThickness="0"
+                    WidthRequest="36"
+                    HeightRequest="36">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="18" />
+                                                </Border.StrokeShape>
+                                                <Label Text="!"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       FontFamily="OpenSansSemibold"
+                       FontSize="18"
+                       TextColor="{StaticResource Danger}" />
+                                            </Border>
+
+                                            <VerticalStackLayout Grid.Column="1"
+                                 Spacing="4">
+                                                <Label Text="{Binding ErrorTitle}"
+                       FontFamily="OpenSansSemibold"
+                       FontSize="15"
+                       TextColor="{StaticResource Danger}" />
+                                                <Label Text="{Binding ErrorMessage}"
+                       FontSize="13"
+                       TextColor="{StaticResource TextPrimary}"
+                       LineBreakMode="WordWrap" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
                                     <VerticalStackLayout Spacing="6">
                                         <Label Text="Iniciar sessao"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="28"
-                                               TextColor="{StaticResource TextPrimary}" />
+               FontFamily="OpenSansSemibold"
+               FontSize="28"
+               TextColor="{StaticResource TextPrimary}" />
                                         <Label Text="Introduza os seus dados para validar a ligacao."
-                                               FontSize="14"
-                                               TextColor="{StaticResource TextSecondary}"
-                                               LineBreakMode="WordWrap" />
+               FontSize="14"
+               TextColor="{StaticResource TextSecondary}"
+               LineBreakMode="WordWrap" />
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Spacing="8">
                                         <Label Text="Email ou utilizador"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="14" />
+               FontFamily="OpenSansSemibold"
+               FontSize="14" />
                                         <Border BackgroundColor="{StaticResource Surface}"
-                                                Stroke="{StaticResource CardBorderBrush}"
-                                                StrokeThickness="1"
-                                                Padding="16,8">
+                Stroke="{StaticResource CardBorderBrush}"
+                StrokeThickness="1"
+                Padding="16,8">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="20" />
                                             </Border.StrokeShape>
                                             <Entry x:Name="UtilizadorEntry"
-                                                   Placeholder="exemplo@tipmolde.pt"
-                                                   TextColor="{StaticResource TextPrimary}"
-                                                   PlaceholderColor="{StaticResource TextSecondary}"
-                                                   ClearButtonVisibility="WhileEditing" />
+                   Placeholder="exemplo@tipmolde.pt"
+                   Text="{Binding Email}"
+                   TextColor="{StaticResource TextPrimary}"
+                   PlaceholderColor="{StaticResource TextSecondary}"
+                   ClearButtonVisibility="WhileEditing" />
                                         </Border>
                                     </VerticalStackLayout>
 
                                     <VerticalStackLayout Spacing="8">
                                         <Label Text="Palavra-passe"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="14" />
+               FontFamily="OpenSansSemibold"
+               FontSize="14" />
                                         <Border BackgroundColor="{StaticResource Surface}"
-                                                Stroke="{StaticResource CardBorderBrush}"
-                                                StrokeThickness="1"
-                                                Padding="16,8">
+                Stroke="{StaticResource CardBorderBrush}"
+                StrokeThickness="1"
+                Padding="16,8">
                                             <Border.StrokeShape>
                                                 <RoundRectangle CornerRadius="20" />
                                             </Border.StrokeShape>
                                             <Entry x:Name="PasswordEntry"
-                                                   Placeholder="Introduza a sua palavra-passe"
-                                                   TextColor="{StaticResource TextPrimary}"
-                                                   PlaceholderColor="{StaticResource TextSecondary}"
-                                                   IsPassword="True" />
+                   Placeholder="Introduza a sua palavra-passe"
+                   Text="{Binding Password}"
+                   TextColor="{StaticResource TextPrimary}"
+                   PlaceholderColor="{StaticResource TextSecondary}"
+                   IsPassword="True" />
                                         </Border>
                                     </VerticalStackLayout>
 
                                     <Grid ColumnDefinitions="Auto,*"
-                                          ColumnSpacing="12">
-                                        <CheckBox />
+          ColumnSpacing="12">
+                                        <CheckBox IsChecked="{Binding RememberSession}" />
                                         <Label Grid.Column="1"
-                                               Text="Manter sessao iniciada neste dispositivo"
-                                               VerticalTextAlignment="Center"
-                                               TextColor="{StaticResource TextSecondary}" />
+               Text="Manter sessao iniciada neste dispositivo"
+               VerticalTextAlignment="Center"
+               TextColor="{StaticResource TextSecondary}" />
                                     </Grid>
 
                                     <Button Text="Entrar"
-                                            Command="{Binding LoginCommand}" />
+            Command="{Binding LoginCommand}" />
 
-                                    <Border BackgroundColor="{StaticResource Surface}"
-                                            Stroke="{StaticResource CardBorderBrush}"
-                                            StrokeThickness="1"
-                                            Padding="16">
-                                        <Border.StrokeShape>
-                                            <RoundRectangle CornerRadius="22" />
-                                        </Border.StrokeShape>
-
-                                        <VerticalStackLayout Spacing="8">
-                                            <Label Text="Estado da API"
-                                                   FontFamily="OpenSansSemibold"
-                                                   FontSize="15" />
-                                            <Label Text="{Binding StatusMessage}"
-                                                   FontFamily="OpenSansSemibold"
-                                                   FontSize="14" />
-                                            <Label Text="{Binding DetailsMessage}"
-                                                   FontSize="13"
-                                                   TextColor="{StaticResource TextSecondary}"
-                                                   LineBreakMode="WordWrap" />
-                                            <Label Text="{Binding EndpointMessage}"
-                                                   FontSize="12"
-                                                   TextColor="{StaticResource TextSecondary}"
-                                                   LineBreakMode="WordWrap" />
-                                            <ActivityIndicator IsVisible="{Binding IsBusy}"
-                                                               IsRunning="{Binding IsBusy}"
-                                                               HorizontalOptions="Start" />
-                                        </VerticalStackLayout>
-                                    </Border>
+                                    <ActivityIndicator IsVisible="{Binding IsBusy}"
+                       IsRunning="{Binding IsBusy}"
+                       HorizontalOptions="Center" />
                                 </VerticalStackLayout>
                             </Border>
                         </Grid>

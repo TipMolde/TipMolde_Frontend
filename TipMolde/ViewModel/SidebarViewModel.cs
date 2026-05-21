@@ -1,14 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
 public partial class SidebarViewModel : ObservableObject
 {
-	public SidebarViewModel()
-	{
-	}
+    public SidebarViewModel()
+    {
+    }
 
     [RelayCommand]
     private async Task OpenDashboardAsync()

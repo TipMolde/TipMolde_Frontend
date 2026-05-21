@@ -4,7 +4,7 @@ namespace TipMolde.ViewModel;
 
 public class ClientesViewModel : ObservableObject
 {
-	public ClientesViewModel()
-	{
-	}
+    public ClientesViewModel()
+    {
+    }
 }

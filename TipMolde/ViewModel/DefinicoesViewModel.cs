@@ -4,7 +4,7 @@ namespace TipMolde.ViewModel;
 
 public class DefinicoesViewModel : ObservableObject
 {
-	public DefinicoesViewModel()
-	{
-	}
+    public DefinicoesViewModel()
+    {
+    }
 }

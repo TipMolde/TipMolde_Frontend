@@ -4,7 +4,7 @@ namespace TipMolde.ViewModel;
 
 public class ProducaoViewModel : ObservableObject
 {
-	public ProducaoViewModel()
-	{
-	}
+    public ProducaoViewModel()
+    {
+    }
 }

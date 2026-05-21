@@ -1,3 +1,5 @@
+using TipMolde.Services;
+
 namespace TipMolde.View.Shared;
 
 public partial class TopBarView : ContentView
@@ -41,6 +43,12 @@ public partial class TopBarView : ContentView
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
+        if (Handler?.MauiContext?.Services.GetService(typeof(SessaoPersistidaService))
+            is SessaoPersistidaService sessaoPersistidaService)
+        {
+            await sessaoPersistidaService.ClearSessionAsync();
+        }
+
         await Shell.Current.GoToAsync("//AutenticacaoPage");
     }
 
