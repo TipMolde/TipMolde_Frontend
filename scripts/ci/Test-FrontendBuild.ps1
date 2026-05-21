@@ -11,10 +11,14 @@ Set-Location $repoRoot
 
 $env:DOTNET_CLI_HOME = Join-Path $repoRoot '.dotnet-cli-home'
 $env:NUGET_PACKAGES = Join-Path $repoRoot '.nuget\packages'
+$env:NUGET_HTTP_CACHE_PATH = Join-Path $repoRoot '.nuget\http-cache'
+$env:NUGET_SCRATCH = Join-Path $repoRoot '.nuget\scratch'
 $windowsRuntimeId = 'win10-x64'
 
 New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
 New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
 $temporaryGlobalJson = Join-Path $repoRoot 'global.json'
 $createdTemporaryGlobalJson = $false
@@ -33,6 +37,8 @@ if (-not (Test-Path $temporaryGlobalJson)) {
 
 try {
     if ($Target -eq 'android') {
+        dotnet nuget locals http-cache --clear
+        dotnet nuget locals temp --clear
         & (Join-Path $PSScriptRoot 'Clear-AndroidAarPackages.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null
         & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES | Out-Null
         dotnet workload install maui-android --skip-manifest-update

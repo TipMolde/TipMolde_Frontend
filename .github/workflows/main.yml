@@ -26,6 +26,8 @@ jobs:
     env:
       DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      NUGET_HTTP_CACHE_PATH: ${{ github.workspace }}\.nuget\http-cache
+      NUGET_SCRATCH: ${{ github.workspace }}\.nuget\scratch
 
     steps:
       - uses: actions/checkout@v4
@@ -37,6 +39,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
@@ -105,6 +109,8 @@ jobs:
     env:
       DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      NUGET_HTTP_CACHE_PATH: ${{ github.workspace }}\.nuget\http-cache
+      NUGET_SCRATCH: ${{ github.workspace }}\.nuget\scratch
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -120,6 +126,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
@@ -157,6 +165,12 @@ jobs:
           key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
+
+      - name: Clear NuGet HTTP and temp caches
+        shell: powershell
+        run: |
+          dotnet nuget locals http-cache --clear
+          dotnet nuget locals temp --clear
 
       - name: Reset Android AAR package cache
         shell: powershell
@@ -285,6 +299,8 @@ jobs:
     env:
       DOTNET_CLI_HOME: ${{ github.workspace }}\.dotnet-cli-home
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+      NUGET_HTTP_CACHE_PATH: ${{ github.workspace }}\.nuget\http-cache
+      NUGET_SCRATCH: ${{ github.workspace }}\.nuget\scratch
 
     steps:
       - uses: actions/checkout@v4
@@ -296,6 +312,8 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
           New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
 
       - name: Select .NET 8 SDK for CI
         id: sdk-selector
@@ -333,6 +351,12 @@ jobs:
           key: nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             nuget-${{ runner.os }}-frontend-${{ env.DOTNET_VERSION }}-
+
+      - name: Clear NuGet HTTP and temp caches before Sonar
+        shell: powershell
+        run: |
+          dotnet nuget locals http-cache --clear
+          dotnet nuget locals temp --clear
 
       - name: Reset Android AAR package cache before Sonar
         shell: powershell

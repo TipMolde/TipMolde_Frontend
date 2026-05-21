@@ -2,31 +2,205 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TipMolde.View.AutenticacaoPage"
-             Title="AutenticacaoPage">
-    <VerticalStackLayout>
-        <Border BackgroundColor="Transparent"
-        StrokeThickness="0"
-        Padding="12,12">
-            <Border.GestureRecognizers>
-                <TapGestureRecognizer Command="{Binding LoginCommand}" />
-            </Border.GestureRecognizers>
-            <HorizontalStackLayout Spacing="12">
-                <Border Background="#1E293B"
-                StrokeThickness="0"
-                Padding="10,6">
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid BackgroundColor="{StaticResource Surface}">
+        <ScrollView>
+            <VerticalStackLayout Padding="24"
+                                 Spacing="0">
+
+                <Border HorizontalOptions="Center"
+                        MaximumWidthRequest="1120"
+                        BackgroundColor="White"
+                        Stroke="{StaticResource CardBorderBrush}"
+                        StrokeThickness="1"
+                        Padding="0">
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="12" />
+                        <RoundRectangle CornerRadius="32" />
                     </Border.StrokeShape>
-                    <Label Text="U"
-                   FontFamily="OpenSansSemibold"
-                   TextColor="White" />
+
+                    <Grid ColumnSpacing="0"
+                          RowSpacing="0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Row="0"
+                                Background="{StaticResource BrandGradientBrush}"
+                                StrokeThickness="0"
+                                Padding="28">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="32,32,0,0" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="18">
+                                <HorizontalStackLayout Spacing="12">
+                                    <Grid WidthRequest="100"
+                                        HeightRequest="75">
+                                        <Grid.Clip>
+                                            <RoundRectangleGeometry CornerRadius="13"
+                                                Rect="0,0,100,75" />
+                                        </Grid.Clip>
+                                        <Image Source="image.png"
+                                            Aspect="AspectFit" />
+                                    </Grid>
+                                </HorizontalStackLayout>
+
+                                <Label Text="Inicie sessao e valide o acesso logo no arranque da aplicacao."
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="32"
+                                       TextColor="White"
+                                       LineBreakMode="WordWrap" />
+
+                                <HorizontalStackLayout Spacing="10">
+                                    <Border BackgroundColor="#FFFFFF1C"
+                                            StrokeThickness="0"
+                                            Padding="14,10">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="Validacao de utilizadores"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="White" />
+                                    </Border>
+
+                                    <Border BackgroundColor="#FFFFFF1C"
+                                            StrokeThickness="0"
+                                            Padding="14,10">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="Ligacao a API no login"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="White" />
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Grid Grid.Row="1"
+                              Padding="28"
+                              ColumnSpacing="24"
+                              RowSpacing="24">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Row="0"
+                                    BackgroundColor="White"
+                                    Stroke="{StaticResource CardBorderBrush}"
+                                    StrokeThickness="1"
+                                    Padding="24">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="28" />
+                                </Border.StrokeShape>
+
+                                <VerticalStackLayout Spacing="18">
+                                    <VerticalStackLayout Spacing="6">
+                                        <Label Text="Iniciar sessao"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="28"
+                                               TextColor="{StaticResource TextPrimary}" />
+                                        <Label Text="Introduza os seus dados para validar a ligacao."
+                                               FontSize="14"
+                                               TextColor="{StaticResource TextSecondary}"
+                                               LineBreakMode="WordWrap" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Email ou utilizador"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="14" />
+                                        <Border BackgroundColor="{StaticResource Surface}"
+                                                Stroke="{StaticResource CardBorderBrush}"
+                                                StrokeThickness="1"
+                                                Padding="16,8">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="20" />
+                                            </Border.StrokeShape>
+                                            <Entry x:Name="UtilizadorEntry"
+                                                   Placeholder="exemplo@tipmolde.pt"
+                                                   ClearButtonVisibility="WhileEditing" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Palavra-passe"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="14" />
+                                        <Border BackgroundColor="{StaticResource Surface}"
+                                                Stroke="{StaticResource CardBorderBrush}"
+                                                StrokeThickness="1"
+                                                Padding="16,8">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="20" />
+                                            </Border.StrokeShape>
+                                            <Entry x:Name="PasswordEntry"
+                                                   Placeholder="Introduza a sua palavra-passe"
+                                                   IsPassword="True" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <Grid ColumnDefinitions="Auto,*"
+                                          ColumnSpacing="12">
+                                        <CheckBox />
+                                        <Label Grid.Column="1"
+                                               Text="Manter sessao iniciada neste dispositivo"
+                                               VerticalTextAlignment="Center"
+                                               TextColor="{StaticResource TextSecondary}" />
+                                    </Grid>
+
+                                    <Button Text="Entrar"
+                                            Command="{Binding LoginCommand}" />
+
+                                    <Border BackgroundColor="{StaticResource Surface}"
+                                            Stroke="{StaticResource CardBorderBrush}"
+                                            StrokeThickness="1"
+                                            Padding="16">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="22" />
+                                        </Border.StrokeShape>
+
+                                        <VerticalStackLayout Spacing="8">
+                                            <Label Text="Estado da API"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="15" />
+                                            <Label Text="{Binding StatusMessage}"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="14" />
+                                            <Label Text="{Binding DetailsMessage}"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextSecondary}"
+                                                   LineBreakMode="WordWrap" />
+                                            <Label Text="{Binding EndpointMessage}"
+                                                   FontSize="12"
+                                                   TextColor="{StaticResource TextSecondary}"
+                                                   LineBreakMode="WordWrap" />
+                                            <ActivityIndicator IsVisible="{Binding IsBusy}"
+                                                               IsRunning="{Binding IsBusy}"
+                                                               HorizontalOptions="Start" />
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </VerticalStackLayout>
+                            </Border>
+                        </Grid>
+                    </Grid>
                 </Border>
-                <Label Text="Login"
-                       FontFamily="OpenSansSemibold"
-                       FontSize="18"
-                       VerticalOptions="Center"
-                       TextColor="#E2E8F0" />
-            </HorizontalStackLayout>
-        </Border>
-    </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

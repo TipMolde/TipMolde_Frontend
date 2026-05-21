@@ -268,33 +268,6 @@
                             <Border.StrokeShape>
                                 <RoundRectangle CornerRadius="26" />
                             </Border.StrokeShape>
-                            <VerticalStackLayout Spacing="10">
-                                <Label Text="Ligação ao backend"
-                                       FontFamily="OpenSansSemibold"
-                                       FontSize="{OnIdiom Phone='20', Desktop='24'}" />
-
-                                <Label Text="{Binding StatusMessage}"
-                                       FontFamily="OpenSansSemibold"
-                                       FontSize="18" />
-
-                                <Label Text="{Binding DetailsMessage}"
-                                       FontSize="14"
-                                       TextColor="{StaticResource TextSecondary}"
-                                       LineBreakMode="WordWrap" />
-
-                                <Label Text="{Binding EndpointMessage}"
-                                       FontSize="13"
-                                       TextColor="{StaticResource TextSecondary}" />
-
-                                <ActivityIndicator IsRunning="{Binding IsBusy}"
-                                                   IsVisible="{Binding IsBusy}"
-                                                   HorizontalOptions="Start" />
-
-                                <Button Text="Testar ligação"
-                                        Command="{Binding TestConnectionCommand}"
-                                        IsEnabled="{Binding CanTestConnection}"
-                                        HorizontalOptions="Fill" />
-                            </VerticalStackLayout>
                         </Border>
                     </VerticalStackLayout>
 

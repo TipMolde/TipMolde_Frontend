@@ -7,11 +7,11 @@ public partial class Utilizadores : ContentPage
 {
     private readonly UtilizadoresViewModel _viewModel;
     public Utilizadores(UtilizadoresViewModel vm)
-	{
-		InitializeComponent();
-		_viewModel = vm;
-		BindingContext = vm;
-	}
+    {
+        InitializeComponent();
+        _viewModel = vm;
+        BindingContext = vm;
+    }
     protected override async void OnAppearing()
     {
         base.OnAppearing();
