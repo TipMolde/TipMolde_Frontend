@@ -64,7 +64,16 @@ try {
         else {
             Write-Host "Workload(s) 'maui-android' are already installed."
         }
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-android --disable-build-servers --force --disable-parallel
+        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
+        $removed = & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES
+        if ($removed -eq 'true') {
+            dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
+            $removed = & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES
+            if ($removed -eq 'true') {
+                throw 'Android AAR cache is still corrupt after restore retry.'
+            }
+        }
+        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-android --disable-build-servers --disable-parallel --no-restore
     }
     else {
         dotnet build-server shutdown
@@ -93,7 +102,8 @@ try {
         else {
             Write-Host "Workload(s) 'maui-windows' are already installed."
         }
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-windows10.0.19041.0 --disable-build-servers --force --disable-parallel
+        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
+        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-windows10.0.19041.0 --disable-build-servers --disable-parallel --no-restore
     }
 }
 finally {

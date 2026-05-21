@@ -35,7 +35,7 @@ namespace TipMolde
                     Timeout = TimeSpan.FromSeconds(15)
                 };
 
-                const string jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzMDIiLCJlbWFpbCI6InVzZXIzMDJAdGlwbW9sZGUudGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InVzZXIzMDJAdGlwbW9sZGUudGVzdCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFETUlOIiwianRpIjoiNWFhNjYxZTAtZGVmOC00MDQ1LTk5MjEtOWRmNDVmNzhlMTJmIiwiZXhwIjoxNzc5MzExODc4LCJpc3MiOiJUaXBNb2xkZS5BcGkiLCJhdWQiOiJUaXBNb2xkZS5DbGllbnQifQ.YH1hyFPBHemGtfuZCMIMbSmJf3UxqAcJKL0QpuVj8Tg";
+                const string jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDEiLCJlbWFpbCI6InVzZXIxMDFAdGlwbW9sZGUudGVzdCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6InVzZXIxMDFAdGlwbW9sZGUudGVzdCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFETUlOIiwianRpIjoiYTVjNTFiMjItZGQ1OC00MDFhLTkzMGUtNzcwMzdlOGJkZWM4IiwiZXhwIjoxNzc5NDA2MjM5LCJpc3MiOiJUaXBNb2xkZS5BcGkiLCJhdWQiOiJUaXBNb2xkZS5DbGllbnQifQ.zW2tg4c4ro520vS4JTTYVtyYVDlUfTr8HRxCqj5XsEA";
 
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", jwtToken);

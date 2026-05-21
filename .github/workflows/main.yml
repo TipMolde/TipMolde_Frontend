@@ -239,20 +239,34 @@ jobs:
 
           dotnet workload install maui-android --skip-manifest-update
 
-      - name: Build Android target
+      - name: Restore Android dependencies
         shell: powershell
         run: |
-          $buildArgs = @(
-            '${{ env.PROJECT_FILE }}',
-            '--configuration', 'Release',
-            '--framework', '${{ env.ANDROID_TFM }}',
-            '--disable-build-servers',
-            '--disable-parallel'
-          )
+          dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
 
-          $buildArgs += '--force'
+      - name: Repair Android AAR cache after restore
+        id: repair-after-restore
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-          dotnet build @buildArgs
+      - name: Restore Android dependencies after cache cleanup
+        if: steps.repair-after-restore.outputs.removed == 'true'
+        shell: powershell
+        run: |
+          dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
+
+      - name: Validate Android AAR cache after retry
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          if ($removed -eq 'true') {
+            throw 'Android AAR cache is still corrupt after restore retry.'
+          }
+
+      - name: Build Android target
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --disable-build-servers --disable-parallel --no-restore
 
       # Future release signing and packaging:
       # - name: Import Android keystore
@@ -469,22 +483,37 @@ jobs:
             "/d:sonar.host.url=$env:SONAR_HOST_URL" `
             "/d:sonar.token=$env:SONAR_TOKEN"
 
-      - name: Build Android for Sonar
+      - name: Restore dependencies for Sonar
         shell: powershell
         run: |
-          $buildArgs = @(
-            '${{ env.PROJECT_FILE }}',
-            '--configuration', 'Release',
-            '--framework', '${{ env.ANDROID_TFM }}',
-            '--disable-build-servers',
-            '--disable-parallel',
-            '--force'
-          )
+          dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
 
-          dotnet build @buildArgs
+      - name: Repair Android AAR cache after Sonar restore
+        id: repair-after-restore
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Restore dependencies for Sonar after cache cleanup
+        if: steps.repair-after-restore.outputs.removed == 'true'
+        shell: powershell
+        run: |
+          dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
+
+      - name: Validate Android AAR cache after Sonar retry
+        shell: powershell
+        run: |
+          $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
+          if ($removed -eq 'true') {
+            throw 'Android AAR cache is still corrupt after Sonar restore retry.'
+          }
+
+      - name: Build Android for Sonar
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --disable-build-servers --disable-parallel --no-restore
 
       - name: Build Windows for Sonar
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --force
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --no-restore
 
       - name: Sonar End
         shell: powershell
