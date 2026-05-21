@@ -84,15 +84,19 @@ jobs:
 
           dotnet workload install maui-windows --skip-manifest-update
 
-      - name: Publish Windows app
-        run: dotnet publish ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None --output "${{ github.workspace }}\artifacts\Windows"
+      - name: Build Windows target
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --no-restore
 
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: ${{ github.workspace }}\artifacts\Windows
-          if-no-files-found: error
+      # Future release packaging:
+      # - name: Publish Windows app
+      #   run: dotnet publish ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None --output "${{ github.workspace }}\artifacts\Windows"
+      #
+      # - name: Upload Windows artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: windows-build
+      #     path: ${{ github.workspace }}\artifacts\Windows
+      #     if-no-files-found: error
 
       - name: Cleanup temporary SDK selector
         if: always() && steps.sdk-selector.outputs.created == 'true'
@@ -111,10 +115,11 @@ jobs:
       NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
       NUGET_HTTP_CACHE_PATH: ${{ github.workspace }}\.nuget\http-cache
       NUGET_SCRATCH: ${{ github.workspace }}\.nuget\scratch
-      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
+      # Future release signing:
+      # ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      # ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      # ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      # ANDROID_KEY_ALIAS_PASSWORD: ${{ secrets.ANDROID_KEY_ALIAS_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -220,67 +225,71 @@ jobs:
         if: steps.repair-after-restore.outputs.removed == 'true'
         run: dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers -p:TargetFramework=${{ env.ANDROID_TFM }} --force
 
-      - name: Import Android keystore
-        id: android-keystore
-        shell: powershell
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64) -or
-              [string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_PASSWORD) -or
-              [string]::IsNullOrWhiteSpace($env:ANDROID_KEY_ALIAS)) {
-            Write-Host "Android signing secrets not configured. Building unsigned artifact."
-            "enabled=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-            exit 0
-          }
+      - name: Build Android target
+        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --no-restore
 
-          $keystorePath = Join-Path $env:GITHUB_WORKSPACE 'android-signing.keystore'
-          [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
-
-          "enabled=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "path=$keystorePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-
-      - name: Publish Android app
-        shell: powershell
-        run: |
-          $publishArgs = @(
-            '${{ env.PROJECT_FILE }}',
-            '--configuration', 'Release',
-            '--framework', '${{ env.ANDROID_TFM }}',
-            '--no-restore',
-            '--output', "${{ github.workspace }}\artifacts\Android"
-          )
-
-          if ('${{ steps.android-keystore.outputs.enabled }}' -eq 'true') {
-            $aliasPassword = $env:ANDROID_KEY_ALIAS_PASSWORD
-            if ([string]::IsNullOrWhiteSpace($aliasPassword)) {
-              $aliasPassword = $env:ANDROID_KEYSTORE_PASSWORD
-            }
-
-            $publishArgs += @(
-              '-p:AndroidKeyStore=true',
-              "-p:AndroidSigningKeyStore=${{ steps.android-keystore.outputs.path }}",
-              "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS",
-              "-p:AndroidSigningKeyPass=$aliasPassword",
-              "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
-            )
-          }
-
-          dotnet publish @publishArgs
-
-      - name: Upload Android artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-build
-          path: ${{ github.workspace }}\artifacts\Android
-          if-no-files-found: error
-
-      - name: Cleanup Android signing file
-        if: always() && steps.android-keystore.outputs.enabled == 'true'
-        shell: powershell
-        run: |
-          $keystorePath = "${{ steps.android-keystore.outputs.path }}"
-          if ($keystorePath -and (Test-Path $keystorePath)) {
-            Remove-Item -LiteralPath $keystorePath -Force
-          }
+      # Future release signing and packaging:
+      # - name: Import Android keystore
+      #   id: android-keystore
+      #   shell: powershell
+      #   run: |
+      #     if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64) -or
+      #         [string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_PASSWORD) -or
+      #         [string]::IsNullOrWhiteSpace($env:ANDROID_KEY_ALIAS)) {
+      #       Write-Host "Android signing secrets not configured. Building unsigned artifact."
+      #       "enabled=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      #       exit 0
+      #     }
+      #
+      #     $keystorePath = Join-Path $env:GITHUB_WORKSPACE 'android-signing.keystore'
+      #     [System.IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+      #
+      #     "enabled=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      #     "path=$keystorePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      #
+      # - name: Publish Android app
+      #   shell: powershell
+      #   run: |
+      #     $publishArgs = @(
+      #       '${{ env.PROJECT_FILE }}',
+      #       '--configuration', 'Release',
+      #       '--framework', '${{ env.ANDROID_TFM }}',
+      #       '--no-restore',
+      #       '--output', "${{ github.workspace }}\artifacts\Android"
+      #     )
+      #
+      #     if ('${{ steps.android-keystore.outputs.enabled }}' -eq 'true') {
+      #       $aliasPassword = $env:ANDROID_KEY_ALIAS_PASSWORD
+      #       if ([string]::IsNullOrWhiteSpace($aliasPassword)) {
+      #         $aliasPassword = $env:ANDROID_KEYSTORE_PASSWORD
+      #       }
+      #
+      #       $publishArgs += @(
+      #         '-p:AndroidKeyStore=true',
+      #         "-p:AndroidSigningKeyStore=${{ steps.android-keystore.outputs.path }}",
+      #         "-p:AndroidSigningKeyAlias=$env:ANDROID_KEY_ALIAS",
+      #         "-p:AndroidSigningKeyPass=$aliasPassword",
+      #         "-p:AndroidSigningStorePass=$env:ANDROID_KEYSTORE_PASSWORD"
+      #       )
+      #     }
+      #
+      #     dotnet publish @publishArgs
+      #
+      # - name: Upload Android artifacts
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: android-build
+      #     path: ${{ github.workspace }}\artifacts\Android
+      #     if-no-files-found: error
+      #
+      # - name: Cleanup Android signing file
+      #   if: always() && steps.android-keystore.outputs.enabled == 'true'
+      #   shell: powershell
+      #   run: |
+      #     $keystorePath = "${{ steps.android-keystore.outputs.path }}"
+      #     if ($keystorePath -and (Test-Path $keystorePath)) {
+      #       Remove-Item -LiteralPath $keystorePath -Force
+      #     }
 
       - name: Cleanup temporary SDK selector
         if: always() && steps.sdk-selector.outputs.created == 'true'
