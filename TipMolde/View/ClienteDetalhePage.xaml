@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             x:Class="TipMolde.View.ClienteDetalhePage"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{StaticResource Surface}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Detalhe do Cliente" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="28,22,28,18"
+                                     Spacing="18">
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="24">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Button Text="Voltar"
+                                    Command="{Binding VoltarCommand}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HorizontalOptions="Start"
+                                    HeightRequest="42" />
+
+                            <Label Text="{Binding Nome}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="28"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto,Auto"
+                                  ColumnSpacing="18"
+                                  RowSpacing="12">
+
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Sigla"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding SiglaDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Pais"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding PaisDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Email"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding EmailDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Telefone"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding TelefoneDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="2"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="NIF"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NifDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Label Text="Encomendas deste cliente"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="20"
+                           TextColor="{StaticResource TextPrimary}" />
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Pesquisar e filtrar encomendas"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="16"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Grid ColumnDefinitions="*,170,Auto"
+                                  ColumnSpacing="12">
+                                <SearchBar Grid.Column="0"
+                                           Placeholder="Nome do servico, numero ou responsavel"
+                                           Text="{Binding SearchTerm}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           SearchCommand="{Binding PesquisarCommand}" />
+
+                                <Picker Grid.Column="1"
+                                        Title="Estado"
+                                        TextColor="{StaticResource TextPrimary}"
+                                        ItemsSource="{Binding EstadoFilters}"
+                                        SelectedIndex="{Binding SelectedEstadoFilterIndex}" />
+
+                                <Button Grid.Column="2"
+                                        Text="Pesquisar"
+                                        Command="{Binding PesquisarCommand}"
+                                        BackgroundColor="#0F172A"
+                                        TextColor="White"
+                                        HeightRequest="44" />
+                            </Grid>
+
+                            <Button Text="Limpar"
+                                    Command="{Binding LimparPesquisaCommand}"
+                                    IsEnabled="{Binding HasSearch}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HorizontalOptions="Start"
+                                    HeightRequest="42" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{StaticResource Danger}"
+                           FontSize="13" />
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="30"
+                            IsVisible="{Binding HasNoEncomendas}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <Label Text="{Binding EmptyEncomendasMessage}"
+                               HorizontalOptions="Center"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </Border>
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Encomendas}"
+                                         Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:EncomendaResumoDto">
+                                <Border BackgroundColor="White"
+                                        Stroke="{StaticResource CardBorderBrush}"
+                                        StrokeThickness="1"
+                                        Padding="22"
+                                        Margin="0,0,0,16">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="24" />
+                                    </Border.StrokeShape>
+
+                                    <VerticalStackLayout Spacing="10">
+                                        <Label Text="{Binding NumeroEncomendaCliente}"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="20"
+                                               TextColor="{StaticResource TextPrimary}" />
+
+                                        <Label Text="{Binding NomeServicoCliente}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource TextSecondary}" />
+
+                                        <Grid ColumnDefinitions="*,*"
+                                              RowDefinitions="Auto,Auto"
+                                              ColumnSpacing="18"
+                                              RowSpacing="10">
+
+                                            <VerticalStackLayout Grid.Row="0"
+                                                                 Grid.Column="0"
+                                                                 Spacing="4">
+                                                <Label Text="Projeto"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding NumeroProjetoCliente}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Row="0"
+                                                                 Grid.Column="1"
+                                                                 Spacing="4">
+                                                <Label Text="Responsavel"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding NomeResponsavelCliente}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Row="1"
+                                                                 Grid.Column="0"
+                                                                 Spacing="4">
+                                                <Label Text="Estado"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding Estado}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Row="1"
+                                                                 Grid.Column="1"
+                                                                 Spacing="4">
+                                                <Label Text="Data de registo"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding DataRegisto, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+
+                    <shared:PaginationBarView Page="{Binding Page}"
+                                              TotalPages="{Binding TotalPages}"
+                                              PageInput="{Binding PageInput}"
+                                              CanGoFirst="{Binding CanGoFirst}"
+                                              CanGoPrevious="{Binding CanGoPrevious}"
+                                              CanGoNext="{Binding CanGoNext}"
+                                              CanGoLast="{Binding CanGoLast}"
+                                              FirstPageCommand="{Binding FirstPageCommand}"
+                                              PreviousPageCommand="{Binding PreviousPageCommand}"
+                                              GoToPageCommand="{Binding GoToPageCommand}"
+                                              NextPageCommand="{Binding NextPageCommand}"
+                                              LastPageCommand="{Binding LastPageCommand}" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

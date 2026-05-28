@@ -1,5 +1,7 @@
-using System.Net.Http.Headers;
 using Microsoft.Maui.Storage;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 
 namespace TipMolde.Services;
 
@@ -79,5 +81,55 @@ public sealed class SessaoPersistidaService
     private void ClearHttpAuthorization()
     {
         _httpClient.DefaultRequestHeaders.Authorization = null;
+    }
+
+    public int? TryGetCurrentUserId()
+    {
+        var token = _httpClient.DefaultRequestHeaders.Authorization?.Parameter;
+
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
+        var subject = TryGetClaimFromToken(token, "sub");
+
+        return int.TryParse(subject, out var userId) ? userId : null;
+    }
+
+    private static string? TryGetClaimFromToken(string token, string claimName)
+    {
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length < 2)
+                return null;
+
+            var payload = parts[1]
+                .Replace('-', '+')
+                .Replace('_', '/');
+
+            switch (payload.Length % 4)
+            {
+                case 2:
+                    payload += "==";
+                    break;
+                case 3:
+                    payload += "=";
+                    break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            var json = Encoding.UTF8.GetString(bytes);
+
+            using var document = JsonDocument.Parse(json);
+
+            if (document.RootElement.TryGetProperty(claimName, out var property))
+                return property.GetString();
+
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }

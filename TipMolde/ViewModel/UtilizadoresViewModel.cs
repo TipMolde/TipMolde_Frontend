@@ -1,12 +1,12 @@
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
-public partial class UtilizadoresViewModel : ObservableObject
+public partial class UtilizadoresViewModel : SearchableViewModel
 {
     private readonly UtilizadoresService _utilizadoresService;
     private readonly IDialogService _dialogService;
@@ -21,123 +21,55 @@ public partial class UtilizadoresViewModel : ObservableObject
 
     public ObservableCollection<UtilizadorDto> Utilizadores { get; } = new();
 
-    [ObservableProperty]
-    private bool isLoading;
-
-    [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
-    private int page = 1;
-
-    [ObservableProperty]
-    private int pageSize = 10;
-
-    [ObservableProperty]
-    private int totalPages = 1;
-
-    [ObservableProperty]
-    private int totalItems;
-
-    [ObservableProperty]
-    private string searchTerm = string.Empty;
-
-    public bool CanGoPrevious => !IsLoading && Page > 1;
-    public bool CanGoNext => !IsLoading && Page < TotalPages;
-    public bool HasSearch => !string.IsNullOrWhiteSpace(SearchTerm);
-    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
-
-    partial void OnErrorMessageChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasError));
-    }
-    partial void OnSearchTermChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasSearch));
-    }
-
     [RelayCommand]
     public async Task LoadUtilizadoresAsync()
     {
-        if (IsLoading)
-            return;
+        await ReloadCurrentPageAsync();
+    }
 
-        IsLoading = true;
+    protected override async Task LoadPageAsync()
+    {
         ErrorMessage = string.Empty;
 
-        try
+        await ExecutePagedLoadAsync(async () =>
         {
-            PagedResult<UtilizadorDto>? result;
-            if (string.IsNullOrWhiteSpace(SearchTerm)) 
+            try
             {
-                result = await _utilizadoresService.GetUtilizadoresAsync(Page, PageSize);
-            } else
-            {
-                result = await _utilizadoresService.SearchAsync(SearchTerm.Trim(), Page, PageSize);
+                PagedResult<UtilizadorDto>? result;
+
+                if (string.IsNullOrWhiteSpace(SearchTerm))
+                {
+                    result = await _utilizadoresService.GetUtilizadoresAsync(Page, PageSize);
+                }
+                else
+                {
+                    result = await _utilizadoresService.SearchAsync(SearchTerm.Trim(), Page, PageSize);
+                }
+
+                if (result is null)
+                {
+                    ErrorMessage = "Nao foi possivel carregar os utilizadores.";
+                    return;
+                }
+
+                Utilizadores.Clear();
+
+                foreach (var utilizador in result.Items)
+                    Utilizadores.Add(utilizador);
+
+                UpdatePagination(result.TotalItems, result.TotalPages);
             }
-
-            if (result is null)
+            catch (Exception ex)
             {
-                ErrorMessage = "A resposta da API veio vazia.";
-                return;
+                ErrorMessage = ex.Message;
             }
-
-            Utilizadores.Clear();
-
-            foreach (var utilizador in result.Items)
-                Utilizadores.Add(utilizador);
-
-            TotalItems = result.TotalItems;
-            TotalPages = Math.Max(1, result.TotalPages);
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-        finally
-        {
-            IsLoading = false;
-            OnPropertyChanged(nameof(CanGoPrevious));
-            OnPropertyChanged(nameof(CanGoNext));
-        }
+        });
     }
 
     [RelayCommand]
-    private async Task PesquisarAsync()
+    private async Task AbrirAdicionarUtilizadorAsync()
     {
-        Page = 1;
-        await LoadUtilizadoresAsync();
-    }
-
-    [RelayCommand]
-    private async Task LimparPesquisaAsync()
-    {
-        if (string.IsNullOrWhiteSpace(SearchTerm))
-            return;
-
-        SearchTerm = string.Empty;
-        Page = 1;
-        await LoadUtilizadoresAsync();
-    }
-
-    [RelayCommand]
-    private async Task NextPageAsync()
-    {
-        if (!CanGoNext)
-            return;
-
-        Page++;
-        await LoadUtilizadoresAsync();
-    }
-
-    [RelayCommand]
-    private async Task PreviousPageAsync()
-    {
-        if (!CanGoPrevious)
-            return;
-
-        Page--;
-        await LoadUtilizadoresAsync();
+        await Shell.Current.GoToAsync("AdicionarUtilizadorPage");
     }
 
     [RelayCommand]
@@ -146,9 +78,34 @@ public partial class UtilizadoresViewModel : ObservableObject
         if (utilizador is null)
             return;
 
-        await _dialogService.ShowInfoAsync(
-            "Editar cargo",
-            $"Aqui vais abrir mais tarde a edicao de cargo do utilizador {utilizador.Nome}.");
+        var roleOptions = UtilizadorDefaults.AvailableRoles
+            .Where(role => !string.Equals(role, utilizador.Role, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        var novoRole = await _dialogService.ShowSelectionAsync(
+            $"Novo cargo para {utilizador.Nome}",
+            "Cancelar",
+            roleOptions);
+
+        if (string.IsNullOrWhiteSpace(novoRole))
+            return;
+
+        try
+        {
+            await _utilizadoresService.UpdateUtilizadorRoleAsync(utilizador.User_id, novoRole);
+            utilizador.Role = novoRole;
+            await LoadUtilizadoresAsync();
+
+            await _dialogService.ShowSuccessAsync(
+                "Sucesso",
+                $"O cargo do utilizador {utilizador.Nome} foi atualizado para {novoRole} com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync(
+                "Erro",
+                ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -157,9 +114,44 @@ public partial class UtilizadoresViewModel : ObservableObject
         if (utilizador is null)
             return;
 
-        await _dialogService.ShowInfoAsync(
+        var novaPassword = await _dialogService.PromptAsync(
             "Repor password",
-            $"Aqui vais ligar mais tarde a reposicao de password do utilizador {utilizador.Nome}.");
+            $"Introduz a nova password para {utilizador.Nome}.{Environment.NewLine}Tem de ter pelo menos 8 caracteres, maiuscula, minuscula, numero e simbolo.",
+            accept: "Guardar",
+            cancel: "Cancelar",
+            initialValue: UtilizadorDefaults.DefaultPassword,
+            placeholder: "Ex.: TipMolde2026!",
+            maxLength: 255,
+            keyboard: Keyboard.Text);
+
+        if (string.IsNullOrWhiteSpace(novaPassword))
+            return;
+
+        novaPassword = novaPassword.Trim();
+
+        var passwordValidationError = UtilizadorDefaults.ValidatePassword(novaPassword);
+
+        if (passwordValidationError is not null)
+        {
+            await _dialogService.ShowErrorAsync(
+                "Erro",
+                passwordValidationError);
+            return;
+        }
+
+        try
+        {
+            await _utilizadoresService.ResetUtilizadorPasswordAsync(utilizador.User_id, novaPassword);
+            await _dialogService.ShowSuccessAsync(
+                "Sucesso",
+                $"A password do utilizador {utilizador.Nome} foi reposta com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync(
+                "Erro",
+                ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -180,7 +172,7 @@ public partial class UtilizadoresViewModel : ObservableObject
 
         try
         {
-            await _utilizadoresService.DeleteUtilizadorAsync(utilizador.Id);
+            await _utilizadoresService.DeleteUtilizadorAsync(utilizador.User_id);
 
             if (Utilizadores.Count == 1 && Page > 1)
                 Page--;

@@ -4,8 +4,8 @@ namespace TipMolde.Models;
 
 public sealed class UtilizadorDto
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
+    [JsonPropertyName("user_id")]
+    public int User_id { get; set; }
 
     [JsonPropertyName("nome")]
     public string Nome { get; set; } = string.Empty;

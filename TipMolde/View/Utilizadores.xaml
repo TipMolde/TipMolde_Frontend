@@ -16,8 +16,7 @@
               BackgroundColor="{StaticResource Surface}">
 
             <shared:TopBarView Grid.Row="0"
-                               TitleText="Gestão Utilizadores"
-                               UserNameText="Ricardo Magalhães" />
+                               TitleText="Gestão Utilizadores"/>
 
             <ScrollView Grid.Row="1">
                 <VerticalStackLayout Padding="28"
@@ -35,7 +34,8 @@
                             <Label Text="Pesquisar utilizadores"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="18"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
 
                             <Grid ColumnDefinitions="*,Auto,Auto"
                                   ColumnSpacing="12">
@@ -70,6 +70,12 @@
                     <ActivityIndicator IsRunning="{Binding IsLoading}"
                                        IsVisible="{Binding IsLoading}"
                                        HorizontalOptions="Center" />
+
+                    <Button         Text="Adicionar utilizador"
+                                    Command="{Binding AbrirAdicionarUtilizadorCommand}"
+                                    BackgroundColor="#0F172A"
+                                    TextColor="White"
+                                    HeightRequest="44" />
 
                     <CollectionView ItemsSource="{Binding Utilizadores}"
                                     SelectionMode="None">
@@ -169,36 +175,18 @@
                         </CollectionView.ItemTemplate>
                     </CollectionView>
 
-                    <Grid ColumnDefinitions="Auto,*,Auto"
-                          ColumnSpacing="20"
-                          Margin="0,8,0,0">
-
-                        <Button Grid.Column="0"
-                                Text="◀"
-                                Command="{Binding PreviousPageCommand}"
-                                IsEnabled="{Binding CanGoPrevious}" />
-
-                        <Border Grid.Column="1"
-                                HorizontalOptions="Center"
-                                BackgroundColor="White"
-                                Stroke="{StaticResource CardBorderBrush}"
-                                StrokeThickness="1"
-                                Padding="22,12">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="18" />
-                            </Border.StrokeShape>
-                            <Label Text="{Binding Page}"
-                                   FontFamily="OpenSansSemibold"
-                                   FontSize="20"
-                                   TextColor="{StaticResource TextPrimary}"
-                                   HorizontalOptions="Center" />
-                        </Border>
-
-                        <Button Grid.Column="2"
-                                Text="▶"
-                                Command="{Binding NextPageCommand}"
-                                IsEnabled="{Binding CanGoNext}" />
-                    </Grid>
+                    <shared:PaginationBarView Page="{Binding Page}"
+                          TotalPages="{Binding TotalPages}"
+                          PageInput="{Binding PageInput}"
+                          CanGoFirst="{Binding CanGoFirst}"
+                          CanGoPrevious="{Binding CanGoPrevious}"
+                          CanGoNext="{Binding CanGoNext}"
+                          CanGoLast="{Binding CanGoLast}"
+                          FirstPageCommand="{Binding FirstPageCommand}"
+                          PreviousPageCommand="{Binding PreviousPageCommand}"
+                          GoToPageCommand="{Binding GoToPageCommand}"
+                          NextPageCommand="{Binding NextPageCommand}"
+                          LastPageCommand="{Binding LastPageCommand}" />
 
                 </VerticalStackLayout>
             </ScrollView>

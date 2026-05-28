@@ -40,6 +40,7 @@ namespace TipMolde
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton<AppShell>();
 
+            builder.Services.AddSingleton<TopBarViewModel>();
 
             builder.Services.AddTransient<AutenticacaoService>();
             builder.Services.AddTransient<AutenticacaoPage>();
@@ -52,8 +53,21 @@ namespace TipMolde
             builder.Services.AddTransient<UtilizadoresViewModel>();
             builder.Services.AddTransient<Utilizadores>();
 
+            builder.Services.AddTransient<AdicionarUtilizadorViewModel>();
+            builder.Services.AddTransient<AdicionarUtilizadorPage>();
+
+            builder.Services.AddTransient<ClientesService>();
             builder.Services.AddTransient<ClientesViewModel>();
             builder.Services.AddTransient<Clientes>();
+
+            builder.Services.AddTransient<AdicionarClienteViewModel>();
+            builder.Services.AddTransient<AdicionarClientePage>();
+
+            builder.Services.AddTransient<EditarClienteViewModel>();
+            builder.Services.AddTransient<EditarClientePage>();
+
+            builder.Services.AddTransient<ClienteDetalheViewModel>();
+            builder.Services.AddTransient<ClienteDetalhePage>();
 
             builder.Services.AddTransient<EncomendasViewModel>();
             builder.Services.AddTransient<Encomendas>();

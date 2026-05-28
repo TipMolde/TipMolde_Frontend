@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
              x:Class="TipMolde.View.Shared.TopBarView"
              x:Name="Self">
 
@@ -39,7 +40,7 @@
                     </Border.StrokeShape>
 
                     <HorizontalStackLayout Spacing="8">
-                        <Label Text="{Binding DisplayUserName, Source={x:Reference Self}}"
+                        <Label Text="{Binding ViewModel.DisplayUserName, Source={x:Reference Self}}"
                                FontFamily="OpenSansSemibold"
                                FontSize="{OnIdiom Phone='13', Desktop='14'}"
                                VerticalOptions="Center"
@@ -49,8 +50,8 @@
                     </HorizontalStackLayout>
                 </Border>
 
-                <Button Text="Terminar sessão"
-                        Clicked="OnLogoutClicked"
+                <Button Text="Terminar sessao"
+                        Command="{Binding ViewModel.LogoutCommand, Source={x:Reference Self}}"
                         BackgroundColor="Red"
                         TextColor="White"
                         FontSize="{OnIdiom Phone='12', Desktop='14'}"

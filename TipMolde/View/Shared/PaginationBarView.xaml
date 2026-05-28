@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TipMolde.View.Shared.PaginationBarView"
+             x:Name="Self">
+
+    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto"
+          ColumnSpacing="12"
+          Margin="0,8,0,0">
+
+        <Button Grid.Column="0"
+                Text="Primeira"
+                Command="{Binding FirstPageCommand, Source={x:Reference Self}}"
+                IsEnabled="{Binding CanGoFirst, Source={x:Reference Self}}"
+                BackgroundColor="#E2E8F0"
+                TextColor="#0F172A"
+                CornerRadius="18"
+                HeightRequest="44" />
+
+        <Button Grid.Column="1"
+                Text="◀"
+                Command="{Binding PreviousPageCommand, Source={x:Reference Self}}"
+                IsEnabled="{Binding CanGoPrevious, Source={x:Reference Self}}"
+                BackgroundColor="#E2E8F0"
+                TextColor="#0F172A"
+                CornerRadius="18"
+                HeightRequest="44"
+                WidthRequest="52" />
+
+        <Border Grid.Column="2"
+                BackgroundColor="White"
+                Stroke="{StaticResource CardBorderBrush}"
+                StrokeThickness="1"
+                Padding="12,8"
+                VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+
+            <HorizontalStackLayout Spacing="8"
+                                   VerticalOptions="Center">
+                <Label Text="Pagina"
+                       FontSize="14"
+                       TextColor="{StaticResource TextSecondary}"
+                       VerticalOptions="Center" />
+
+                <Entry Text="{Binding PageInput, Source={x:Reference Self}, Mode=TwoWay}"
+                       Keyboard="Numeric"
+                       WidthRequest="70"
+                       TextColor="{StaticResource TextPrimary}"
+                       HorizontalTextAlignment="Center"
+                       VerticalOptions="Center"
+                       ClearButtonVisibility="Never" />
+
+                <Label Text="/"
+                       FontSize="14"
+                       TextColor="{StaticResource TextSecondary}"
+                       VerticalOptions="Center" />
+
+                <Label Text="{Binding TotalPages, Source={x:Reference Self}}"
+                       FontFamily="OpenSansSemibold"
+                       FontSize="16"
+                       TextColor="{StaticResource TextPrimary}"
+                       VerticalOptions="Center" />
+            </HorizontalStackLayout>
+        </Border>
+
+        <Button Grid.Column="3"
+                Text="Ir"
+                Command="{Binding GoToPageCommand, Source={x:Reference Self}}"
+                BackgroundColor="#0F172A"
+                TextColor="White"
+                CornerRadius="18"
+                HeightRequest="44"
+                HorizontalOptions="Start" />
+
+        <Button Grid.Column="4"
+                Text="▶"
+                Command="{Binding NextPageCommand, Source={x:Reference Self}}"
+                IsEnabled="{Binding CanGoNext, Source={x:Reference Self}}"
+                BackgroundColor="#E2E8F0"
+                TextColor="#0F172A"
+                CornerRadius="18"
+                HeightRequest="44"
+                WidthRequest="52" />
+
+        <Button Grid.Column="5"
+                Text="Ultima"
+                Command="{Binding LastPageCommand, Source={x:Reference Self}}"
+                IsEnabled="{Binding CanGoLast, Source={x:Reference Self}}"
+                BackgroundColor="#E2E8F0"
+                TextColor="#0F172A"
+                CornerRadius="18"
+                HeightRequest="44" />
+    </Grid>
+</ContentView>

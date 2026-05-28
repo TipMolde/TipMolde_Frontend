@@ -14,7 +14,7 @@ namespace TipMolde.Services
 #if ANDROID
             return "http://10.0.2.2:57664/";
 #else
-            return "http://localhost:57664/";
+            return "http://localhost:8080/";
 #endif
         }
     }

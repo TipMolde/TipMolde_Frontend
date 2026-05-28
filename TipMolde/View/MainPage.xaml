@@ -12,8 +12,7 @@
               BackgroundColor="{StaticResource Surface}">
 
             <shared:TopBarView Grid.Row="0"
-                               TitleText="Dashboard"
-                               UserNameText="Ricardo Magalhaes" />
+                               TitleText="Dashboard"/>
 
             <ScrollView Grid.Row="1">
                 <VerticalStackLayout Padding="{OnIdiom Phone='16', Desktop='28'}"

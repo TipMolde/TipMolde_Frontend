@@ -1,4 +1,4 @@
-using TipMolde.Services;
+using TipMolde.ViewModel;
 
 namespace TipMolde.View.Shared;
 
@@ -11,13 +11,14 @@ public partial class TopBarView : ContentView
             typeof(TopBarView),
             string.Empty);
 
-    public static readonly BindableProperty UserNameTextProperty =
+    public static readonly BindableProperty ViewModelProperty =
         BindableProperty.Create(
-            nameof(UserNameText),
-            typeof(string),
+            nameof(ViewModel),
+            typeof(TopBarViewModel),
             typeof(TopBarView),
-            "Utilizador",
-            propertyChanged: OnUserNameTextChanged);
+            null);
+
+    private bool _isInitialized;
 
     public string TitleText
     {
@@ -25,45 +26,29 @@ public partial class TopBarView : ContentView
         set => SetValue(TitleTextProperty, value);
     }
 
-    public string UserNameText
+    public TopBarViewModel? ViewModel
     {
-        get => (string)GetValue(UserNameTextProperty);
-        set => SetValue(UserNameTextProperty, value);
+        get => (TopBarViewModel?)GetValue(ViewModelProperty);
+        set => SetValue(ViewModelProperty, value);
     }
-
-    public string DisplayUserName =>
-    DeviceInfo.Current.Idiom == DeviceIdiom.Phone
-        ? GetFirstName(UserNameText)
-        : UserNameText;
 
     public TopBarView()
     {
         InitializeComponent();
+        Loaded += OnLoaded;
     }
 
-    private async void OnLogoutClicked(object sender, EventArgs e)
+    private async void OnLoaded(object? sender, EventArgs e)
     {
-        if (Handler?.MauiContext?.Services.GetService(typeof(SessaoPersistidaService))
-            is SessaoPersistidaService sessaoPersistidaService)
-        {
-            await sessaoPersistidaService.ClearSessionAsync();
-        }
+        if (_isInitialized)
+            return;
 
-        await Shell.Current.GoToAsync("//AutenticacaoPage");
-    }
+        if (Handler?.MauiContext?.Services.GetService(typeof(TopBarViewModel)) is not TopBarViewModel vm)
+            return;
 
-    private static void OnUserNameTextChanged(BindableObject bindable, object oldValue, object newValue)
-    {
-        if (bindable is TopBarView topBarView)
-            topBarView.OnPropertyChanged(nameof(DisplayUserName));
-    }
+        ViewModel = vm;
+        _isInitialized = true;
 
-    private static string GetFirstName(string? fullName)
-    {
-        if (string.IsNullOrWhiteSpace(fullName))
-            return "Utilizador";
-
-        var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length > 0 ? parts[0] : fullName;
+        await vm.EnsureLoadedAsync();
     }
 }
