@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:TipMolde.View.Shared"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.MoldeDetalhePage"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{StaticResource Surface}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Detalhe do Molde" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="28,22,28,18"
+                                     Spacing="18">
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="24">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Button Text="Voltar"
+                                    Command="{Binding VoltarCommand}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HorizontalOptions="Start"
+                                    HeightRequest="42" />
+
+                            <Label Text="{Binding NumeroDisplay}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="28"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto,Auto"
+                                  ColumnSpacing="18"
+                                  RowSpacing="12">
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Nome"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NomeDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Numero cliente"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NumeroMoldeClienteDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Tipo de pedido"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding TipoPedidoDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Numero de cavidades"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding Numero_cavidades}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="2"
+                                                     Grid.ColumnSpan="2"
+                                                     Spacing="4">
+                                    <Label Text="Descricao"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding DescricaoDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{StaticResource Danger}"
+                           FontSize="13" />
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="20"
+                            IsVisible="{Binding HasDashboard}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="18">
+                                <Label Text="Resumo do ciclo de vida"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18"
+                                       TextColor="{StaticResource TextPrimary}"
+                                       VerticalOptions="Center" />
+
+                                <Button Grid.Column="1"
+                                        Text="{Binding PdfButtonText}"
+                                        Command="{Binding GerarPdfCommand}"
+                                        IsVisible="{Binding IsAdmin}"
+                                        BackgroundColor="#0F172A"
+                                        TextColor="White"
+                                        Padding="18,10"
+                                        HeightRequest="42"
+                                        CornerRadius="16"
+                                        HorizontalOptions="End" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="280,*"
+                                  ColumnSpacing="24">
+                                <VerticalStackLayout Spacing="12">
+                                    <controls:CicloVidaPieChartView HorizontalOptions="Center"
+                                                                    TotalPecas="{Binding Dashboard.TotalPecas}"
+                                                                    Maquinacao="{Binding Dashboard.Maquinacao}"
+                                                                    Erosao="{Binding Dashboard.Erosao}"
+                                                                    Montagem="{Binding Dashboard.Montagem}" />
+
+                                    <Label Text="{Binding DistribuicaoTotal, StringFormat='Distribuicao visivel: {0} pecas'}"
+                                           HorizontalOptions="Center"
+                                           TextColor="{StaticResource TextSecondary}"
+                                           FontSize="13" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="16">
+                                    <Grid ColumnDefinitions="*,*"
+                                          ColumnSpacing="18">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Total de pecas"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                            <Label Text="{Binding Dashboard.TotalPecas}"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Spacing="4">
+                                            <Label Text="Percentagem de conclusao"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                            <Label Text="{Binding PercentagemConclusaoDisplay}"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+
+                                    <Border BackgroundColor="#F8FAFC"
+                                            StrokeThickness="0"
+                                            Padding="14">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="12">
+                                            <Border WidthRequest="14"
+                                                    HeightRequest="14"
+                                                    BackgroundColor="#2563EB"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="7" />
+                                                </Border.StrokeShape>
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="3">
+                                                <Label Text="Maquinacao"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding MaquinacaoDistribuicaoDisplay}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border BackgroundColor="#FFF7ED"
+                                            StrokeThickness="0"
+                                            Padding="14">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="12">
+                                            <Border WidthRequest="14"
+                                                    HeightRequest="14"
+                                                    BackgroundColor="#F97316"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="7" />
+                                                </Border.StrokeShape>
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="3">
+                                                <Label Text="Erosao"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding ErosaoDistribuicaoDisplay}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border BackgroundColor="#F0FDF4"
+                                            StrokeThickness="0"
+                                            Padding="14">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="12">
+                                            <Border WidthRequest="14"
+                                                    HeightRequest="14"
+                                                    BackgroundColor="#16A34A"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="7" />
+                                                </Border.StrokeShape>
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="3">
+                                                <Label Text="Montagem"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding MontagemDistribuicaoDisplay}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
+                                    <Grid ColumnDefinitions="*,*"
+                                          ColumnSpacing="18">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Em trabalho"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                            <Label Text="{Binding Dashboard.EmTrabalho}"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Spacing="4">
+                                            <Label Text="Concluidas"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource TextPrimary}" />
+                                            <Label Text="{Binding Dashboard.Concluidas}"
+                                                   TextColor="{StaticResource TextSecondary}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Material pendente"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{StaticResource TextPrimary}" />
+                                        <Label Text="{Binding Dashboard.MaterialPendente}"
+                                               TextColor="{StaticResource TextSecondary}" />
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

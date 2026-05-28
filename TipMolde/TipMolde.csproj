@@ -92,10 +92,16 @@
 		<MauiXaml Update="View\Clientes.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
+		<MauiXaml Update="View\EncomendaDetalhePage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 		<MauiXaml Update="View\Definicoes.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 		<MauiXaml Update="View\Encomendas.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="View\MoldeDetalhePage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 		<MauiXaml Update="View\Producao.xaml">

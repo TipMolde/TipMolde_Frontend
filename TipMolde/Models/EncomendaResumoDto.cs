@@ -30,4 +30,34 @@ public sealed class EncomendaResumoDto
 
     [JsonPropertyName("nomeCliente")]
     public string NomeCliente { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public string EstadoDisplay => string.IsNullOrWhiteSpace(Estado)
+        ? "Sem estado"
+        : Estado.Replace('_', ' ');
+
+    [JsonIgnore]
+    public string NumeroEncomendaClienteDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente)
+        ? "Sem numero de encomenda"
+        : NumeroEncomendaCliente;
+
+    [JsonIgnore]
+    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente)
+        ? "Cliente nao identificado"
+        : NomeCliente;
+
+    [JsonIgnore]
+    public string NomeServicoClienteDisplay => string.IsNullOrWhiteSpace(NomeServicoCliente)
+        ? "Servico nao definido"
+        : NomeServicoCliente;
+
+    [JsonIgnore]
+    public string NomeResponsavelClienteDisplay => string.IsNullOrWhiteSpace(NomeResponsavelCliente)
+        ? "Responsavel nao definido"
+        : NomeResponsavelCliente;
+
+    [JsonIgnore]
+    public string NumeroProjetoClienteDisplay => string.IsNullOrWhiteSpace(NumeroProjetoCliente)
+        ? "Projeto nao definido"
+        : NumeroProjetoCliente;
 }

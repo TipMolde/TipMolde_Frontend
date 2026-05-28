@@ -20,24 +20,8 @@
          Route="Utilizadores" />
 
     <ShellContent
-         ContentTemplate="{DataTemplate local:AdicionarUtilizadorPage}"
-         Route="AdicionarUtilizadorPage" />
-
-    <ShellContent
          ContentTemplate="{DataTemplate local:Clientes}"
          Route="Clientes" />
-
-    <ShellContent
-         ContentTemplate="{DataTemplate local:AdicionarClientePage}"
-         Route="AdicionarClientePage" />
-
-    <ShellContent
-         ContentTemplate="{DataTemplate local:EditarClientePage}"
-         Route="EditarClientePage" />
-
-    <ShellContent
-         ContentTemplate="{DataTemplate local:ClienteDetalhePage}"
-         Route="ClienteDetalhePage" />
 
     <ShellContent
          ContentTemplate="{DataTemplate local:Encomendas}"

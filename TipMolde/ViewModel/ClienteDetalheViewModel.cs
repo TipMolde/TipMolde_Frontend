@@ -35,8 +35,8 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
     public IReadOnlyList<string> EstadoFilters { get; } = new[]
     {
         "Todas",
-        "Em producao",
-        "Entregues"
+        "Nao concluidas",
+        "Concluidas"
     };
 
     [ObservableProperty]
@@ -230,10 +230,8 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
 
         return SelectedEstadoFilterIndex switch
         {
-            EstadoEmProducaoIndex => query.Where(e => IsEstado(e.Estado, "EM_PRODUCAO")),
-            EstadoEntreguesIndex => query.Where(e =>
-                IsEstado(e.Estado, "CONCLUIDA") ||
-                IsEstado(e.Estado, "PARCIALMENTE_ENTREGUE")),
+            EstadoEmProducaoIndex => query.Where(e => !IsEstado(e.Estado, "CONCLUIDA")),
+            EstadoEntreguesIndex => query.Where(e => IsEstado(e.Estado, "CONCLUIDA")),
             _ => query
         };
     }

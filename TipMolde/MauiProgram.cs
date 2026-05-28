@@ -60,6 +60,10 @@ namespace TipMolde
             builder.Services.AddTransient<ClientesViewModel>();
             builder.Services.AddTransient<Clientes>();
 
+            builder.Services.AddTransient<EncomendasService>();
+            builder.Services.AddTransient<MoldesService>();
+            builder.Services.AddTransient<MoldePdfService>();
+
             builder.Services.AddTransient<AdicionarClienteViewModel>();
             builder.Services.AddTransient<AdicionarClientePage>();
 
@@ -71,6 +75,12 @@ namespace TipMolde
 
             builder.Services.AddTransient<EncomendasViewModel>();
             builder.Services.AddTransient<Encomendas>();
+
+            builder.Services.AddTransient<EncomendaDetalheViewModel>();
+            builder.Services.AddTransient<EncomendaDetalhePage>();
+
+            builder.Services.AddTransient<MoldeDetalheViewModel>();
+            builder.Services.AddTransient<MoldeDetalhePage>();
 
             builder.Services.AddTransient<ProducaoViewModel>();
             builder.Services.AddTransient<Producao>();

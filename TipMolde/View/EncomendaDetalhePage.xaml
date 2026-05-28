@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.EncomendaDetalhePage"
+             x:Name="PaginaEncomendaDetalhe"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{StaticResource Surface}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Detalhe da Encomenda" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="28,22,28,18"
+                                     Spacing="18">
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="24">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Button Text="Voltar"
+                                    Command="{Binding VoltarCommand}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HorizontalOptions="Start"
+                                    HeightRequest="42" />
+
+                            <Label Text="{Binding NumeroEncomendaClienteDisplay}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="28"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto,Auto"
+                                  ColumnSpacing="18"
+                                  RowSpacing="12">
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Cliente"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NomeClienteDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Estado"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding EstadoDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Servico do cliente"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NomeServicoClienteDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Responsavel do cliente"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NomeResponsavelClienteDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="2"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Projeto atual da encomenda"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding NumeroProjetoClienteDisplay}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="2"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Data de registo"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{StaticResource TextPrimary}" />
+                                    <Label Text="{Binding DataRegisto, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                           TextColor="{StaticResource TextSecondary}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <Grid ColumnDefinitions="*,*"
+                              ColumnSpacing="18">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Moldes associados"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding TotalMoldesAssociados}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="24"
+                                       TextColor="{StaticResource TextPrimary}" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1"
+                                                 Spacing="4">
+                                <Label Text="Quantidade total prevista"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="13"
+                                       TextColor="{StaticResource TextPrimary}" />
+                                <Label Text="{Binding QuantidadeTotalPrevista}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="24"
+                                       TextColor="{StaticResource TextPrimary}" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{StaticResource Danger}"
+                           FontSize="13" />
+
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="30"
+                            IsVisible="{Binding HasNoMoldes}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <Label Text="{Binding EmptyMoldesMessage}"
+                               HorizontalOptions="Center"
+                               TextColor="{StaticResource TextSecondary}" />
+                    </Border>
+
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Moldes}"
+                                         Spacing="0">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="models:EncomendaMoldeItemDto">
+                                <Border BackgroundColor="White"
+                                        Stroke="{StaticResource CardBorderBrush}"
+                                        StrokeThickness="1"
+                                        Padding="22"
+                                        Margin="0,0,0,16">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="24" />
+                                    </Border.StrokeShape>
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.AbrirMoldeCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <VerticalStackLayout Spacing="14">
+                                        <Label Text="{Binding NumeroMoldeDisplay}"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="22"
+                                               TextColor="{StaticResource TextPrimary}" />
+
+                                        <Label Text="{Binding NomeMoldeDisplay}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource TextSecondary}" />
+
+                                        <Label Text="{Binding DescricaoMoldeDisplay}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource TextSecondary}" />
+
+                                        <Grid ColumnDefinitions="*,*,*"
+                                              ColumnSpacing="18">
+                                            <VerticalStackLayout Spacing="4">
+                                                <Label Text="Quantidade"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding Quantidade}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="4">
+                                                <Label Text="Prioridade"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding Prioridade}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Column="2"
+                                                                 Spacing="4">
+                                                <Label Text="Cavidades"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding NumeroCavidades}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="18">
+                                            <VerticalStackLayout Spacing="4">
+                                                <Label Text="Entrega prevista"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding DataEntregaPrevista, StringFormat='{}{0:dd/MM/yyyy}'}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+
+                                            <Button Grid.Column="1"
+                                                    Text="Ver Molde"
+                                                    Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.AbrirMoldeCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="#0F172A"
+                                                    TextColor="White"
+                                                    CornerRadius="16"
+                                                    HeightRequest="44"
+                                                    VerticalOptions="Center" />
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>
