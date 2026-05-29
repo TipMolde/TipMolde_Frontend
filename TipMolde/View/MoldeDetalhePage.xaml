@@ -151,7 +151,8 @@
                                                                     TotalPecas="{Binding Dashboard.TotalPecas}"
                                                                     Maquinacao="{Binding Dashboard.Maquinacao}"
                                                                     Erosao="{Binding Dashboard.Erosao}"
-                                                                    Montagem="{Binding Dashboard.Montagem}" />
+                                                                    Montagem="{Binding Dashboard.Montagem}"
+                                                                    MaterialPendente="{Binding Dashboard.MaterialPendente}" />
 
                                     <Label Text="{Binding DistribuicaoTotal, StringFormat='Distribuicao visivel: {0} pecas'}"
                                            HorizontalOptions="Center"
@@ -273,6 +274,36 @@
                                         </Grid>
                                     </Border>
 
+                                    <Border BackgroundColor="#FFFBEB"
+                                            StrokeThickness="0"
+                                            Padding="14">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="12">
+                                            <Border WidthRequest="14"
+                                                    HeightRequest="14"
+                                                    BackgroundColor="#EAB308"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="7" />
+                                                </Border.StrokeShape>
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="3">
+                                                <Label Text="Material pendente"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{StaticResource TextPrimary}" />
+                                                <Label Text="{Binding MaterialPendenteDistribuicaoDisplay}"
+                                                       TextColor="{StaticResource TextSecondary}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
                                     <Grid ColumnDefinitions="*,*"
                                           ColumnSpacing="18">
                                         <VerticalStackLayout Spacing="4">
@@ -295,14 +326,6 @@
                                         </VerticalStackLayout>
                                     </Grid>
 
-                                    <VerticalStackLayout Spacing="4">
-                                        <Label Text="Material pendente"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="13"
-                                               TextColor="{StaticResource TextPrimary}" />
-                                        <Label Text="{Binding Dashboard.MaterialPendente}"
-                                               TextColor="{StaticResource TextSecondary}" />
-                                    </VerticalStackLayout>
                                 </VerticalStackLayout>
                             </Grid>
                         </VerticalStackLayout>

@@ -8,7 +8,7 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
-public partial class EncomendasViewModel : PaginatedViewModel
+public partial class EncomendasViewModel : SearchableViewModel
 {
     private readonly EncomendasService _encomendasService;
 
@@ -20,11 +20,19 @@ public partial class EncomendasViewModel : PaginatedViewModel
     public ObservableCollection<EncomendaResumoDto> Encomendas { get; } = new();
 
     public bool HasEncomendas => Encomendas.Count > 0;
-    public string EmptyMessage => "Nao existem encomendas nao concluidas para apresentar.";
+    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
+        ? "Nao existem encomendas ativas para apresentar."
+        : "Nenhuma encomenda corresponde a pesquisa atual.";
 
     public async Task LoadEncomendasAsync()
     {
         await ReloadCurrentPageAsync();
+    }
+
+    [RelayCommand]
+    private async Task AbrirAdicionarEncomendaAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(AdicionarEncomendaPage));
     }
 
     protected override async Task LoadPageAsync()
@@ -33,14 +41,13 @@ public partial class EncomendasViewModel : PaginatedViewModel
 
         await ExecutePagedLoadAsync(async () =>
         {
-            var result = await _encomendasService.GetEncomendasNaoConcluidasAsync(Page, PageSize);
+            var result = string.IsNullOrWhiteSpace(SearchTerm)
+                ? await _encomendasService.GetEncomendasNaoConcluidasAsync(Page, PageSize)
+                : await _encomendasService.SearchEncomendasNaoConcluidasAsync(SearchTerm.Trim(), Page, PageSize);
 
             if (result is null)
             {
-                ErrorMessage = "Nao foi possivel carregar as encomendas nao concluidas.";
-                Encomendas.Clear();
-                UpdatePagination(0, 1);
-                OnPropertyChanged(nameof(HasEncomendas));
+                ErrorMessage = "Nao foi possivel carregar as encomendas ativas.";
                 return;
             }
 
@@ -51,6 +58,7 @@ public partial class EncomendasViewModel : PaginatedViewModel
 
             UpdatePagination(result.TotalItems, result.TotalPages);
             OnPropertyChanged(nameof(HasEncomendas));
+            OnPropertyChanged(nameof(EmptyMessage));
         });
     }
 

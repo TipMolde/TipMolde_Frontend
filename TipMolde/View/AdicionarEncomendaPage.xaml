@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
+             x:Class="TipMolde.View.AdicionarEncomendaPage"
+             x:Name="PaginaAdicionarEncomenda"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Surface}">
+
+    <Grid RowDefinitions="Auto,*"
+          BackgroundColor="{StaticResource Surface}">
+
+        <Border Grid.Row="0"
+                BackgroundColor="White"
+                Stroke="{StaticResource CardBorderBrush}"
+                Padding="24,18">
+            <Grid ColumnDefinitions="Auto,*,Auto"
+                  ColumnSpacing="16">
+
+                <VerticalStackLayout Grid.Column="1"
+                                     Spacing="2"
+                                     VerticalOptions="Center">
+                    <Label Text="Adicionar encomenda"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="24"
+                           TextColor="{StaticResource TextPrimary}" />
+                    <Label Text="Seleciona um cliente e associa um ou mais moldes antes de criar."
+                           FontSize="13"
+                           TextColor="{StaticResource TextSecondary}" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="28"
+                                 Spacing="20">
+                <Border BackgroundColor="White"
+                        Stroke="{StaticResource CardBorderBrush}"
+                        StrokeThickness="1"
+                        Padding="24">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="24" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+                        <Label Text="Dados da encomenda"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="20"
+                               TextColor="{StaticResource TextPrimary}" />
+
+                        <ActivityIndicator IsRunning="{Binding IsLoadingData}"
+                                           IsVisible="{Binding IsLoadingData}"
+                                           HorizontalOptions="Center" />
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Numero da encomenda"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Entry Text="{Binding NumeroEncomendaCliente}"
+                                   Placeholder="Numero da encomenda do cliente"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Numero do projeto"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Entry Text="{Binding NumeroProjetoCliente}"
+                                   Placeholder="Projeto associado"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Nome do servico"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Picker Title="Selecionar nome do servico"
+                                    ItemsSource="{Binding NomeServicoOptions}"
+                                    SelectedItem="{Binding SelectedNomeServicoOption, Mode=TwoWay}"
+                                    ItemDisplayBinding="{Binding DisplayName}"
+                                    TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="As opcoes seguem o enum TipoPedido do backend."
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Responsavel"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <Entry Text="{Binding NomeResponsavelCliente}"
+                                   Placeholder="Responsavel do cliente"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Data base de entrega"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+                            <DatePicker Date="{Binding DataEntregaPrevista, Mode=TwoWay}"
+                                        Format="dd/MM/yyyy"
+                                        TextColor="{StaticResource TextPrimary}" />
+                            <Label Text="Esta data serve de base para os moldes selecionados."
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                            <Button Text="Aplicar aos moldes selecionados"
+                                    Command="{Binding AplicarDataBaseAosMoldesSelecionadosCommand}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HorizontalOptions="Start"
+                                    HeightRequest="40" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Cliente"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <SearchBar Placeholder="Pesquisar cliente por nome, sigla ou NIF"
+                                       Text="{Binding ClienteSearchTerm}"
+                                       TextColor="{StaticResource TextPrimary}" />
+
+                            <Label Text="{Binding SelectedClienteSummary}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <Border BackgroundColor="#F8FAFC"
+                                    Stroke="{StaticResource CardBorderBrush}"
+                                    StrokeThickness="1"
+                                    Padding="14">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18" />
+                                </Border.StrokeShape>
+
+                                <CollectionView ItemsSource="{Binding ClientesVisiveis}"
+                                                SelectionMode="None"
+                                                HeightRequest="240">
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical"
+                                                           ItemSpacing="10" />
+                                    </CollectionView.ItemsLayout>
+
+                                    <CollectionView.EmptyView>
+                                        <Label Text="Nao existem clientes para os filtros atuais."
+                                               TextColor="{StaticResource TextSecondary}" />
+                                    </CollectionView.EmptyView>
+
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodel:SelectableClienteItem">
+                                            <Border BackgroundColor="{Binding BackgroundColor}"
+                                                    Stroke="{StaticResource CardBorderBrush}"
+                                                    StrokeThickness="1"
+                                                    Padding="14">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="16" />
+                                                </Border.StrokeShape>
+
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.SelecionarClienteCommand, Source={x:Reference PaginaAdicionarEncomenda}}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Label Text="{Binding NomeDisplay}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="14"
+                                                           TextColor="{StaticResource TextPrimary}" />
+                                                    <Label Text="{Binding SiglaDisplay, StringFormat='Sigla: {0}'}"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource TextSecondary}" />
+                                                    <Label Text="{Binding NifDisplay, StringFormat='NIF: {0}'}"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource TextSecondary}" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Border>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="12">
+                                <Button Text="Anterior"
+                                        Command="{Binding PreviousClientesPageCommand}"
+                                        IsEnabled="{Binding CanGoPreviousClientes}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="42" />
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding ClientePage, StringFormat='Pagina {0}'}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{StaticResource TextSecondary}" />
+
+                                <Button Grid.Column="2"
+                                        Text="Seguinte"
+                                        Command="{Binding NextClientesPageCommand}"
+                                        IsEnabled="{Binding CanGoNextClientes}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="42" />
+                            </Grid>
+
+                            <Label Text="{Binding ClienteTotalPages, StringFormat='Total de paginas de clientes: {0}'}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <Label Text="A encomenda so pode ser criada com um unico cliente associado."
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Moldes associados"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <SearchBar Placeholder="Pesquisar molde por nome, numero ou descricao"
+                                       Text="{Binding MoldeSearchTerm}"
+                                       TextColor="{StaticResource TextPrimary}" />
+
+                            <Label Text="{Binding SelectedMoldesSummary}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <Border BackgroundColor="#F8FAFC"
+                                    Stroke="{StaticResource CardBorderBrush}"
+                                    StrokeThickness="1"
+                                    Padding="14">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18" />
+                                </Border.StrokeShape>
+
+                                <CollectionView ItemsSource="{Binding MoldesVisiveis}"
+                                                SelectionMode="None"
+                                                HeightRequest="280">
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical"
+                                                           ItemSpacing="10" />
+                                    </CollectionView.ItemsLayout>
+
+                                    <CollectionView.EmptyView>
+                                        <Label Text="Nao existem moldes disponiveis para associar."
+                                               TextColor="{StaticResource TextSecondary}" />
+                                    </CollectionView.EmptyView>
+
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodel:SelectableMoldeItem">
+                                            <Border BackgroundColor="White"
+                                                    Stroke="{StaticResource CardBorderBrush}"
+                                                    StrokeThickness="1"
+                                                    Padding="14">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="16" />
+                                                </Border.StrokeShape>
+
+                                                <Grid ColumnDefinitions="Auto,*"
+                                                      ColumnSpacing="12">
+                                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                              VerticalOptions="Start" />
+
+                                                    <VerticalStackLayout Grid.Column="1"
+                                                                         Spacing="3">
+                                                        <Label Text="{Binding NomeDisplay}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="14"
+                                                               TextColor="{StaticResource TextPrimary}" />
+                                                        <Label Text="{Binding NumeroDisplay, StringFormat='Numero: {0}'}"
+                                                               FontSize="12"
+                                                               TextColor="{StaticResource TextSecondary}" />
+                                                        <Label Text="{Binding DescricaoDisplay}"
+                                                               FontSize="12"
+                                                               TextColor="{StaticResource TextSecondary}"
+                                                               LineBreakMode="TailTruncation" />
+                                                    </VerticalStackLayout>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Border>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="12">
+                                <Button Text="Anterior"
+                                        Command="{Binding PreviousMoldesPageCommand}"
+                                        IsEnabled="{Binding CanGoPreviousMoldes}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="42" />
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding MoldePage, StringFormat='Pagina {0}'}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       TextColor="{StaticResource TextSecondary}" />
+
+                                <Button Grid.Column="2"
+                                        Text="Seguinte"
+                                        Command="{Binding NextMoldesPageCommand}"
+                                        IsEnabled="{Binding CanGoNextMoldes}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="42" />
+                            </Grid>
+
+                            <Label Text="{Binding MoldeTotalPages, StringFormat='Total de paginas de moldes: {0}'}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <Label Text="Seleciona pelo menos um molde para conseguires criar a encomenda."
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Prioridade e entrega por molde"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource TextPrimary}" />
+
+                            <Label Text="O primeiro molde selecionado recebe prioridade 1 por defeito. Podes ajustar a ordem antes de criar."
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+
+                            <Border BackgroundColor="#F8FAFC"
+                                    Stroke="{StaticResource CardBorderBrush}"
+                                    StrokeThickness="1"
+                                    Padding="14"
+                                    IsVisible="{Binding HasSelectedMoldes}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18" />
+                                </Border.StrokeShape>
+
+                                <CollectionView ItemsSource="{Binding MoldesSelecionados}"
+                                                SelectionMode="None"
+                                                HeightRequest="260">
+                                    <CollectionView.ItemsLayout>
+                                        <LinearItemsLayout Orientation="Vertical"
+                                                           ItemSpacing="10" />
+                                    </CollectionView.ItemsLayout>
+
+                                    <CollectionView.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodel:SelectableMoldeItem">
+                                            <Border BackgroundColor="White"
+                                                    Stroke="{StaticResource CardBorderBrush}"
+                                                    StrokeThickness="1"
+                                                    Padding="14">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="16" />
+                                                </Border.StrokeShape>
+
+                                                <VerticalStackLayout Spacing="10">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto"
+                                                          ColumnSpacing="10">
+                                                        <VerticalStackLayout Spacing="3">
+                                                            <Label Text="{Binding NomeDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="14"
+                                                                   TextColor="{StaticResource TextPrimary}" />
+                                                            <Label Text="{Binding NumeroDisplay, StringFormat='Numero: {0}'}"
+                                                                   FontSize="12"
+                                                                   TextColor="{StaticResource TextSecondary}" />
+                                                        </VerticalStackLayout>
+
+                                                        <Button Grid.Column="1"
+                                                                Text="Subir"
+                                                                Command="{Binding BindingContext.SubirPrioridadeMoldeCommand, Source={x:Reference PaginaAdicionarEncomenda}}"
+                                                                CommandParameter="{Binding .}"
+                                                                IsEnabled="{Binding CanMoveUp}"
+                                                                BackgroundColor="#E2E8F0"
+                                                                TextColor="#0F172A"
+                                                                HeightRequest="38" />
+
+                                                        <Button Grid.Column="2"
+                                                                Text="Descer"
+                                                                Command="{Binding BindingContext.DescerPrioridadeMoldeCommand, Source={x:Reference PaginaAdicionarEncomenda}}"
+                                                                CommandParameter="{Binding .}"
+                                                                IsEnabled="{Binding CanMoveDown}"
+                                                                BackgroundColor="#E2E8F0"
+                                                                TextColor="#0F172A"
+                                                                HeightRequest="38" />
+                                                    </Grid>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Label Text="{Binding Prioridade, StringFormat='Prioridade {0}'}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="13"
+                                                               TextColor="{StaticResource TextPrimary}"
+                                                               VerticalOptions="Center" />
+
+                                                        <DatePicker Grid.Column="1"
+                                                                    Date="{Binding DataEntregaPrevista, Mode=TwoWay}"
+                                                                    Format="dd/MM/yyyy"
+                                                                    TextColor="{StaticResource TextPrimary}" />
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </DataTemplate>
+                                    </CollectionView.ItemTemplate>
+                                </CollectionView>
+                            </Border>
+
+                            <Label Text="Ainda nao existem moldes selecionados para configurar."
+                                   IsVisible="{Binding HasNoSelectedMoldes}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource TextSecondary}" />
+                        </VerticalStackLayout>
+
+                        <Label Text="{Binding ErrorMessage}"
+                               IsVisible="{Binding HasError}"
+                               TextColor="{StaticResource Danger}"
+                               FontSize="13" />
+
+                        <ActivityIndicator IsRunning="{Binding IsSaving}"
+                                           IsVisible="{Binding IsSaving}"
+                                           HorizontalOptions="Center" />
+
+                        <Grid ColumnDefinitions="Auto,Auto"
+                              ColumnSpacing="12">
+                            <Button Text="Voltar"
+                                    Command="{Binding VoltarCommand}"
+                                    BackgroundColor="#E2E8F0"
+                                    TextColor="#0F172A"
+                                    HeightRequest="44" />
+
+                            <Button Grid.Column="1"
+                                    Text="Criar encomenda"
+                                    Command="{Binding CreateCommand}"
+                                    IsEnabled="{Binding CanCreate}"
+                                    BackgroundColor="#0F172A"
+                                    TextColor="White"
+                                    HeightRequest="44" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

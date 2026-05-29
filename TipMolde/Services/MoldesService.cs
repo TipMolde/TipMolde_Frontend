@@ -27,6 +27,16 @@ public sealed class MoldesService
         return await DeserializeAsync<MoldeDto>(response);
     }
 
+    public async Task<PagedResult<MoldeDto>?> GetAllAsync(int page, int pageSize)
+    {
+        using var response = await _httpClient.GetAsync($"api/moldes?page={page}&pageSize={pageSize}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<MoldeDto>>(response);
+    }
+
     public async Task<PagedResult<MoldeDto>?> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
     {
         using var response = await _httpClient.GetAsync(

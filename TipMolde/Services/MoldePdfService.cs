@@ -36,7 +36,7 @@ public sealed class MoldePdfService
         int numeroCavidades,
         MoldeCicloVidaDashboardDto dashboard)
     {
-        var distribuicaoTotal = dashboard.Maquinacao + dashboard.Erosao + dashboard.Montagem;
+        var distribuicaoTotal = dashboard.Maquinacao + dashboard.Erosao + dashboard.Montagem + dashboard.MaterialPendente;
         var linhas = new[]
         {
             "BT",
@@ -65,11 +65,11 @@ public sealed class MoldePdfService
             "0 -18 Td",
             $"({Escape($"Montagem: {dashboard.Montagem} ({FormatPercent(dashboard.Montagem, distribuicaoTotal)})")}) Tj",
             "0 -18 Td",
+            $"({Escape($"Material pendente: {dashboard.MaterialPendente} ({FormatPercent(dashboard.MaterialPendente, distribuicaoTotal)})")}) Tj",
+            "0 -18 Td",
             $"({Escape($"Em trabalho: {dashboard.EmTrabalho}")}) Tj",
             "0 -18 Td",
             $"({Escape($"Concluidas: {dashboard.Concluidas}")}) Tj",
-            "0 -18 Td",
-            $"({Escape($"Material pendente: {dashboard.MaterialPendente}")}) Tj",
             "0 -30 Td",
             $"({Escape($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}")}) Tj",
             "ET"

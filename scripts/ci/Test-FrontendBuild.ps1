@@ -6,6 +6,8 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$windowsRuntimeId = 'win10-x64'
+
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 Set-Location $repoRoot
 
@@ -102,8 +104,8 @@ try {
         else {
             Write-Host "Workload(s) 'maui-windows' are already installed."
         }
-        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-windows10.0.19041.0 --disable-build-servers --disable-parallel --no-restore
+        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:RuntimeIdentifierOverride=$windowsRuntimeId
+        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-windows10.0.19041.0 --disable-build-servers --disable-parallel --no-restore -p:RuntimeIdentifierOverride=$windowsRuntimeId
     }
 }
 finally {

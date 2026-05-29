@@ -4,6 +4,7 @@
              xmlns:shared="clr-namespace:TipMolde.View.Shared"
              xmlns:models="clr-namespace:TipMolde.Models"
              x:Class="TipMolde.View.ClienteDetalhePage"
+             x:Name="PaginaClienteDetalhe"
              BackgroundColor="{StaticResource Surface}">
 
     <Grid ColumnDefinitions="Auto,*"
@@ -192,6 +193,11 @@
                                     <Border.StrokeShape>
                                         <RoundRectangle CornerRadius="24" />
                                     </Border.StrokeShape>
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.AbrirEncomendaCommand, Source={x:Reference PaginaClienteDetalhe}}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
 
                                     <VerticalStackLayout Spacing="10">
                                         <Label Text="{Binding NumeroEncomendaCliente}"

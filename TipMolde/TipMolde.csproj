@@ -74,6 +74,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<MauiXaml Update="View\AdicionarEncomendaPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 		<MauiXaml Update="View\AutenticacaoPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
@@ -82,6 +85,9 @@
 		</MauiXaml>
 		<MauiXaml Update="View\AdicionarClientePage.xaml">
 			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="View\DashboardPage.xaml">
+		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 		<MauiXaml Update="View\EditarClientePage.xaml">
 			<Generator>MSBuild:Compile</Generator>

@@ -77,11 +77,12 @@ public partial class MoldeDetalheViewModel : ObservableObject
     public string DescricaoDisplay => string.IsNullOrWhiteSpace(Descricao) ? ValorNaoDefinido : Descricao;
     public string TipoPedidoDisplay => string.IsNullOrWhiteSpace(TipoPedido) ? ValorNaoDefinido : TipoPedido;
     public string PercentagemConclusaoDisplay => Dashboard is null ? ValorNaoDefinido : $"{Dashboard.PercentagemConclusao:0.##}%";
-    public int DistribuicaoTotal => Dashboard is null ? 0 : Dashboard.Maquinacao + Dashboard.Erosao + Dashboard.Montagem;
+    public int DistribuicaoTotal => Dashboard is null ? 0 : Dashboard.Maquinacao + Dashboard.Erosao + Dashboard.Montagem + Dashboard.MaterialPendente;
     public string PdfButtonText => IsGeneratingPdf ? "A gerar PDF..." : "Gerar PDF";
     public string MaquinacaoDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.Maquinacao ?? 0);
     public string ErosaoDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.Erosao ?? 0);
     public string MontagemDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.Montagem ?? 0);
+    public string MaterialPendenteDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.MaterialPendente ?? 0);
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNumeroChanged(string value) => OnPropertyChanged(nameof(NumeroDisplay));
@@ -97,6 +98,7 @@ public partial class MoldeDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(MaquinacaoDistribuicaoDisplay));
         OnPropertyChanged(nameof(ErosaoDistribuicaoDisplay));
         OnPropertyChanged(nameof(MontagemDistribuicaoDisplay));
+        OnPropertyChanged(nameof(MaterialPendenteDistribuicaoDisplay));
         OnPropertyChanged(nameof(CanGeneratePdf));
         GerarPdfCommand.NotifyCanExecuteChanged();
     }

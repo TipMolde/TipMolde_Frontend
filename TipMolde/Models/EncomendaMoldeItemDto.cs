@@ -2,6 +2,7 @@ namespace TipMolde.Models;
 
 public sealed class EncomendaMoldeItemDto
 {
+    public int EncomendaMoldeId { get; set; }
     public int MoldeId { get; set; }
     public string NumeroMolde { get; set; } = string.Empty;
     public string NomeMolde { get; set; } = string.Empty;

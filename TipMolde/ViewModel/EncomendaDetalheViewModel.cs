@@ -14,21 +14,27 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     private readonly EncomendasService _encomendasService;
     private readonly MoldesService _moldesService;
     private readonly ClientesService _clientesService;
+    private readonly IDialogService _dialogService;
 
     public EncomendaDetalheViewModel(
         EncomendasService encomendasService,
         MoldesService moldesService,
-        ClientesService clientesService)
+        ClientesService clientesService,
+        IDialogService dialogService)
     {
         _encomendasService = encomendasService;
         _moldesService = moldesService;
         _clientesService = clientesService;
+        _dialogService = dialogService;
     }
 
     public ObservableCollection<EncomendaMoldeItemDto> Moldes { get; } = new();
 
     [ObservableProperty]
     private bool isLoading;
+
+    [ObservableProperty]
+    private bool isCancelling;
 
     [ObservableProperty]
     private string errorMessage = string.Empty;
@@ -71,14 +77,40 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     public string EstadoDisplay => string.IsNullOrWhiteSpace(Estado) ? ValorNaoDefinido : Estado.Replace('_', ' ');
     public int TotalMoldesAssociados => Moldes.Count;
     public string EmptyMoldesMessage => "Esta encomenda ainda nao tem moldes associados.";
+    public bool CanCancelEncomenda => Encomenda_id > 0 &&
+                                      !IsLoading &&
+                                      !IsCancelling &&
+                                      (string.Equals(Estado, "CONFIRMADA", StringComparison.OrdinalIgnoreCase) ||
+                                       string.Equals(Estado, "EM_PRODUCAO", StringComparison.OrdinalIgnoreCase));
+    public bool CanEditarEntregaMoldes => Encomenda_id > 0 &&
+                                          !IsLoading &&
+                                          !IsCancelling &&
+                                          !string.Equals(Estado, "CONCLUIDA", StringComparison.OrdinalIgnoreCase) &&
+                                          !string.Equals(Estado, "CANCELADA", StringComparison.OrdinalIgnoreCase);
 
+    partial void OnIsLoadingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanCancelEncomenda));
+        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+    }
+
+    partial void OnIsCancellingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanCancelEncomenda));
+        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+    }
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNomeClienteChanged(string value) => OnPropertyChanged(nameof(NomeClienteDisplay));
     partial void OnNumeroEncomendaClienteChanged(string value) => OnPropertyChanged(nameof(NumeroEncomendaClienteDisplay));
     partial void OnNomeServicoClienteChanged(string value) => OnPropertyChanged(nameof(NomeServicoClienteDisplay));
     partial void OnNomeResponsavelClienteChanged(string value) => OnPropertyChanged(nameof(NomeResponsavelClienteDisplay));
     partial void OnNumeroProjetoClienteChanged(string value) => OnPropertyChanged(nameof(NumeroProjetoClienteDisplay));
-    partial void OnEstadoChanged(string value) => OnPropertyChanged(nameof(EstadoDisplay));
+    partial void OnEstadoChanged(string value)
+    {
+        OnPropertyChanged(nameof(EstadoDisplay));
+        OnPropertyChanged(nameof(CanCancelEncomenda));
+        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+    }
     partial void OnQuantidadeTotalPrevistaChanged(int value) => OnPropertyChanged(nameof(QuantidadeTotalPrevista));
 
     public async Task LoadAsync(int encomendaId)
@@ -129,6 +161,7 @@ public partial class EncomendaDetalheViewModel : ObservableObject
 
                 Moldes.Add(new EncomendaMoldeItemDto
                 {
+                    EncomendaMoldeId = associacao.EncomendaMolde_id,
                     MoldeId = associacao.Molde_id,
                     NumeroMolde = FirstNonEmpty(associacao.NumeroMolde, molde?.Numero),
                     NomeMolde = molde?.Nome ?? string.Empty,
@@ -168,6 +201,67 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     private async Task VoltarAsync()
     {
         await Shell.Current.GoToAsync("..");
+    }
+
+    [RelayCommand]
+    private async Task CancelarEncomendaAsync()
+    {
+        if (!CanCancelEncomenda)
+            return;
+
+        var confirmar = await _dialogService.GetCurrentPage().DisplayAlert(
+            "Cancelar encomenda",
+            $"Pretende cancelar a encomenda {NumeroEncomendaClienteDisplay}?",
+            "Cancelar encomenda",
+            "Voltar");
+
+        if (!confirmar)
+            return;
+
+        IsCancelling = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await _encomendasService.UpdateEstadoAsync(Encomenda_id, "CANCELADA");
+            Estado = "CANCELADA";
+
+            await _dialogService.ShowSuccessAsync(
+                "Sucesso",
+                $"A encomenda {NumeroEncomendaClienteDisplay} foi cancelada com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsCancelling = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task GuardarEntregaMoldeAsync(EncomendaMoldeItemDto? molde)
+    {
+        if (molde is null || molde.EncomendaMoldeId <= 0)
+            return;
+
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await _encomendasService.UpdateEncomendaMoldeAsync(
+                molde.EncomendaMoldeId,
+                dataEntregaPrevista: molde.DataEntregaPrevista);
+
+            await _dialogService.ShowSuccessAsync(
+                "Sucesso",
+                $"A entrega prevista do molde {molde.NumeroMoldeDisplay} foi atualizada.");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
     }
 
     private void NotifyMoldeStateChanged()

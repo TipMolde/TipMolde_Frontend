@@ -23,6 +23,52 @@
                 <VerticalStackLayout Padding="28,22,28,18"
                                      Spacing="18">
 
+                    <Border BackgroundColor="White"
+                            Stroke="{StaticResource CardBorderBrush}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Pesquisar encomendas"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   TextColor="{StaticResource TextPrimary}"
+                                   VerticalOptions="Center" />
+
+                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                  ColumnSpacing="12">
+
+                                <SearchBar Grid.Column="0"
+                                           Placeholder="Pesquisar pelo numero da encomenda"
+                                           Text="{Binding SearchTerm}"
+                                           TextColor="{StaticResource TextPrimary}"
+                                           SearchCommand="{Binding PesquisarCommand}" />
+
+                                <Button Grid.Column="1"
+                                        Text="Pesquisar"
+                                        Command="{Binding PesquisarCommand}"
+                                        HeightRequest="44" />
+
+                                <Button Grid.Column="2"
+                                        Text="Limpar"
+                                        Command="{Binding LimparPesquisaCommand}"
+                                        IsEnabled="{Binding HasSearch}"
+                                        BackgroundColor="#E2E8F0"
+                                        TextColor="#0F172A"
+                                        HeightRequest="44" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Button Text="Adicionar encomenda"
+                            Command="{Binding AbrirAdicionarEncomendaCommand}"
+                            BackgroundColor="#0F172A"
+                            TextColor="White"
+                            HeightRequest="44" />
+
                     
                     <ActivityIndicator IsRunning="{Binding IsLoading}"
                                        IsVisible="{Binding IsLoading}"

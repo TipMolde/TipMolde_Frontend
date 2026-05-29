@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.View;
 using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
@@ -183,6 +184,16 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
     private async Task VoltarAsync()
     {
         await Shell.Current.GoToAsync("..");
+    }
+
+    [RelayCommand]
+    private async Task AbrirEncomendaAsync(EncomendaResumoDto? encomenda)
+    {
+        if (encomenda is null || encomenda.Encomenda_id <= 0)
+            return;
+
+        await Shell.Current.GoToAsync(
+            $"{nameof(EncomendaDetalhePage)}?encomenda_id={encomenda.Encomenda_id}");
     }
 
     protected override async Task LoadPageAsync()
