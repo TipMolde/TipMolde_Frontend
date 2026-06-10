@@ -8,16 +8,19 @@ public partial class AutenticacaoViewModel : ObservableObject
 {
     private readonly ApiConnectivityService _apiConnectivityService;
     private readonly AutenticacaoService _autenticacaoService;
+    private readonly AuthorizationService _authorizationService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private bool _hasCheckedOnLoad;
 
     public AutenticacaoViewModel(
         ApiConnectivityService apiConnectivityService,
         AutenticacaoService autenticacaoService,
+        AuthorizationService authorizationService,
         SessaoPersistidaService sessaoPersistidaService)
     {
         _apiConnectivityService = apiConnectivityService;
         _autenticacaoService = autenticacaoService;
+        _authorizationService = authorizationService;
         _sessaoPersistidaService = sessaoPersistidaService;
         RememberSession = _sessaoPersistidaService.ShouldRememberSession;
     }
@@ -38,13 +41,27 @@ public partial class AutenticacaoViewModel : ObservableObject
     private string errorMessage = string.Empty;
 
     [ObservableProperty]
-    private bool isBusy;
+    private bool isLoggingIn;
+
+    [ObservableProperty]
+    private bool isCheckingConnection;
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
+    public bool IsBusy => IsLoggingIn || IsCheckingConnection;
 
     partial void OnErrorMessageChanged(string value)
     {
         OnPropertyChanged(nameof(HasError));
+    }
+
+    partial void OnIsLoggingInChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsBusy));
+    }
+
+    partial void OnIsCheckingConnectionChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsBusy));
     }
 
     [RelayCommand]
@@ -60,7 +77,7 @@ public partial class AutenticacaoViewModel : ObservableObject
     [RelayCommand]
     private async Task LoginAsync()
     {
-        if (IsBusy)
+        if (IsLoggingIn)
             return;
 
         ClearError();
@@ -73,12 +90,22 @@ public partial class AutenticacaoViewModel : ObservableObject
             return;
         }
 
-        IsBusy = true;
+        IsLoggingIn = true;
 
         try
         {
             var result = await _autenticacaoService.LoginAsync(Email.Trim(), Password);
             await _sessaoPersistidaService.SaveSessionAsync(result.Token, result.ExpiresAt, RememberSession);
+            _authorizationService.Clear();
+
+            try
+            {
+                await _authorizationService.GetCurrentRoleAsync(forceRefresh: true);
+            }
+            catch
+            {
+            }
+
             Password = string.Empty;
             ClearError();
 
@@ -94,22 +121,23 @@ public partial class AutenticacaoViewModel : ObservableObject
         }
         finally
         {
-            IsBusy = false;
+            IsLoggingIn = false;
         }
     }
 
     [RelayCommand]
     private async Task TestConnectionAsync()
     {
-        if (IsBusy)
+        if (IsCheckingConnection)
             return;
 
-        IsBusy = true;
+        IsCheckingConnection = true;
         ClearError();
 
         try
         {
-            var result = await _apiConnectivityService.CheckHealthAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            var result = await _apiConnectivityService.CheckHealthAsync(timeout.Token);
 
             if (!result.IsSuccess)
             {
@@ -124,7 +152,7 @@ public partial class AutenticacaoViewModel : ObservableObject
         }
         finally
         {
-            IsBusy = false;
+            IsCheckingConnection = false;
         }
     }
 

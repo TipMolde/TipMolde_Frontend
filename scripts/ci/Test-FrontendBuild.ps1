@@ -6,7 +6,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$windowsRuntimeId = 'win10-x64'
+$windowsRuntimeId = 'win-x64'
+$windowsTargetFramework = 'net8.0-windows10.0.19041.0'
+$androidTargetFramework = 'net8.0-android'
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 Set-Location $repoRoot
@@ -66,16 +68,16 @@ try {
         else {
             Write-Host "Workload(s) 'maui-android' are already installed."
         }
-        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
+        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$androidTargetFramework
         $removed = & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES
         if ($removed -eq 'true') {
-            dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate
+            dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$androidTargetFramework
             $removed = & (Join-Path $PSScriptRoot 'Repair-AndroidAarCache.ps1') -NugetPackagesPath $env:NUGET_PACKAGES
             if ($removed -eq 'true') {
                 throw 'Android AAR cache is still corrupt after restore retry.'
             }
         }
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-android --disable-build-servers --disable-parallel --no-restore
+        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework $androidTargetFramework --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$androidTargetFramework
     }
     else {
         dotnet build-server shutdown
@@ -104,8 +106,8 @@ try {
         else {
             Write-Host "Workload(s) 'maui-windows' are already installed."
         }
-        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:RuntimeIdentifierOverride=$windowsRuntimeId
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework net8.0-windows10.0.19041.0 --disable-build-servers --disable-parallel --no-restore -p:RuntimeIdentifierOverride=$windowsRuntimeId
+        dotnet restore TipMolde/TipMolde.csproj --runtime $windowsRuntimeId --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$windowsTargetFramework
+        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework $windowsTargetFramework --runtime $windowsRuntimeId --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$windowsTargetFramework
     }
 }
 finally {

@@ -4,34 +4,51 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TipMolde.View"
-    Shell.FlyoutBehavior="Disabled"
     Title="TipMolde">
 
     <ShellContent
-    ContentTemplate="{DataTemplate local:AutenticacaoPage}"
-    Route="AutenticacaoPage" />
+        x:Name="AutenticacaoShellItem"
+        ContentTemplate="{DataTemplate local:AutenticacaoPage}"
+        Route="AutenticacaoPage"
+        FlyoutItemIsVisible="False" />
 
     <ShellContent
+        x:Name="DashboardShellItem"
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 
     <ShellContent
+         x:Name="UtilizadoresShellItem"
          ContentTemplate="{DataTemplate local:Utilizadores}"
          Route="Utilizadores" />
 
     <ShellContent
+         x:Name="ClientesShellItem"
          ContentTemplate="{DataTemplate local:Clientes}"
          Route="Clientes" />
 
     <ShellContent
+         x:Name="EncomendasShellItem"
          ContentTemplate="{DataTemplate local:Encomendas}"
          Route="Encomendas" />
 
     <ShellContent
+         x:Name="ProducaoShellItem"
          ContentTemplate="{DataTemplate local:Producao}"
          Route="Producao" />
 
     <ShellContent
+         x:Name="MaquinasShellItem"
+         ContentTemplate="{DataTemplate local:MaquinasPage}"
+         Route="Maquinas" />
+
+    <ShellContent
+         x:Name="DesenhoShellItem"
+         ContentTemplate="{DataTemplate local:DesenhoPage}"
+         Route="Desenho" />
+
+    <ShellContent
+         x:Name="DefinicoesShellItem"
          ContentTemplate="{DataTemplate local:Definicoes}"
          Route="Definicoes" />
 

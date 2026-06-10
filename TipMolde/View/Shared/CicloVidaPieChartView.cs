@@ -43,6 +43,13 @@ public sealed class CicloVidaPieChartView : GraphicsView
         0,
         propertyChanged: OnChartPropertyChanged);
 
+    public static readonly BindableProperty EmEsperaProperty = BindableProperty.Create(
+        nameof(EmEspera),
+        typeof(int),
+        typeof(CicloVidaPieChartView),
+        0,
+        propertyChanged: OnChartPropertyChanged);
+
     public int TotalPecas
     {
         get => (int)GetValue(TotalPecasProperty);
@@ -71,6 +78,12 @@ public sealed class CicloVidaPieChartView : GraphicsView
     {
         get => (int)GetValue(MaterialPendenteProperty);
         set => SetValue(MaterialPendenteProperty, value);
+    }
+
+    public int EmEspera
+    {
+        get => (int)GetValue(EmEsperaProperty);
+        set => SetValue(EmEsperaProperty, value);
     }
 
     public CicloVidaPieChartView()
@@ -110,7 +123,8 @@ public sealed class CicloVidaPieChartView : GraphicsView
             var totalDistribuicao = Math.Max(0, _chartView.Maquinacao)
                 + Math.Max(0, _chartView.Erosao)
                 + Math.Max(0, _chartView.Montagem)
-                + Math.Max(0, _chartView.MaterialPendente);
+                + Math.Max(0, _chartView.MaterialPendente)
+                + Math.Max(0, _chartView.EmEspera);
 
             if (totalDistribuicao <= 0)
             {
@@ -129,7 +143,8 @@ public sealed class CicloVidaPieChartView : GraphicsView
                 new Segmento("Erosao", Math.Max(0, _chartView.Erosao), Color.FromArgb("#F97316")),
                 new Segmento("Montagem", Math.Max(0, _chartView.Montagem), Color.FromArgb("#16A34A")),
                 new Segmento("Maquinacao", Math.Max(0, _chartView.Maquinacao), Color.FromArgb("#2563EB")),
-                new Segmento("Material", Math.Max(0, _chartView.MaterialPendente), Color.FromArgb("#EAB308"))
+                new Segmento("Material", Math.Max(0, _chartView.MaterialPendente), Color.FromArgb("#EAB308")),
+                new Segmento("Em espera", Math.Max(0, _chartView.EmEspera), Color.FromArgb("#64748B"))
             };
 
             var anguloAtual = 0f;

@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TipMolde.View.AdicionarClientePage"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Surface}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
     <Grid RowDefinitions="Auto,*"
-          BackgroundColor="{StaticResource Surface}">
+          BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
         <Border Grid.Row="0"
-                BackgroundColor="White"
-                Stroke="{StaticResource CardBorderBrush}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                 Padding="24,18">
             <Grid ColumnDefinitions="Auto,*,Auto"
                   ColumnSpacing="16">
@@ -21,10 +21,10 @@
                     <Label Text="Adicionar cliente"
                            FontFamily="OpenSansSemibold"
                            FontSize="24"
-                           TextColor="{StaticResource TextPrimary}" />
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                     <Label Text="Cria um novo cliente e volta automaticamente para a lista."
                            FontSize="13"
-                           TextColor="{StaticResource TextSecondary}" />
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                 </VerticalStackLayout>
             </Grid>
         </Border>
@@ -32,8 +32,8 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Padding="28"
                                  Spacing="20">
-                <Border BackgroundColor="White"
-                        Stroke="{StaticResource CardBorderBrush}"
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                         StrokeThickness="1"
                         Padding="24">
                     <Border.StrokeShape>
@@ -44,16 +44,16 @@
                         <Label Text="Dados do cliente"
                                FontFamily="OpenSansSemibold"
                                FontSize="20"
-                               TextColor="{StaticResource TextPrimary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Nome"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding Nome}"
                                    Placeholder="Nome do cliente"
-                                   TextColor="{StaticResource TextPrimary}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    ClearButtonVisibility="WhileEditing" />
                         </VerticalStackLayout>
 
@@ -64,11 +64,11 @@
                                 <Label Text="NIF"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="14"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Entry Text="{Binding Nif}"
                                        Placeholder="123456789"
                                        Keyboard="Numeric"
-                                       TextColor="{StaticResource TextPrimary}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                        ClearButtonVisibility="WhileEditing" />
                             </VerticalStackLayout>
 
@@ -77,10 +77,10 @@
                                 <Label Text="Sigla"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="14"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Entry Text="{Binding Sigla}"
                                        Placeholder="Ex.: CV"
-                                       TextColor="{StaticResource TextPrimary}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                        ClearButtonVisibility="WhileEditing" />
                             </VerticalStackLayout>
                         </Grid>
@@ -89,10 +89,10 @@
                             <Label Text="Pais"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding Pais}"
                                    Placeholder="Pais do cliente"
-                                   TextColor="{StaticResource TextPrimary}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    ClearButtonVisibility="WhileEditing" />
                         </VerticalStackLayout>
 
@@ -100,11 +100,11 @@
                             <Label Text="Email"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding Email}"
                                    Placeholder="cliente@empresa.pt"
                                    Keyboard="Email"
-                                   TextColor="{StaticResource TextPrimary}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    ClearButtonVisibility="WhileEditing" />
                         </VerticalStackLayout>
 
@@ -112,17 +112,17 @@
                             <Label Text="Telefone"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding Telefone}"
                                    Placeholder="Contacto principal"
                                    Keyboard="Telephone"
-                                   TextColor="{StaticResource TextPrimary}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    ClearButtonVisibility="WhileEditing" />
                         </VerticalStackLayout>
 
                         <Label Text="{Binding ErrorMessage}"
                                IsVisible="{Binding HasError}"
-                               TextColor="{StaticResource Danger}"
+                               TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
                                FontSize="13" />
 
                         <ActivityIndicator IsRunning="{Binding IsSaving}"
@@ -133,15 +133,15 @@
                               ColumnSpacing="12">
                             <Button Text="Voltar"
                                     Command="{Binding VoltarCommand}"
-                                    BackgroundColor="#E2E8F0"
-                                    TextColor="#0F172A"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                     HeightRequest="44" />
 
                             <Button Grid.Column="1"
                                     Text="Criar cliente"
                                     Command="{Binding CreateCommand}"
-                                    BackgroundColor="#0F172A"
-                                    TextColor="White"
+                                    BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                     HeightRequest="44" />
                         </Grid>
                     </VerticalStackLayout>

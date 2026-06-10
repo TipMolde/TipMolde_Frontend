@@ -2,9 +2,11 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:controls="clr-namespace:TipMolde.View.Shared"
+             xmlns:models="clr-namespace:TipMolde.Models"
              xmlns:shared="clr-namespace:TipMolde.View.Shared"
              x:Class="TipMolde.View.MoldeDetalhePage"
-             BackgroundColor="{StaticResource Surface}">
+             x:Name="PaginaMoldeDetalhe"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
     <Grid ColumnDefinitions="Auto,*"
           ColumnSpacing="0">
@@ -13,7 +15,7 @@
 
         <Grid Grid.Column="1"
               RowDefinitions="Auto,*"
-              BackgroundColor="{StaticResource Surface}">
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
             <shared:TopBarView Grid.Row="0"
                                TitleText="Detalhe do Molde" />
@@ -22,8 +24,8 @@
                 <VerticalStackLayout Padding="28,22,28,18"
                                      Spacing="18">
 
-                    <Border BackgroundColor="White"
-                            Stroke="{StaticResource CardBorderBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"
                             Padding="24">
                         <Border.StrokeShape>
@@ -33,15 +35,15 @@
                         <VerticalStackLayout Spacing="16">
                             <Button Text="Voltar"
                                     Command="{Binding VoltarCommand}"
-                                    BackgroundColor="#E2E8F0"
-                                    TextColor="#0F172A"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                     HorizontalOptions="Start"
                                     HeightRequest="42" />
 
                             <Label Text="{Binding NumeroDisplay}"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="28"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                             <Grid ColumnDefinitions="*,*"
                                   RowDefinitions="Auto,Auto,Auto"
@@ -53,9 +55,9 @@
                                     <Label Text="Nome"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NomeDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="0"
@@ -64,9 +66,9 @@
                                     <Label Text="Numero cliente"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NumeroMoldeClienteDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="1"
@@ -75,9 +77,9 @@
                                     <Label Text="Tipo de pedido"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding TipoPedidoDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="1"
@@ -86,9 +88,9 @@
                                     <Label Text="Numero de cavidades"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding Numero_cavidades}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="2"
@@ -97,9 +99,9 @@
                                     <Label Text="Descricao"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding DescricaoDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
                             </Grid>
                         </VerticalStackLayout>
@@ -111,11 +113,11 @@
 
                     <Label Text="{Binding ErrorMessage}"
                            IsVisible="{Binding HasError}"
-                           TextColor="{StaticResource Danger}"
+                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
                            FontSize="13" />
 
-                    <Border BackgroundColor="White"
-                            Stroke="{StaticResource CardBorderBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"
                             Padding="20"
                             IsVisible="{Binding HasDashboard}">
@@ -129,15 +131,15 @@
                                 <Label Text="Resumo do ciclo de vida"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="18"
-                                       TextColor="{StaticResource TextPrimary}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                        VerticalOptions="Center" />
 
                                 <Button Grid.Column="1"
                                         Text="{Binding PdfButtonText}"
                                         Command="{Binding GerarPdfCommand}"
                                         IsVisible="{Binding IsAdmin}"
-                                        BackgroundColor="#0F172A"
-                                        TextColor="White"
+                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                         Padding="18,10"
                                         HeightRequest="42"
                                         CornerRadius="16"
@@ -152,11 +154,12 @@
                                                                     Maquinacao="{Binding Dashboard.Maquinacao}"
                                                                     Erosao="{Binding Dashboard.Erosao}"
                                                                     Montagem="{Binding Dashboard.Montagem}"
-                                                                    MaterialPendente="{Binding Dashboard.MaterialPendente}" />
+                                                                    MaterialPendente="{Binding Dashboard.MaterialPendente}"
+                                                                    EmEspera="{Binding Dashboard.EmEspera}" />
 
                                     <Label Text="{Binding DistribuicaoTotal, StringFormat='Distribuicao visivel: {0} pecas'}"
                                            HorizontalOptions="Center"
-                                           TextColor="{StaticResource TextSecondary}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                            FontSize="13" />
                                 </VerticalStackLayout>
 
@@ -168,9 +171,9 @@
                                             <Label Text="Total de pecas"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                             <Label Text="{Binding Dashboard.TotalPecas}"
-                                                   TextColor="{StaticResource TextSecondary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout Grid.Column="1"
@@ -178,13 +181,13 @@
                                             <Label Text="Percentagem de conclusao"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                             <Label Text="{Binding PercentagemConclusaoDisplay}"
-                                                   TextColor="{StaticResource TextSecondary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </VerticalStackLayout>
                                     </Grid>
 
-                                    <Border BackgroundColor="#F8FAFC"
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
                                             StrokeThickness="0"
                                             Padding="14">
                                         <Border.StrokeShape>
@@ -207,14 +210,14 @@
                                                 <Label Text="Maquinacao"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding MaquinacaoDistribuicaoDisplay}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
                                     </Border>
 
-                                    <Border BackgroundColor="#FFF7ED"
+                                    <Border BackgroundColor="{AppThemeBinding Light=#FFF7ED, Dark=#431407}"
                                             StrokeThickness="0"
                                             Padding="14">
                                         <Border.StrokeShape>
@@ -237,14 +240,14 @@
                                                 <Label Text="Erosao"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding ErosaoDistribuicaoDisplay}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
                                     </Border>
 
-                                    <Border BackgroundColor="#F0FDF4"
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F0FDF4, Dark=#052E16}"
                                             StrokeThickness="0"
                                             Padding="14">
                                         <Border.StrokeShape>
@@ -267,14 +270,14 @@
                                                 <Label Text="Montagem"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding MontagemDistribuicaoDisplay}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
                                     </Border>
 
-                                    <Border BackgroundColor="#FFFBEB"
+                                    <Border BackgroundColor="{AppThemeBinding Light=#FFFBEB, Dark=#422006}"
                                             StrokeThickness="0"
                                             Padding="14">
                                         <Border.StrokeShape>
@@ -297,9 +300,39 @@
                                                 <Label Text="Material pendente"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding MaterialPendenteDistribuicaoDisplay}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#0F172A}"
+                                            StrokeThickness="0"
+                                            Padding="14">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="12">
+                                            <Border WidthRequest="14"
+                                                    HeightRequest="14"
+                                                    BackgroundColor="#64748B"
+                                                    StrokeThickness="0"
+                                                    VerticalOptions="Center">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="7" />
+                                                </Border.StrokeShape>
+                                            </Border>
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="3">
+                                                <Label Text="Em espera"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Label Text="{Binding EmEsperaDistribuicaoDisplay}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
                                     </Border>
@@ -310,9 +343,9 @@
                                             <Label Text="Em trabalho"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                             <Label Text="{Binding Dashboard.EmTrabalho}"
-                                                   TextColor="{StaticResource TextSecondary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout Grid.Column="1"
@@ -320,14 +353,133 @@
                                             <Label Text="Concluidas"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                             <Label Text="{Binding Dashboard.Concluidas}"
-                                                   TextColor="{StaticResource TextSecondary}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </VerticalStackLayout>
                                     </Grid>
 
                                 </VerticalStackLayout>
                             </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="18">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Pecas do molde"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="18"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="Edita prioridades, quantidades e remove pecas erradas diretamente a partir deste detalhe."
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="1"
+                                        Text="Adicionar peca"
+                                        Command="{Binding AdicionarPecaCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                        HeightRequest="42"
+                                        VerticalOptions="Start" />
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding Pecas}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="14" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding EmptyPecasMessage}"
+                                               HorizontalOptions="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:PecaDto">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="18">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="20" />
+                                            </Border.StrokeShape>
+
+                                            <Grid ColumnDefinitions="*,Auto"
+                                                  ColumnSpacing="12">
+                                                <VerticalStackLayout Spacing="6">
+                                                    <Label Text="{Binding Designacao}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="18" />
+                                                    <Grid ColumnDefinitions="*,*,*"
+                                                          ColumnSpacing="12">
+                                                        <Label Text="{Binding NumeroPeca, StringFormat='Nº: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        <Label Grid.Column="1"
+                                                               Text="{Binding Prioridade, StringFormat='Prioridade: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        <Label Grid.Column="2"
+                                                               Text="{Binding Quantidade, StringFormat='Qtd: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </Grid>
+                                                    <Label Text="{Binding Referencia, StringFormat='Ref: {0}'}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    <Label Text="{Binding ProximaFaseNome, StringFormat='Proxima fase: {0}'}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </VerticalStackLayout>
+
+                                                <VerticalStackLayout Grid.Column="1"
+                                                                     Spacing="10"
+                                                                     VerticalOptions="Center">
+                                                    <Button Text="Editar"
+                                                            Command="{Binding BindingContext.EditarPecaCommand, Source={x:Reference PaginaMoldeDetalhe}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                            HeightRequest="40" />
+                                                    <Button Text="Apagar"
+                                                            Command="{Binding BindingContext.ApagarPecaCommand, Source={x:Reference PaginaMoldeDetalhe}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#450A0A}"
+                                                            TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
+                                                            HeightRequest="40" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <shared:PaginationBarView Page="{Binding Page}"
+                                                      TotalPages="{Binding TotalPages}"
+                                                      PageInput="{Binding PageInput}"
+                                                      CanGoFirst="{Binding CanGoFirst}"
+                                                      CanGoPrevious="{Binding CanGoPrevious}"
+                                                      CanGoNext="{Binding CanGoNext}"
+                                                      CanGoLast="{Binding CanGoLast}"
+                                                      FirstPageCommand="{Binding FirstPageCommand}"
+                                                      PreviousPageCommand="{Binding PreviousPageCommand}"
+                                                      GoToPageCommand="{Binding GoToPageCommand}"
+                                                      NextPageCommand="{Binding NextPageCommand}"
+                                                      LastPageCommand="{Binding LastPageCommand}" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>

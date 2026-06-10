@@ -22,6 +22,9 @@ public sealed class MoldeCicloVidaDashboardDto
     [JsonPropertyName("montagem")]
     public int Montagem { get; set; }
 
+    [JsonPropertyName("emEspera")]
+    public int EmEspera { get; set; }
+
     [JsonPropertyName("emTrabalho")]
     public int EmTrabalho { get; set; }
 

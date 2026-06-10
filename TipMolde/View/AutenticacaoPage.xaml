@@ -3,17 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TipMolde.View.AutenticacaoPage"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Surface}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
-    <Grid BackgroundColor="{StaticResource Surface}">
+    <Grid BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
         <ScrollView>
             <VerticalStackLayout Padding="24"
                                  Spacing="0">
 
                 <Border HorizontalOptions="Center"
                         MaximumWidthRequest="1120"
-                        BackgroundColor="White"
-                        Stroke="{StaticResource CardBorderBrush}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                         StrokeThickness="1"
                         Padding="0">
                     <Border.StrokeShape>
@@ -75,8 +75,8 @@
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Row="0"
-                                    BackgroundColor="White"
-                                    Stroke="{StaticResource CardBorderBrush}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                                     StrokeThickness="1"
                                     Padding="24">
                                 <Border.StrokeShape>
@@ -85,8 +85,8 @@
 
                                 <VerticalStackLayout Spacing="18">
                                     <Border IsVisible="{Binding HasError}"
-                                        BackgroundColor="#FEF2F2"
-                                        Stroke="{StaticResource Danger}"
+                                        BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#3F1014}"
+                                        Stroke="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
                                         StrokeThickness="1"
                                         Padding="16">
                                         <Border.StrokeShape>
@@ -101,7 +101,7 @@
 
                                         <Grid ColumnDefinitions="Auto,*"
                                                 ColumnSpacing="12">
-                                            <Border BackgroundColor="#FEE2E2"
+                                            <Border BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#5B1A1E}"
                                                 StrokeThickness="0"
                                                 WidthRequest="36"
                                                 HeightRequest="36">
@@ -113,7 +113,7 @@
                                                    VerticalOptions="Center"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="18"
-                                                   TextColor="{StaticResource Danger}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
                                             </Border>
 
                                             <VerticalStackLayout Grid.Column="1"
@@ -121,10 +121,10 @@
                                                 <Label Text="{Binding ErrorTitle}"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="15"
-                                                   TextColor="{StaticResource Danger}" />
+                                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
                                                 <Label Text="{Binding ErrorMessage}"
                                                    FontSize="13"
-                                                   TextColor="{StaticResource TextPrimary}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                                    LineBreakMode="WordWrap" />
                                             </VerticalStackLayout>
                                         </Grid>
@@ -134,10 +134,10 @@
                                         <Label Text="Iniciar sessao"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="28"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                         <Label Text="Introduza os seus dados para validar a ligacao."
                                            FontSize="14"
-                                           TextColor="{StaticResource TextSecondary}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                            LineBreakMode="WordWrap" />
                                     </VerticalStackLayout>
 
@@ -145,8 +145,8 @@
                                         <Label Text="Email ou utilizador"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="14" />
-                                        <Border BackgroundColor="{StaticResource Surface}"
-                                            Stroke="{StaticResource CardBorderBrush}"
+                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                                             StrokeThickness="1"
                                             Padding="16,8">
                                             <Border.StrokeShape>
@@ -155,8 +155,8 @@
                                             <Entry x:Name="UtilizadorEntry"
                                                Placeholder="exemplo@tipmolde.pt"
                                                Text="{Binding Email}"
-                                               TextColor="{StaticResource TextPrimary}"
-                                               PlaceholderColor="{StaticResource TextSecondary}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                               PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                                ClearButtonVisibility="WhileEditing" />
                                         </Border>
                                     </VerticalStackLayout>
@@ -165,8 +165,8 @@
                                         <Label Text="Palavra-passe"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="14" />
-                                        <Border BackgroundColor="{StaticResource Surface}"
-                                            Stroke="{StaticResource CardBorderBrush}"
+                                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                                             StrokeThickness="1"
                                             Padding="16,8">
                                             <Border.StrokeShape>
@@ -175,8 +175,8 @@
                                             <Entry x:Name="PasswordEntry"
                                                Placeholder="Introduza a sua palavra-passe"
                                                Text="{Binding Password}"
-                                               TextColor="{StaticResource TextPrimary}"
-                                               PlaceholderColor="{StaticResource TextSecondary}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                               PlaceholderColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                                IsPassword="True" />
                                         </Border>
                                     </VerticalStackLayout>
@@ -187,7 +187,7 @@
                                         <Label Grid.Column="1"
                                            Text="Manter sessao iniciada neste dispositivo"
                                            VerticalTextAlignment="Center"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                     </Grid>
 
                                     <Button Text="Entrar"

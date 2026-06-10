@@ -5,7 +5,7 @@
              xmlns:shared="clr-namespace:TipMolde.View.Shared"
              x:Class="TipMolde.View.EncomendaDetalhePage"
              x:Name="PaginaEncomendaDetalhe"
-             BackgroundColor="{StaticResource Surface}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
     <Grid ColumnDefinitions="Auto,*"
           ColumnSpacing="0">
@@ -14,7 +14,7 @@
 
         <Grid Grid.Column="1"
               RowDefinitions="Auto,*"
-              BackgroundColor="{StaticResource Surface}">
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
 
             <shared:TopBarView Grid.Row="0"
                                TitleText="Detalhe da Encomenda" />
@@ -23,8 +23,8 @@
                 <VerticalStackLayout Padding="28,22,28,18"
                                      Spacing="18">
 
-                    <Border BackgroundColor="White"
-                            Stroke="{StaticResource CardBorderBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"
                             Padding="24">
                         <Border.StrokeShape>
@@ -34,19 +34,19 @@
                         <VerticalStackLayout Spacing="16">
                             <Button Text="Voltar"
                                     Command="{Binding VoltarCommand}"
-                                    BackgroundColor="#E2E8F0"
-                                    TextColor="#0F172A"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                     HorizontalOptions="Start"
                                     HeightRequest="42" />
 
                             <Label Text="{Binding NumeroEncomendaClienteDisplay}"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="28"
-                                   TextColor="{StaticResource TextPrimary}" />
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                             <Grid ColumnDefinitions="Auto,*"
                                   ColumnSpacing="12">
-                                <Border BackgroundColor="#DBEAFE"
+                                <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
                                         StrokeThickness="0"
                                         Padding="14,8"
                                         HorizontalOptions="Start">
@@ -55,7 +55,7 @@
                                     </Border.StrokeShape>
 
                                     <Label Text="{Binding EstadoDisplay}"
-                                           TextColor="#2563EB"
+                                           TextColor="{AppThemeBinding Light=#2563EB, Dark=#BFDBFE}"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
                                 </Border>
@@ -64,8 +64,8 @@
                                         Text="Cancelar encomenda"
                                         Command="{Binding CancelarEncomendaCommand}"
                                         IsEnabled="{Binding CanCancelEncomenda}"
-                                        BackgroundColor="#FEE2E2"
-                                        TextColor="#B91C1C"
+                                        BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#4C0519}"
+                                        TextColor="{AppThemeBinding Light=#B91C1C, Dark=#FECDD3}"
                                         HorizontalOptions="End"
                                         HeightRequest="42" />
                             </Grid>
@@ -80,9 +80,9 @@
                                     <Label Text="Cliente"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NomeClienteDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="0"
@@ -91,9 +91,9 @@
                                     <Label Text="Estado"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding EstadoDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="1"
@@ -102,9 +102,9 @@
                                     <Label Text="Servico do cliente"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NomeServicoClienteDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="1"
@@ -113,9 +113,9 @@
                                     <Label Text="Responsavel do cliente"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NomeResponsavelClienteDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="2"
@@ -124,9 +124,9 @@
                                     <Label Text="Projeto atual da encomenda"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding NumeroProjetoClienteDisplay}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="2"
@@ -135,16 +135,16 @@
                                     <Label Text="Data de registo"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13"
-                                           TextColor="{StaticResource TextPrimary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     <Label Text="{Binding DataRegisto, StringFormat='{}{0:dd/MM/yyyy}'}"
-                                           TextColor="{StaticResource TextSecondary}" />
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
                             </Grid>
                         </VerticalStackLayout>
                     </Border>
 
-                    <Border BackgroundColor="White"
-                            Stroke="{StaticResource CardBorderBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"
                             Padding="20">
                         <Border.StrokeShape>
@@ -157,11 +157,11 @@
                                 <Label Text="Moldes associados"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="13"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Label Text="{Binding TotalMoldesAssociados}"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="24"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="1"
@@ -169,11 +169,11 @@
                                 <Label Text="Quantidade total prevista"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="13"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                 <Label Text="{Binding QuantidadeTotalPrevista}"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="24"
-                                       TextColor="{StaticResource TextPrimary}" />
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             </VerticalStackLayout>
                         </Grid>
                     </Border>
@@ -184,11 +184,11 @@
 
                     <Label Text="{Binding ErrorMessage}"
                            IsVisible="{Binding HasError}"
-                           TextColor="{StaticResource Danger}"
+                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
                            FontSize="13" />
 
-                    <Border BackgroundColor="White"
-                            Stroke="{StaticResource CardBorderBrush}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"
                             Padding="30"
                             IsVisible="{Binding HasNoMoldes}">
@@ -198,15 +198,15 @@
 
                         <Label Text="{Binding EmptyMoldesMessage}"
                                HorizontalOptions="Center"
-                               TextColor="{StaticResource TextSecondary}" />
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                     </Border>
 
                     <VerticalStackLayout BindableLayout.ItemsSource="{Binding Moldes}"
                                          Spacing="0">
                         <BindableLayout.ItemTemplate>
                             <DataTemplate x:DataType="models:EncomendaMoldeItemDto">
-                                <Border BackgroundColor="White"
-                                        Stroke="{StaticResource CardBorderBrush}"
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                                         StrokeThickness="1"
                                         Padding="22"
                                         Margin="0,0,0,16">
@@ -220,28 +220,49 @@
                                     </Border.GestureRecognizers>
 
                                     <VerticalStackLayout Spacing="14">
-                                        <Label Text="{Binding NumeroMoldeDisplay}"
-                                               FontFamily="OpenSansSemibold"
-                                               FontSize="22"
-                                               TextColor="{StaticResource TextPrimary}" />
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              ColumnSpacing="14">
+                                            <Border WidthRequest="68"
+                                                    HeightRequest="68"
+                                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                    StrokeThickness="1"
+                                                    BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="16" />
+                                                </Border.StrokeShape>
 
-                                        <Label Text="{Binding NomeMoldeDisplay}"
-                                               FontSize="14"
-                                               TextColor="{StaticResource TextSecondary}" />
+                                                <Image Source="{Binding ImagemCapaSource}"
+                                                       Aspect="AspectFill"
+                                                       WidthRequest="68"
+                                                       HeightRequest="68" />
+                                            </Border>
 
-                                        <Label Text="{Binding DescricaoMoldeDisplay}"
-                                               FontSize="14"
-                                               TextColor="{StaticResource TextSecondary}" />
+                                            <VerticalStackLayout Grid.Column="1"
+                                                                 Spacing="4">
+                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="22"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
-                                        <Grid ColumnDefinitions="*,*,*"
+                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                <Label Text="{Binding DescricaoMoldeDisplay}"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </VerticalStackLayout>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="*,*,*,*"
                                               ColumnSpacing="18">
                                             <VerticalStackLayout Spacing="4">
                                                 <Label Text="Quantidade"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding Quantidade}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
 
                                             <VerticalStackLayout Grid.Column="1"
@@ -249,9 +270,9 @@
                                                 <Label Text="Prioridade"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding Prioridade}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
 
                                             <VerticalStackLayout Grid.Column="2"
@@ -259,9 +280,19 @@
                                                 <Label Text="Cavidades"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <Label Text="{Binding NumeroCavidades}"
-                                                       TextColor="{StaticResource TextSecondary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Grid.Column="3"
+                                                                 Spacing="4">
+                                                <Label Text="Por entregar"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Label Text="{Binding QuantidadePorEntregarDisplay}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
 
@@ -271,30 +302,46 @@
                                                 <Label Text="Entrega prevista"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
-                                                       TextColor="{StaticResource TextPrimary}" />
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                                 <DatePicker Date="{Binding DataEntregaPrevista, Mode=TwoWay}"
-                                                            IsEnabled="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.CanEditarEntregaMoldes}"
+                                                            IsEnabled="{Binding CanEditarDataEntrega}"
                                                             Format="dd/MM/yyyy"
-                                                            TextColor="{StaticResource TextPrimary}" />
+                                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                             </VerticalStackLayout>
 
                                             <VerticalStackLayout Grid.Column="1"
                                                                  Spacing="10"
                                                                  VerticalOptions="Center">
+                                                <Button Text="Entrega"
+                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.RegistarEntregaMoldeCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        IsEnabled="{Binding CanRegistarEntrega}"
+                                                        BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1D4ED8}"
+                                                        TextColor="{AppThemeBinding Light=#1D4ED8, Dark=White}"
+                                                        CornerRadius="14"
+                                                        FontSize="12"
+                                                        HeightRequest="36"
+                                                        Padding="14,6" />
+
+                                                <Label Text="{Binding EstadoEntregaDisplay}"
+                                                       HorizontalOptions="Center"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
                                                 <Button Text="Guardar entrega"
                                                         Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.GuardarEntregaMoldeCommand}"
                                                         CommandParameter="{Binding .}"
-                                                        IsEnabled="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.CanEditarEntregaMoldes}"
-                                                        BackgroundColor="#E2E8F0"
-                                                        TextColor="#0F172A"
+                                                        IsEnabled="{Binding CanEditarDataEntrega}"
+                                                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                                         CornerRadius="16"
                                                         HeightRequest="44" />
 
                                                 <Button Text="Ver Molde"
                                                         Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.AbrirMoldeCommand}"
                                                         CommandParameter="{Binding .}"
-                                                        BackgroundColor="#0F172A"
-                                                        TextColor="White"
+                                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                                         CornerRadius="16"
                                                         HeightRequest="44" />
                                             </VerticalStackLayout>

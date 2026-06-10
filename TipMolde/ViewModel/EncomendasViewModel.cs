@@ -35,6 +35,12 @@ public partial class EncomendasViewModel : SearchableViewModel
         await Shell.Current.GoToAsync(nameof(AdicionarEncomendaPage));
     }
 
+    [RelayCommand]
+    private async Task AbrirAdicionarMoldeAsync()
+    {
+        await Shell.Current.GoToAsync(nameof(AdicionarMoldePage));
+    }
+
     protected override async Task LoadPageAsync()
     {
         ErrorMessage = string.Empty;

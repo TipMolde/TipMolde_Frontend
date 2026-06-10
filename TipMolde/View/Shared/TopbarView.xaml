@@ -7,8 +7,8 @@
 
     <Border Padding="{OnIdiom Phone='16,14', Desktop='28,22'}"
             Margin="0,0,0,2"
-            BackgroundColor="#F8FAFC"
-            Stroke="#E2E8F0"
+            BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark=#111827}"
+            Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource Gray600}}"
             StrokeThickness="1">
 
         <FlexLayout Direction="Row"
@@ -17,24 +17,39 @@
                     AlignItems="Center"
                     AlignContent="Start">
 
-            <VerticalStackLayout FlexLayout.Grow="1"
-                                 WidthRequest="{OnIdiom Phone='180', Desktop='320'}"
-                                 Spacing="2">
-                <Label Text="{Binding TitleText, Source={x:Reference Self}}"
-                       FontFamily="OpenSansSemibold"
-                       FontSize="{OnIdiom Phone='22', Desktop='28'}"
-                       TextColor="{StaticResource TextPrimary}"
-                       LineBreakMode="WordWrap" />
-            </VerticalStackLayout>
+            <HorizontalStackLayout FlexLayout.Grow="1"
+                                   Spacing="12"
+                                   VerticalOptions="Center">
+                <Button Text="Menu"
+                        Command="{Binding ViewModel.OpenNavigationMenuCommand, Source={x:Reference Self}}"
+                        IsVisible="{Binding ViewModel.ShowNavigationMenu, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                        HeightRequest="40"
+                        Padding="14,8" />
+
+                <VerticalStackLayout Spacing="2"
+                                     HorizontalOptions="Fill"
+                                     VerticalOptions="Center">
+                    <Label Text="{Binding TitleText, Source={x:Reference Self}}"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="{OnIdiom Phone='22', Desktop='28'}"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
 
             <HorizontalStackLayout Spacing="{OnIdiom Phone='8', Desktop='12'}"
                                    Margin="{OnIdiom Phone='0,12,0,0', Desktop='0'}"
                                    HorizontalOptions="End"
                                    VerticalOptions="Center">
 
-                <Border Background="#E2E8F0"
+                <Border BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                         StrokeThickness="0"
                         Padding="{OnIdiom Phone='12,8', Desktop='16,8'}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ViewModel.OpenDefinicoesCommand, Source={x:Reference Self}}" />
+                    </Border.GestureRecognizers>
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="18" />
                     </Border.StrokeShape>
@@ -44,7 +59,7 @@
                                FontFamily="OpenSansSemibold"
                                FontSize="{OnIdiom Phone='13', Desktop='14'}"
                                VerticalOptions="Center"
-                               TextColor="{StaticResource TextPrimary}"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                MaxLines="1"
                                LineBreakMode="TailTruncation" />
                     </HorizontalStackLayout>

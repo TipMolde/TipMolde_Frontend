@@ -1,21 +1,186 @@
+using System.Reflection;
+using System.Text.Json;
+using TipMolde.Configuration;
+
 namespace TipMolde.Services
 {
     /// <summary>
-    /// Resolve o endpoint de desenvolvimento correto para cada plataforma MAUI.
+    /// Resolve o endpoint da API a partir de configuracao por ambiente,
+    /// com fallback seguro por plataforma.
     /// </summary>
     public static class ApiEndpointResolver
     {
-        /// <summary>
-        /// Devolve a URL base padrao da API tendo em conta a plataforma atual.
-        /// </summary>
-        /// <returns>Endereco base esperado pelo HttpClient da aplicacao.</returns>
-        public static string GetDefaultBaseUrl()
+        private const string EnvironmentVariableName = "TIPMOLDE_ENVIRONMENT";
+        private const string BaseUrlVariableName = "TIPMOLDE_API_BASE_URL";
+        private const string DefaultEnvironmentName = "Production";
+        private const string DevelopmentEnvironmentName = "Development";
+
+        public static ApiOptions Resolve()
         {
-#if ANDROID
-            return "http://10.0.2.2:57664/";
+            var environmentName = ResolveEnvironmentName();
+            var platformKey = GetPlatformKey();
+            var configuredSettings = LoadMergedSettings(environmentName);
+            var environmentBaseUrl = NormalizeUrl(Environment.GetEnvironmentVariable(BaseUrlVariableName));
+
+            if (!string.IsNullOrWhiteSpace(environmentBaseUrl))
+            {
+                return new ApiOptions
+                {
+                    BaseUrl = environmentBaseUrl,
+                    EnvironmentName = environmentName,
+                    ConfigurationSource = $"variavel de ambiente {BaseUrlVariableName}"
+                };
+            }
+
+            var configuredBaseUrl = GetConfiguredBaseUrl(configuredSettings, platformKey);
+            if (!string.IsNullOrWhiteSpace(configuredBaseUrl))
+            {
+                return new ApiOptions
+                {
+                    BaseUrl = configuredBaseUrl,
+                    EnvironmentName = environmentName,
+                    ConfigurationSource = $"configuracao embebida ({environmentName})"
+                };
+            }
+
+            return new ApiOptions
+            {
+                BaseUrl = GetPlatformFallbackBaseUrl(),
+                EnvironmentName = environmentName,
+                ConfigurationSource = "fallback por plataforma"
+            };
+        }
+
+        private static string ResolveEnvironmentName()
+        {
+            var configuredEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
+            if (!string.IsNullOrWhiteSpace(configuredEnvironment))
+                return configuredEnvironment.Trim();
+
+#if DEBUG
+            return DevelopmentEnvironmentName;
 #else
-            return "http://localhost:8080/";
+            return DefaultEnvironmentName;
 #endif
+        }
+
+        private static ApiSettings LoadMergedSettings(string environmentName)
+        {
+            var baseSettings = LoadSettingsResource("appsettings.json");
+            var environmentSettings = string.Equals(environmentName, DefaultEnvironmentName, StringComparison.OrdinalIgnoreCase)
+                ? null
+                : LoadSettingsResource($"appsettings.{environmentName}.json");
+
+            return Merge(baseSettings, environmentSettings);
+        }
+
+        private static ApiSettings LoadSettingsResource(string fileName)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = $"{assembly.GetName().Name}.Configuration.{fileName}";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream is null)
+                return new ApiSettings();
+
+            using var document = JsonDocument.Parse(stream);
+
+            if (!document.RootElement.TryGetProperty("Api", out var apiElement))
+                return new ApiSettings();
+
+            var settings = new ApiSettings
+            {
+                BaseUrl = apiElement.TryGetProperty("BaseUrl", out var baseUrlElement)
+                    ? NormalizeUrl(baseUrlElement.GetString())
+                    : null
+            };
+
+            if (apiElement.TryGetProperty("Platforms", out var platformsElement) &&
+                platformsElement.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in platformsElement.EnumerateObject())
+                {
+                    var value = NormalizeUrl(property.Value.GetString());
+                    if (!string.IsNullOrWhiteSpace(value))
+                        settings.Platforms[property.Name] = value;
+                }
+            }
+
+            return settings;
+        }
+
+        private static ApiSettings Merge(ApiSettings baseSettings, ApiSettings? overrideSettings)
+        {
+            var merged = new ApiSettings
+            {
+                BaseUrl = overrideSettings?.BaseUrl ?? baseSettings.BaseUrl
+            };
+
+            foreach (var pair in baseSettings.Platforms)
+                merged.Platforms[pair.Key] = pair.Value;
+
+            if (overrideSettings is not null)
+            {
+                foreach (var pair in overrideSettings.Platforms)
+                    merged.Platforms[pair.Key] = pair.Value;
+            }
+
+            return merged;
+        }
+
+        private static string? GetConfiguredBaseUrl(ApiSettings settings, string platformKey)
+        {
+            if (settings.Platforms.TryGetValue(platformKey, out var platformUrl) &&
+                !string.IsNullOrWhiteSpace(platformUrl))
+            {
+                return platformUrl;
+            }
+
+            return settings.BaseUrl;
+        }
+
+        private static string GetPlatformKey()
+        {
+            var platform = DeviceInfo.Current.Platform;
+
+            if (platform == DevicePlatform.Android)
+                return "android";
+
+            if (platform == DevicePlatform.iOS)
+                return "ios";
+
+            if (platform == DevicePlatform.MacCatalyst)
+                return "maccatalyst";
+
+            if (platform == DevicePlatform.WinUI)
+                return "windows";
+
+            return "default";
+        }
+
+        private static string GetPlatformFallbackBaseUrl()
+        {
+            return DeviceInfo.Current.Platform == DevicePlatform.Android
+                ? "http://10.0.2.2:57664/"
+                : "http://localhost:8080/";
+        }
+
+        private static string? NormalizeUrl(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            var normalized = value.Trim();
+            return normalized.EndsWith("/", StringComparison.Ordinal)
+                ? normalized
+                : $"{normalized}/";
+        }
+
+        private sealed class ApiSettings
+        {
+            public string? BaseUrl { get; init; }
+
+            public Dictionary<string, string> Platforms { get; } = new(StringComparer.OrdinalIgnoreCase);
         }
     }
 }

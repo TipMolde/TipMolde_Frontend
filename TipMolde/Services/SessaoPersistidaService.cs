@@ -95,6 +95,18 @@ public sealed class SessaoPersistidaService
         return int.TryParse(subject, out var userId) ? userId : null;
     }
 
+    public string? TryGetCurrentUserRole()
+    {
+        var token = _httpClient.DefaultRequestHeaders.Authorization?.Parameter;
+
+        if (string.IsNullOrWhiteSpace(token))
+            return null;
+
+        return TryGetClaimFromToken(token, "role")
+            ?? TryGetClaimFromToken(token, "roles")
+            ?? TryGetClaimFromToken(token, "http://schemas.microsoft.com/ws/2008/06/identity/claims/role");
+    }
+
     private static string? TryGetClaimFromToken(string token, string claimName)
     {
         try

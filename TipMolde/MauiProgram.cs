@@ -19,10 +19,7 @@ namespace TipMolde
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            builder.Services.AddSingleton(new ApiOptions
-            {
-                BaseUrl = ApiEndpointResolver.GetDefaultBaseUrl()
-            });
+            builder.Services.AddSingleton(_ => ApiEndpointResolver.Resolve());
 
             builder.Services.AddSingleton(sp =>
             {
@@ -37,10 +34,14 @@ namespace TipMolde
 
             builder.Services.AddSingleton<ApiConnectivityService>();
             builder.Services.AddSingleton<SessaoPersistidaService>();
+            builder.Services.AddSingleton<ThemePreferenceService>();
+            builder.Services.AddSingleton<UtilizadoresService>();
+            builder.Services.AddSingleton<AuthorizationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
             builder.Services.AddSingleton<AppShell>();
 
             builder.Services.AddSingleton<TopBarViewModel>();
+            builder.Services.AddTransient<SidebarViewModel>();
 
             builder.Services.AddTransient<AutenticacaoService>();
             builder.Services.AddTransient<AutenticacaoPage>();
@@ -49,7 +50,6 @@ namespace TipMolde
             builder.Services.AddSingleton<DashboardViewModel>();
             builder.Services.AddSingleton<MainPage>();
 
-            builder.Services.AddTransient<UtilizadoresService>();
             builder.Services.AddTransient<UtilizadoresViewModel>();
             builder.Services.AddTransient<Utilizadores>();
 
@@ -62,13 +62,27 @@ namespace TipMolde
 
             builder.Services.AddTransient<EncomendasService>();
             builder.Services.AddTransient<MoldesService>();
+            builder.Services.AddTransient<PecasService>();
+            builder.Services.AddTransient<MaquinasService>();
+            builder.Services.AddTransient<FasesProducaoService>();
+            builder.Services.AddTransient<RegistosProducaoService>();
             builder.Services.AddTransient<MoldePdfService>();
+            builder.Services.AddTransient<GlobalMoldePriorityService>();
 
             builder.Services.AddTransient<AdicionarClienteViewModel>();
             builder.Services.AddTransient<AdicionarClientePage>();
 
             builder.Services.AddTransient<AdicionarEncomendaViewModel>();
             builder.Services.AddTransient<AdicionarEncomendaPage>();
+
+            builder.Services.AddTransient<AdicionarMoldeViewModel>();
+            builder.Services.AddTransient<AdicionarMoldePage>();
+            builder.Services.AddTransient<AdicionarPecaViewModel>();
+            builder.Services.AddTransient<AdicionarPecaPage>();
+            builder.Services.AddTransient<EditarPecaViewModel>();
+            builder.Services.AddTransient<EditarPecaPage>();
+            builder.Services.AddTransient<EditarMaquinaViewModel>();
+            builder.Services.AddTransient<EditarMaquinaPage>();
 
             builder.Services.AddTransient<EditarClienteViewModel>();
             builder.Services.AddTransient<EditarClientePage>();
@@ -87,6 +101,14 @@ namespace TipMolde
 
             builder.Services.AddTransient<ProducaoViewModel>();
             builder.Services.AddTransient<Producao>();
+            builder.Services.AddTransient<RegistoProducaoViewModel>();
+            builder.Services.AddTransient<RegistoProducaoPage>();
+            builder.Services.AddTransient<FilaTrabalhoViewModel>();
+            builder.Services.AddTransient<FilaTrabalhoPage>();
+            builder.Services.AddTransient<MaquinasViewModel>();
+            builder.Services.AddTransient<MaquinasPage>();
+            builder.Services.AddTransient<DesenhoViewModel>();
+            builder.Services.AddTransient<DesenhoPage>();
 
             builder.Services.AddTransient<DefinicoesViewModel>();
             builder.Services.AddTransient<Definicoes>();

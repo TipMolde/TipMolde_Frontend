@@ -1,3 +1,6 @@
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TipMolde.Models;
@@ -12,12 +15,31 @@ public partial class DashboardViewModel : ObservableObject
 
     private readonly EncomendasService _encomendasService;
     private readonly MoldesService _moldesService;
+    private readonly PecasService _pecasService;
+    private readonly AuthorizationService _authorizationService;
+    private readonly IDialogService _dialogService;
 
-    public DashboardViewModel(EncomendasService encomendasService, MoldesService moldesService)
+    private bool _suppressSelectedMoldeRececaoChanged;
+    private int _rececaoMaterialLoadVersion;
+
+    public DashboardViewModel(
+        EncomendasService encomendasService,
+        MoldesService moldesService,
+        PecasService pecasService,
+        AuthorizationService authorizationService,
+        IDialogService dialogService)
     {
         _encomendasService = encomendasService;
         _moldesService = moldesService;
+        _pecasService = pecasService;
+        _authorizationService = authorizationService;
+        _dialogService = dialogService;
+
+        PecasPendentesRececao.CollectionChanged += OnPecasPendentesRececaoCollectionChanged;
     }
+
+    public ObservableCollection<MoldeRececaoOption> MoldesRececaoDisponiveis { get; } = new();
+    public ObservableCollection<SelectablePecaRececaoItem> PecasPendentesRececao { get; } = new();
 
     [ObservableProperty]
     private bool isLoadingHero;
@@ -37,6 +59,33 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private MoldeCicloVidaDashboardDto? dashboardMaisProximo;
 
+    [ObservableProperty]
+    private int? totalMoldesPorEntregar;
+
+    [ObservableProperty]
+    private decimal? taxaConclusao;
+
+    [ObservableProperty]
+    private int? encomendasConcluidasUltimosTresMeses;
+
+    [ObservableProperty]
+    private int? moldesComAtraso;
+
+    [ObservableProperty]
+    private bool canUseRececaoMaterial;
+
+    [ObservableProperty]
+    private bool isLoadingRececaoMaterial;
+
+    [ObservableProperty]
+    private bool isSavingRececaoMaterial;
+
+    [ObservableProperty]
+    private string rececaoMaterialErrorMessage = string.Empty;
+
+    [ObservableProperty]
+    private MoldeRececaoOption? selectedMoldeRececao;
+
     public bool HasHeroError => !string.IsNullOrWhiteSpace(HeroErrorMessage);
     public bool HasMoldeEntregaDashboard =>
         MoldeMaisProximo is not null &&
@@ -53,10 +102,48 @@ public partial class DashboardViewModel : ObservableObject
     public string PercentagemConclusaoMaisProximoDisplay => DashboardMaisProximo is null
         ? ValorNaoDefinido
         : $"{DashboardMaisProximo.PercentagemConclusao:0.##}%";
+    public string TotalMoldesPorEntregarDisplay => TotalMoldesPorEntregar?.ToString() ?? ValorNaoDefinido;
+    public string TaxaConclusaoDisplay => TaxaConclusao.HasValue
+        ? $"{TaxaConclusao.Value:0.##}%"
+        : ValorNaoDefinido;
+    public string EncomendasConcluidasUltimosTresMesesDisplay => EncomendasConcluidasUltimosTresMeses?.ToString() ?? ValorNaoDefinido;
+    public string MoldesComAtrasoDisplay => MoldesComAtraso?.ToString() ?? ValorNaoDefinido;
+    public string IntervaloUltimosTresMesesDisplay => $"{DateTime.Today.AddMonths(-3):dd/MM/yyyy} - {DateTime.Today:dd/MM/yyyy}";
+    public bool HasRececaoMaterialError => !string.IsNullOrWhiteSpace(RececaoMaterialErrorMessage);
+    public bool HasMoldesRececaoDisponiveis => MoldesRececaoDisponiveis.Count > 0;
+    public bool HasNoMoldesRececaoDisponiveis => CanUseRececaoMaterial && !IsLoadingHero && MoldesRececaoDisponiveis.Count == 0;
+    public bool HasSelectedMoldeRececao => SelectedMoldeRececao is not null;
+    public bool HasPecasPendentesRececao => PecasPendentesRececao.Count > 0;
+    public bool HasNoPecasPendentesRececao => HasSelectedMoldeRececao && !IsLoadingRececaoMaterial && !HasRececaoMaterialError && PecasPendentesRececao.Count == 0;
+    public bool CanRegistarChegadaMaterial => CanUseRececaoMaterial &&
+                                              SelectedMoldeRececao is not null &&
+                                              !IsLoadingRececaoMaterial &&
+                                              !IsSavingRececaoMaterial &&
+                                              PecasPendentesRececao.Any(item => item.IsSelected);
+    public string RececaoMaterialButtonText => IsSavingRececaoMaterial
+        ? "A registar chegada..."
+        : "Registar chegada de material";
+    public string SelectedMoldeRececaoResumo => SelectedMoldeRececao is null
+        ? "Seleciona um molde em producao para marcar as pecas que chegaram."
+        : $"Encomenda {SelectedMoldeRececao.EncomendaDisplay} | entrega {SelectedMoldeRececao.DataEntregaDisplay}";
+    public string PecasRececaoSelectionSummary
+    {
+        get
+        {
+            if (PecasPendentesRececao.Count == 0)
+                return "Nao existem pecas pendentes para este molde.";
+
+            var selecionadas = PecasPendentesRececao.Count(item => item.IsSelected);
+            return selecionadas == 0
+                ? $"{PecasPendentesRececao.Count} peca(s) pendente(s). Seleciona as que chegaram."
+                : $"{selecionadas} de {PecasPendentesRececao.Count} peca(s) selecionada(s).";
+        }
+    }
 
     partial void OnIsLoadingHeroChanged(bool value)
     {
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoMoldesRececaoDisponiveis));
     }
 
     partial void OnHeroErrorMessageChanged(string value)
@@ -97,58 +184,90 @@ public partial class DashboardViewModel : ObservableObject
         OnPropertyChanged(nameof(PercentagemConclusaoMaisProximoDisplay));
     }
 
+    partial void OnTotalMoldesPorEntregarChanged(int? value) => OnPropertyChanged(nameof(TotalMoldesPorEntregarDisplay));
+    partial void OnTaxaConclusaoChanged(decimal? value) => OnPropertyChanged(nameof(TaxaConclusaoDisplay));
+    partial void OnEncomendasConcluidasUltimosTresMesesChanged(int? value) => OnPropertyChanged(nameof(EncomendasConcluidasUltimosTresMesesDisplay));
+    partial void OnMoldesComAtrasoChanged(int? value) => OnPropertyChanged(nameof(MoldesComAtrasoDisplay));
+
+    partial void OnCanUseRececaoMaterialChanged(bool value)
+    {
+        NotifyRececaoMaterialStateChanged();
+
+        if (!value)
+            ResetRececaoMaterial();
+    }
+
+    partial void OnIsLoadingRececaoMaterialChanged(bool value) => NotifyRececaoMaterialStateChanged();
+    partial void OnIsSavingRececaoMaterialChanged(bool value)
+    {
+        OnPropertyChanged(nameof(RececaoMaterialButtonText));
+        NotifyRececaoMaterialStateChanged();
+    }
+
+    partial void OnRececaoMaterialErrorMessageChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasRececaoMaterialError));
+        OnPropertyChanged(nameof(HasNoPecasPendentesRececao));
+    }
+
+    partial void OnSelectedMoldeRececaoChanged(MoldeRececaoOption? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedMoldeRececao));
+        OnPropertyChanged(nameof(HasNoPecasPendentesRececao));
+        OnPropertyChanged(nameof(SelectedMoldeRececaoResumo));
+        NotifyRececaoMaterialStateChanged();
+
+        if (_suppressSelectedMoldeRececaoChanged)
+            return;
+
+        if (value is null)
+        {
+            RececaoMaterialErrorMessage = string.Empty;
+            ClearPecasPendentesRececao();
+            return;
+        }
+
+        _ = LoadPecasPendentesRececaoAsync(value.MoldeId);
+    }
+
     public async Task LoadAsync()
     {
         if (IsLoadingHero)
             return;
+
+        var moldeRececaoSelecionadoId = SelectedMoldeRececao?.MoldeId;
 
         IsLoadingHero = true;
         HeroErrorMessage = string.Empty;
 
         try
         {
-            var encomendas = await GetAllEncomendasAsync();
+            await RefreshRececaoMaterialAccessAsync();
 
-            if (encomendas.Count == 0)
-            {
-                HeroErrorMessage = "Nao existem encomendas em producao para apresentar no dashboard.";
-                LimparDashboard();
-                return;
-            }
+            var encomendasEmProducaoTask = GetAllEncomendasEmProducaoAsync();
+            var todasEncomendasTask = GetTodasEncomendasAsync();
+            var filaGlobalMoldesTask = GetAllFilaGlobalMoldeAsync();
 
-            var melhorCandidato = await EncontrarMoldeMaisProximoAsync(encomendas);
+            await Task.WhenAll(encomendasEmProducaoTask, todasEncomendasTask, filaGlobalMoldesTask);
 
-            if (melhorCandidato is null)
-            {
-                HeroErrorMessage = "Nao foi encontrada uma data de entrega valida para os moldes em producao.";
-                LimparDashboard();
-                return;
-            }
+            AtualizarResumoExecutivo(
+                todasEncomendasTask.Result,
+                filaGlobalMoldesTask.Result);
 
-            var moldeTask = _moldesService.GetByIdAsync(melhorCandidato.EncomendaMolde.Molde_id);
-            var dashboardTask = _moldesService.GetDashboardCicloVidaAsync(melhorCandidato.EncomendaMolde.Molde_id);
+            await CarregarHeroAsync(
+                encomendasEmProducaoTask.Result,
+                filaGlobalMoldesTask.Result);
 
-            await Task.WhenAll(moldeTask, dashboardTask);
-
-            var molde = moldeTask.Result;
-            var dashboard = dashboardTask.Result;
-
-            if (molde is null || dashboard is null)
-            {
-                HeroErrorMessage = "Nao foi possivel carregar o resumo do molde mais proximo de entrega.";
-                LimparDashboard();
-                return;
-            }
-
-            MoldeMaisProximo = molde;
-            EncomendaMaisProxima = melhorCandidato.Encomenda;
-            EntregaMoldeMaisProxima = melhorCandidato.EncomendaMolde;
-            DashboardMaisProximo = dashboard;
+            await AtualizarMoldesRececaoAsync(
+                filaGlobalMoldesTask.Result,
+                moldeRececaoSelecionadoId);
         }
         catch (Exception ex)
         {
             HeroErrorMessage = ex.Message;
             LimparDashboard();
+            LimparResumoExecutivo();
+            ResetRececaoMaterial();
         }
         finally
         {
@@ -165,11 +284,283 @@ public partial class DashboardViewModel : ObservableObject
         await Shell.Current.GoToAsync($"{nameof(MoldeDetalhePage)}?molde_id={EntregaMoldeMaisProxima.Molde_id}");
     }
 
-    private async Task<List<EncomendaResumoDto>> GetAllEncomendasAsync()
+    [RelayCommand(CanExecute = nameof(CanRegistarChegadaMaterial))]
+    private async Task RegistarChegadaMaterialAsync()
+    {
+        if (SelectedMoldeRececao is null)
+            return;
+
+        var pecasSelecionadas = PecasPendentesRececao
+            .Where(item => item.IsSelected)
+            .ToList();
+
+        if (pecasSelecionadas.Count == 0)
+            return;
+
+        IsSavingRececaoMaterial = true;
+        RececaoMaterialErrorMessage = string.Empty;
+
+        try
+        {
+            foreach (var peca in pecasSelecionadas)
+                await _pecasService.UpdateMaterialRecebidoAsync(peca.PecaId, materialRecebido: true);
+
+            await _dialogService.ShowSuccessAsync(
+                "Chegada registada",
+                BuildRececaoSuccessMessage(SelectedMoldeRececao, pecasSelecionadas));
+
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            RececaoMaterialErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSavingRececaoMaterial = false;
+        }
+    }
+
+    private async Task CarregarHeroAsync(
+        IReadOnlyCollection<EncomendaResumoDto>? encomendasEmProducao,
+        IReadOnlyCollection<FilaGlobalMoldeItemDto>? filaGlobalMoldes)
+    {
+        if (encomendasEmProducao is null || filaGlobalMoldes is null)
+        {
+            HeroErrorMessage = "Nao foi possivel carregar os dados do dashboard.";
+            LimparDashboard();
+            return;
+        }
+
+        if (encomendasEmProducao.Count == 0)
+        {
+            HeroErrorMessage = "Nao existem encomendas em producao para apresentar no dashboard.";
+            LimparDashboard();
+            return;
+        }
+
+        var melhorCandidato = EncontrarMoldeMaisProximo(encomendasEmProducao, filaGlobalMoldes);
+        if (melhorCandidato is null)
+        {
+            HeroErrorMessage = "Nao foi encontrada uma data de entrega valida para os moldes em producao.";
+            LimparDashboard();
+            return;
+        }
+
+        var moldeTask = _moldesService.GetByIdAsync(melhorCandidato.MoldeFila.MoldeId);
+        var dashboardTask = _moldesService.GetDashboardCicloVidaAsync(melhorCandidato.MoldeFila.MoldeId);
+
+        await Task.WhenAll(moldeTask, dashboardTask);
+
+        var molde = moldeTask.Result;
+        var dashboard = dashboardTask.Result;
+
+        if (molde is null || dashboard is null)
+        {
+            HeroErrorMessage = "Nao foi possivel carregar o resumo do molde mais proximo de entrega.";
+            LimparDashboard();
+            return;
+        }
+
+        MoldeMaisProximo = molde;
+        EncomendaMaisProxima = melhorCandidato.Encomenda;
+        EntregaMoldeMaisProxima = new EncomendaMoldeDto
+        {
+            EncomendaMolde_id = melhorCandidato.MoldeFila.EncomendaMoldeId,
+            Encomenda_id = melhorCandidato.MoldeFila.EncomendaId,
+            Molde_id = melhorCandidato.MoldeFila.MoldeId,
+            Quantidade = melhorCandidato.MoldeFila.Quantidade,
+            Prioridade = melhorCandidato.MoldeFila.Prioridade,
+            DataEntregaPrevista = melhorCandidato.MoldeFila.DataEntregaPrevista,
+            NumeroEncomendaCliente = melhorCandidato.MoldeFila.NumeroEncomendaCliente,
+            NumeroMolde = melhorCandidato.MoldeFila.NumeroMolde
+        };
+        DashboardMaisProximo = dashboard;
+    }
+
+    private void AtualizarResumoExecutivo(
+        IReadOnlyCollection<EncomendaResumoDto>? todasEncomendas,
+        IReadOnlyCollection<FilaGlobalMoldeItemDto>? filaGlobalMoldes)
+    {
+        if (filaGlobalMoldes is null)
+        {
+            TotalMoldesPorEntregar = null;
+            MoldesComAtraso = null;
+        }
+        else
+        {
+            var hoje = DateTime.Today;
+
+            TotalMoldesPorEntregar = filaGlobalMoldes.Count;
+            MoldesComAtraso = filaGlobalMoldes.Count(item =>
+                item.DataEntregaPrevista > DateTime.MinValue &&
+                item.DataEntregaPrevista.Date < hoje);
+        }
+
+        if (todasEncomendas is null)
+        {
+            TaxaConclusao = null;
+            EncomendasConcluidasUltimosTresMeses = null;
+            return;
+        }
+
+        var hojeIntervalo = DateTime.Today;
+        var inicioIntervalo = hojeIntervalo.AddMonths(-3);
+        var totalEncomendas = todasEncomendas.Count;
+        var totalConcluidas = todasEncomendas.Count(encomenda => IsEstado(encomenda.Estado, "CONCLUIDA"));
+
+        TaxaConclusao = totalEncomendas == 0
+            ? 0
+            : decimal.Round((decimal)totalConcluidas / totalEncomendas * 100m, 2);
+
+        EncomendasConcluidasUltimosTresMeses = todasEncomendas.Count(encomenda =>
+            IsEstado(encomenda.Estado, "CONCLUIDA") &&
+            encomenda.DataRegisto.Date >= inicioIntervalo &&
+            encomenda.DataRegisto.Date <= hojeIntervalo);
+    }
+
+    private async Task RefreshRececaoMaterialAccessAsync()
+    {
+        try
+        {
+            var role = await _authorizationService.GetCurrentRoleAsync();
+            CanUseRececaoMaterial = string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(role, "GESTOR_DESENHO", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(role, "GESTOR_PRODUCAO", StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            CanUseRececaoMaterial = false;
+        }
+    }
+
+    private async Task AtualizarMoldesRececaoAsync(
+        IReadOnlyCollection<FilaGlobalMoldeItemDto>? filaGlobalMoldes,
+        int? moldeRececaoSelecionadoId)
+    {
+        if (!CanUseRececaoMaterial || filaGlobalMoldes is null)
+        {
+            ResetRececaoMaterial();
+            return;
+        }
+
+        var candidatos = filaGlobalMoldes
+            .GroupBy(item => item.MoldeId)
+            .Select(group => group
+                .OrderBy(item => item.DataEntregaPrevista <= DateTime.MinValue ? DateTime.MaxValue : item.DataEntregaPrevista)
+                .ThenBy(item => item.Prioridade)
+                .First())
+            .OrderBy(item => item.DataEntregaPrevista <= DateTime.MinValue ? DateTime.MaxValue : item.DataEntregaPrevista)
+            .ThenBy(item => item.Prioridade)
+            .ToList();
+
+        MoldesRececaoDisponiveis.Clear();
+
+        foreach (var item in candidatos)
+        {
+            MoldesRececaoDisponiveis.Add(new MoldeRececaoOption
+            {
+                MoldeId = item.MoldeId,
+                NumeroMolde = item.NumeroMolde,
+                NumeroEncomendaCliente = item.NumeroEncomendaCliente,
+                DataEntregaPrevista = item.DataEntregaPrevista,
+                Prioridade = item.Prioridade
+            });
+        }
+
+        if (MoldesRececaoDisponiveis.Count == 0)
+        {
+            _suppressSelectedMoldeRececaoChanged = true;
+            SelectedMoldeRececao = null;
+            _suppressSelectedMoldeRececaoChanged = false;
+            ClearPecasPendentesRececao();
+            return;
+        }
+
+        var restoredSelection = MoldesRececaoDisponiveis.FirstOrDefault(option => option.MoldeId == moldeRececaoSelecionadoId)
+                                ?? MoldesRececaoDisponiveis.FirstOrDefault();
+
+        _suppressSelectedMoldeRececaoChanged = true;
+        SelectedMoldeRececao = restoredSelection;
+        _suppressSelectedMoldeRececaoChanged = false;
+
+        if (restoredSelection is null)
+        {
+            ClearPecasPendentesRececao();
+            return;
+        }
+
+        await LoadPecasPendentesRececaoAsync(restoredSelection.MoldeId);
+    }
+
+    private async Task LoadPecasPendentesRececaoAsync(int moldeId)
+    {
+        if (!CanUseRececaoMaterial || moldeId <= 0)
+        {
+            ClearPecasPendentesRececao();
+            return;
+        }
+
+        var loadVersion = ++_rececaoMaterialLoadVersion;
+
+        IsLoadingRececaoMaterial = true;
+        RececaoMaterialErrorMessage = string.Empty;
+
+        try
+        {
+            var pecas = await GetAllPecasByMoldeIdAsync(moldeId);
+            if (loadVersion != _rececaoMaterialLoadVersion || SelectedMoldeRececao?.MoldeId != moldeId)
+                return;
+
+            var pendentes = pecas
+                .Where(peca => !peca.MaterialRecebido)
+                .OrderBy(peca => peca.Prioridade)
+                .ThenBy(peca => peca.NumeroPeca)
+                .ThenBy(peca => peca.Designacao)
+                .Select(peca => new SelectablePecaRececaoItem(peca));
+
+            ReplacePecasPendentesRececao(pendentes);
+        }
+        catch (Exception ex)
+        {
+            if (loadVersion != _rececaoMaterialLoadVersion)
+                return;
+
+            RececaoMaterialErrorMessage = ex.Message;
+            ClearPecasPendentesRececao();
+        }
+        finally
+        {
+            if (loadVersion == _rececaoMaterialLoadVersion)
+                IsLoadingRececaoMaterial = false;
+        }
+    }
+
+    private async Task<List<PecaDto>> GetAllPecasByMoldeIdAsync(int moldeId)
+    {
+        var primeiraPagina = await _pecasService.GetByMoldeIdAsync(moldeId, 1, 100);
+        if (primeiraPagina is null)
+            throw new InvalidOperationException($"Nao foi possivel carregar as pecas do molde {moldeId}.");
+
+        var pecas = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _pecasService.GetByMoldeIdAsync(moldeId, page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            pecas.AddRange(pagina.Items);
+        }
+
+        return pecas;
+    }
+
+    private async Task<List<EncomendaResumoDto>?> GetAllEncomendasEmProducaoAsync()
     {
         var primeiraPagina = await _encomendasService.GetEncomendasNaoConcluidasAsync(1, 100);
         if (primeiraPagina is null)
-            return [];
+            return null;
 
         var encomendas = primeiraPagina.Items.ToList();
 
@@ -185,42 +576,122 @@ public partial class DashboardViewModel : ObservableObject
         return encomendas;
     }
 
-    private async Task<MoldeEntregaCandidato?> EncontrarMoldeMaisProximoAsync(IReadOnlyCollection<EncomendaResumoDto> encomendas)
+    private async Task<List<EncomendaResumoDto>?> GetTodasEncomendasAsync()
     {
-        var candidatos = new List<MoldeEntregaCandidato>();
-
-        foreach (var encomenda in encomendas)
-        {
-            var moldes = await GetAllEncomendaMoldesAsync(encomenda.Encomenda_id);
-
-            foreach (var encomendaMolde in moldes.Where(item => item.DataEntregaPrevista > DateTime.MinValue))
-                candidatos.Add(new MoldeEntregaCandidato(encomenda, encomendaMolde));
-        }
-
-        return candidatos
-            .OrderBy(item => item.EncomendaMolde.DataEntregaPrevista)
-            .ThenBy(item => item.EncomendaMolde.Prioridade)
-            .FirstOrDefault();
-    }
-
-    private async Task<List<EncomendaMoldeDto>> GetAllEncomendaMoldesAsync(int encomendaId)
-    {
-        var primeiraPagina = await _encomendasService.GetEncomendaMoldesByEncomendaIdAsync(encomendaId, 1, 100);
+        var primeiraPagina = await _encomendasService.GetAllAsync(1, 100);
         if (primeiraPagina is null)
-            return [];
+            return null;
 
-        var encomendaMoldes = primeiraPagina.Items.ToList();
+        var encomendas = primeiraPagina.Items.ToList();
 
         for (var page = 2; page <= primeiraPagina.TotalPages; page++)
         {
-            var pagina = await _encomendasService.GetEncomendaMoldesByEncomendaIdAsync(encomendaId, page, 100);
+            var pagina = await _encomendasService.GetAllAsync(page, 100);
             if (pagina?.Items is null)
                 continue;
 
-            encomendaMoldes.AddRange(pagina.Items);
+            encomendas.AddRange(pagina.Items);
         }
 
-        return encomendaMoldes;
+        return encomendas;
+    }
+
+    private async Task<List<FilaGlobalMoldeItemDto>?> GetAllFilaGlobalMoldeAsync()
+    {
+        var primeiraPagina = await _encomendasService.GetFilaGlobalMoldeAsync(1, 100);
+        if (primeiraPagina is null)
+            return null;
+
+        var moldes = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _encomendasService.GetFilaGlobalMoldeAsync(page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            moldes.AddRange(pagina.Items);
+        }
+
+        return moldes;
+    }
+
+    private static MoldeEntregaCandidato? EncontrarMoldeMaisProximo(
+        IReadOnlyCollection<EncomendaResumoDto> encomendasEmProducao,
+        IReadOnlyCollection<FilaGlobalMoldeItemDto> filaGlobalMoldes)
+    {
+        var encomendasPorId = encomendasEmProducao.ToDictionary(encomenda => encomenda.Encomenda_id);
+
+        var melhorMolde = filaGlobalMoldes
+            .Where(item =>
+                item.DataEntregaPrevista > DateTime.MinValue &&
+                encomendasPorId.ContainsKey(item.EncomendaId))
+            .OrderBy(item => item.DataEntregaPrevista)
+            .ThenBy(item => item.Prioridade)
+            .FirstOrDefault();
+
+        if (melhorMolde is null)
+            return null;
+
+        return new MoldeEntregaCandidato(encomendasPorId[melhorMolde.EncomendaId], melhorMolde);
+    }
+
+    private void ReplacePecasPendentesRececao(IEnumerable<SelectablePecaRececaoItem> pecas)
+    {
+        ClearPecasPendentesRececao();
+
+        foreach (var peca in pecas)
+        {
+            peca.PropertyChanged += OnPecaRececaoItemPropertyChanged;
+            PecasPendentesRececao.Add(peca);
+        }
+
+        NotifyRececaoMaterialStateChanged();
+    }
+
+    private void ClearPecasPendentesRececao()
+    {
+        foreach (var item in PecasPendentesRececao)
+            item.PropertyChanged -= OnPecaRececaoItemPropertyChanged;
+
+        PecasPendentesRececao.Clear();
+        NotifyRececaoMaterialStateChanged();
+    }
+
+    private void OnPecasPendentesRececaoCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        NotifyRececaoMaterialStateChanged();
+    }
+
+    private void OnPecaRececaoItemPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (string.Equals(e.PropertyName, nameof(SelectablePecaRececaoItem.IsSelected), StringComparison.Ordinal))
+            NotifyRececaoMaterialStateChanged();
+    }
+
+    private void NotifyRececaoMaterialStateChanged()
+    {
+        OnPropertyChanged(nameof(HasMoldesRececaoDisponiveis));
+        OnPropertyChanged(nameof(HasNoMoldesRececaoDisponiveis));
+        OnPropertyChanged(nameof(HasPecasPendentesRececao));
+        OnPropertyChanged(nameof(HasNoPecasPendentesRececao));
+        OnPropertyChanged(nameof(PecasRececaoSelectionSummary));
+        OnPropertyChanged(nameof(CanRegistarChegadaMaterial));
+        RegistarChegadaMaterialCommand.NotifyCanExecuteChanged();
+    }
+
+    private void ResetRececaoMaterial()
+    {
+        MoldesRececaoDisponiveis.Clear();
+
+        _suppressSelectedMoldeRececaoChanged = true;
+        SelectedMoldeRececao = null;
+        _suppressSelectedMoldeRececaoChanged = false;
+
+        IsLoadingRececaoMaterial = false;
+        IsSavingRececaoMaterial = false;
+        RececaoMaterialErrorMessage = string.Empty;
+        ClearPecasPendentesRececao();
     }
 
     private void LimparDashboard()
@@ -229,6 +700,30 @@ public partial class DashboardViewModel : ObservableObject
         EncomendaMaisProxima = null;
         EntregaMoldeMaisProxima = null;
         DashboardMaisProximo = null;
+    }
+
+    private void LimparResumoExecutivo()
+    {
+        TotalMoldesPorEntregar = null;
+        TaxaConclusao = null;
+        EncomendasConcluidasUltimosTresMeses = null;
+        MoldesComAtraso = null;
+    }
+
+    private static string BuildRececaoSuccessMessage(
+        MoldeRececaoOption molde,
+        IReadOnlyCollection<SelectablePecaRececaoItem> pecasSelecionadas)
+    {
+        var descricoes = pecasSelecionadas
+            .Take(5)
+            .Select(item => item.DesignacaoDisplay)
+            .ToList();
+
+        var listaPecas = string.Join(", ", descricoes);
+        if (pecasSelecionadas.Count > descricoes.Count)
+            listaPecas = $"{listaPecas} e mais {pecasSelecionadas.Count - descricoes.Count}";
+
+        return $"Foi registada a chegada de {pecasSelecionadas.Count} peca(s) do molde {molde.NumeroMoldeDisplay}: {listaPecas}.";
     }
 
     private static string FirstNonEmpty(params string?[] values)
@@ -242,5 +737,55 @@ public partial class DashboardViewModel : ObservableObject
         return ValorNaoDefinido;
     }
 
-    private sealed record MoldeEntregaCandidato(EncomendaResumoDto Encomenda, EncomendaMoldeDto EncomendaMolde);
+    private static bool IsEstado(string? estado, string expected)
+    {
+        return string.Equals(estado?.Trim(), expected, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed record MoldeEntregaCandidato(EncomendaResumoDto Encomenda, FilaGlobalMoldeItemDto MoldeFila);
+}
+
+public sealed class MoldeRececaoOption
+{
+    public int MoldeId { get; init; }
+    public string NumeroMolde { get; init; } = string.Empty;
+    public string NumeroEncomendaCliente { get; init; } = string.Empty;
+    public DateTime DataEntregaPrevista { get; init; }
+    public int Prioridade { get; init; }
+
+    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? $"Molde #{MoldeId}" : NumeroMolde;
+    public string EncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem numero" : NumeroEncomendaCliente;
+    public string DataEntregaDisplay => DataEntregaPrevista > DateTime.MinValue
+        ? DataEntregaPrevista.ToString("dd/MM/yyyy")
+        : "Nao definida";
+    public string DisplayName => $"{NumeroMoldeDisplay} | {DataEntregaDisplay}";
+}
+
+public partial class SelectablePecaRececaoItem : ObservableObject
+{
+    public SelectablePecaRececaoItem(PecaDto peca)
+    {
+        PecaId = peca.PecaId;
+        NumeroPeca = peca.NumeroPeca;
+        Designacao = peca.Designacao;
+        Prioridade = peca.Prioridade;
+        Quantidade = peca.Quantidade;
+        MaterialDesignacao = peca.MaterialDesignacao;
+    }
+
+    public int PecaId { get; }
+    public string NumeroPeca { get; }
+    public string Designacao { get; }
+    public int Prioridade { get; }
+    public int Quantidade { get; }
+    public string MaterialDesignacao { get; }
+
+    [ObservableProperty]
+    private bool isSelected;
+
+    public string NumeroPecaDisplay => string.IsNullOrWhiteSpace(NumeroPeca) ? "Sem numero" : NumeroPeca;
+    public string DesignacaoDisplay => string.IsNullOrWhiteSpace(Designacao) ? NumeroPecaDisplay : Designacao;
+    public string MaterialDisplay => string.IsNullOrWhiteSpace(MaterialDesignacao) ? "Material nao definido" : MaterialDesignacao;
+    public string QuantidadeDisplay => $"Qtd: {Quantidade}";
+    public string PrioridadeDisplay => $"Prioridade {Prioridade}";
 }

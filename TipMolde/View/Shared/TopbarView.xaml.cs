@@ -19,6 +19,7 @@ public partial class TopBarView : ContentView
             null);
 
     private bool _isInitialized;
+    private Page? _parentPage;
 
     public string TitleText
     {
@@ -40,15 +41,46 @@ public partial class TopBarView : ContentView
 
     private async void OnLoaded(object? sender, EventArgs e)
     {
-        if (_isInitialized)
-            return;
-
         if (Handler?.MauiContext?.Services.GetService(typeof(TopBarViewModel)) is not TopBarViewModel vm)
             return;
 
         ViewModel = vm;
-        _isInitialized = true;
 
-        await vm.EnsureLoadedAsync();
+        if (!_isInitialized)
+        {
+            AttachToParentPage();
+            _isInitialized = true;
+        }
+
+        await vm.EnsureLoadedAsync(forceRefresh: true);
+    }
+
+    private void AttachToParentPage()
+    {
+        _parentPage = FindParentPage();
+        if (_parentPage is not null)
+            _parentPage.Appearing += OnParentPageAppearing;
+    }
+
+    private async void OnParentPageAppearing(object? sender, EventArgs e)
+    {
+        if (ViewModel is null)
+            return;
+
+        await ViewModel.EnsureLoadedAsync(forceRefresh: true);
+    }
+
+    private Page? FindParentPage()
+    {
+        Element? current = Parent;
+        while (current is not null)
+        {
+            if (current is Page page)
+                return page;
+
+            current = current.Parent;
+        }
+
+        return null;
     }
 }

@@ -7,6 +7,9 @@ using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Apresenta o detalhe da encomenda, permite ajustar datas de entrega e registar entregas parciais por molde.
+/// </summary>
 public partial class EncomendaDetalheViewModel : ObservableObject
 {
     private const string ValorNaoDefinido = "Nao definido";
@@ -14,17 +17,23 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     private readonly EncomendasService _encomendasService;
     private readonly MoldesService _moldesService;
     private readonly ClientesService _clientesService;
+    private readonly GlobalMoldePriorityService _globalMoldePriorityService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de detalhe da encomenda.
+    /// </summary>
     public EncomendaDetalheViewModel(
         EncomendasService encomendasService,
         MoldesService moldesService,
         ClientesService clientesService,
+        GlobalMoldePriorityService globalMoldePriorityService,
         IDialogService dialogService)
     {
         _encomendasService = encomendasService;
         _moldesService = moldesService;
         _clientesService = clientesService;
+        _globalMoldePriorityService = globalMoldePriorityService;
         _dialogService = dialogService;
     }
 
@@ -92,12 +101,14 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanCancelEncomenda));
         OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+        UpdateEntregaAvailability();
     }
 
     partial void OnIsCancellingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCancelEncomenda));
         OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+        UpdateEntregaAvailability();
     }
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNomeClienteChanged(string value) => OnPropertyChanged(nameof(NomeClienteDisplay));
@@ -110,9 +121,13 @@ public partial class EncomendaDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(EstadoDisplay));
         OnPropertyChanged(nameof(CanCancelEncomenda));
         OnPropertyChanged(nameof(CanEditarEntregaMoldes));
+        UpdateEntregaAvailability();
     }
     partial void OnQuantidadeTotalPrevistaChanged(int value) => OnPropertyChanged(nameof(QuantidadeTotalPrevista));
 
+    /// <summary>
+    /// Carrega a encomenda, os seus moldes associados e o resumo apresentado no detalhe.
+    /// </summary>
     public async Task LoadAsync(int encomendaId)
     {
         Encomenda_id = encomendaId;
@@ -166,14 +181,18 @@ public partial class EncomendaDetalheViewModel : ObservableObject
                     NumeroMolde = FirstNonEmpty(associacao.NumeroMolde, molde?.Numero),
                     NomeMolde = molde?.Nome ?? string.Empty,
                     DescricaoMolde = molde?.Descricao ?? string.Empty,
+                    ImagemCapaPath = molde?.ImagemCapaPath ?? string.Empty,
                     NumeroCavidades = molde?.Numero_cavidades ?? 0,
                     Quantidade = associacao.Quantidade,
                     Prioridade = associacao.Prioridade,
-                    DataEntregaPrevista = associacao.DataEntregaPrevista
+                    DataEntregaPrevista = associacao.DataEntregaPrevista,
+                    QuantidadePorEntregar = Math.Max(0, associacao.QuantidadePorEntregar ?? associacao.Quantidade),
+                    IsEntregue = associacao.Entregue ?? ((associacao.QuantidadePorEntregar ?? associacao.Quantidade) <= 0)
                 });
             }
 
             QuantidadeTotalPrevista = associacoes.Sum(item => item.Quantidade);
+            ApplyDeliveredStateFromLoadedData();
             NotifyMoldeStateChanged();
         }
         catch (Exception ex)
@@ -226,6 +245,17 @@ public partial class EncomendaDetalheViewModel : ObservableObject
             await _encomendasService.UpdateEstadoAsync(Encomenda_id, "CANCELADA");
             Estado = "CANCELADA";
 
+            // Depois de sair da fila por cancelamento, os restantes moldes precisam de nova prioridade.
+            try
+            {
+                await _globalMoldePriorityService.RebalanceAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"A encomenda {NumeroEncomendaClienteDisplay} foi cancelada, mas nao foi possivel recalcular as prioridades globais. Detalhe: {ex.Message}");
+            }
+
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
                 $"A encomenda {NumeroEncomendaClienteDisplay} foi cancelada com sucesso.");
@@ -254,6 +284,19 @@ public partial class EncomendaDetalheViewModel : ObservableObject
                 molde.EncomendaMoldeId,
                 dataEntregaPrevista: molde.DataEntregaPrevista);
 
+            // Recalcula e volta a carregar para refletir a nova ordem global apos a alteracao da data.
+            try
+            {
+                await _globalMoldePriorityService.RebalanceAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"A data de entrega do molde {molde.NumeroMoldeDisplay} foi atualizada, mas nao foi possivel recalcular as prioridades globais. Detalhe: {ex.Message}");
+            }
+
+            await LoadAsync(Encomenda_id);
+
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
                 $"A entrega prevista do molde {molde.NumeroMoldeDisplay} foi atualizada.");
@@ -264,11 +307,64 @@ public partial class EncomendaDetalheViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private Task RegistarEntregaMoldeAsync(EncomendaMoldeItemDto? molde)
+    {
+        if (molde is null || !CanEditarEntregaMoldes || !molde.CanRegistarEntrega)
+            return Task.CompletedTask;
+
+        molde.QuantidadePorEntregar = Math.Max(0, molde.QuantidadePorEntregar - 1);
+        RecalculateEstadoFromEntregas();
+        UpdateEntregaAvailability();
+
+        return Task.CompletedTask;
+    }
+
     private void NotifyMoldeStateChanged()
     {
         OnPropertyChanged(nameof(HasMoldes));
         OnPropertyChanged(nameof(HasNoMoldes));
         OnPropertyChanged(nameof(TotalMoldesAssociados));
+        UpdateEntregaAvailability();
+    }
+
+    private void ApplyDeliveredStateFromLoadedData()
+    {
+        if (Moldes.Count == 0)
+            return;
+
+        if (Moldes.All(item => item.QuantidadePorEntregar <= 0))
+        {
+            Estado = "CONCLUIDA";
+            return;
+        }
+
+        if (Moldes.Any(item => item.QuantidadePorEntregar < item.Quantidade))
+            Estado = "PARCIALMENTE_ENTREGUE";
+    }
+
+    private void RecalculateEstadoFromEntregas()
+    {
+        if (Moldes.Count == 0)
+            return;
+
+        if (Moldes.All(item => item.QuantidadePorEntregar <= 0))
+        {
+            Estado = "CONCLUIDA";
+            return;
+        }
+
+        if (Moldes.Any(item => item.QuantidadePorEntregar < item.Quantidade))
+        {
+            Estado = "PARCIALMENTE_ENTREGUE";
+            return;
+        }
+    }
+
+    private void UpdateEntregaAvailability()
+    {
+        foreach (var molde in Moldes)
+            molde.CanEditarEntrega = CanEditarEntregaMoldes;
     }
 
     private static string FirstNonEmpty(params string?[] values)

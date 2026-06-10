@@ -22,9 +22,31 @@ public sealed class EncomendaMoldeDto
     [JsonPropertyName("dataEntregaPrevista")]
     public DateTime DataEntregaPrevista { get; set; }
 
+    [JsonPropertyName("quantidadePorEntregar")]
+    public int? QuantidadePorEntregar { get; set; }
+
+    [JsonPropertyName("entregue")]
+    public bool? Entregue { get; set; }
+
     [JsonPropertyName("numeroEncomendaCliente")]
     public string NumeroEncomendaCliente { get; set; } = string.Empty;
 
     [JsonPropertyName("numeroMolde")]
     public string NumeroMolde { get; set; } = string.Empty;
+
+    public string NumeroEncomendaClienteDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente)
+        ? "Encomenda sem numero"
+        : NumeroEncomendaCliente;
+
+    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde)
+        ? "Molde sem numero"
+        : NumeroMolde;
+
+    public string DataEntregaPrevistaDisplay => DataEntregaPrevista == default
+        ? "Data por definir"
+        : DataEntregaPrevista.ToString("dd/MM/yyyy");
+
+    public string QuantidadeDisplay => Quantidade <= 0
+        ? "Quantidade por definir"
+        : Quantidade.ToString();
 }

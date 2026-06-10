@@ -43,168 +43,203 @@
                 </HorizontalStackLayout>
             </Border>
 
-            <VerticalStackLayout Grid.Row="1"
-                                 Spacing="10"
-                                 Margin="0,20,0,0"
-                                 VerticalOptions="Start">
+            <ScrollView Grid.Row="1"
+                        Margin="0,20,0,0"
+                        VerticalScrollBarVisibility="Never">
+                <VerticalStackLayout Spacing="10"
+                                     VerticalOptions="Start">
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenDashboardCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="D"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewDashboard, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenDashboardCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="D"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Dashboard"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Dashboard"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenUtilizadoresCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="U"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewUtilizadores, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenUtilizadoresCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="U"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Utilizadores"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Utilizadores"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenClientesCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="C"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewClientes, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenClientesCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="C"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Clientes"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Clientes"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenEncomendasCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="E"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewEncomendas, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenEncomendasCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="E"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Encomendas"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Encomendas"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenProducaoCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="P"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewProducao, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenProducaoCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="P"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Producao"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Producao"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-                <Border BackgroundColor="Transparent"
-                        StrokeThickness="0"
-                        Padding="12,12">
-                    <Border.GestureRecognizers>
-                        <TapGestureRecognizer Command="{Binding OpenDefinicoesCommand}" />
-                    </Border.GestureRecognizers>
-                    <HorizontalStackLayout Spacing="12">
-                        <Border Background="#1E293B"
-                                StrokeThickness="0"
-                                Padding="10,6">
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="12" />
-                            </Border.StrokeShape>
-                            <Label Text="F"
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewMaquinas, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenMaquinasCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="M"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Maquinas"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
-                                   TextColor="White" />
-                        </Border>
-                        <Label Text="Definicoes"
-                               IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="18"
-                               VerticalOptions="Center"
-                               TextColor="#E2E8F0" />
-                    </HorizontalStackLayout>
-                </Border>
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
 
-            </VerticalStackLayout>
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewDesenho, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenDesenhoCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="Dn"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Desenho"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                </VerticalStackLayout>
+            </ScrollView>
         </Grid>
     </Border>
 </ContentView>

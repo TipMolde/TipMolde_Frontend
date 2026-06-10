@@ -9,4 +9,14 @@ public partial class Definicoes : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (BindingContext is DefinicoesViewModel vm)
+        {
+            await vm.EnsureLoadedAsync(forceRefresh: true);
+        }
+    }
 }

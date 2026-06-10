@@ -4,8 +4,17 @@ namespace TipMolde.View.Shared;
 
 public partial class SidebarView : ContentView
 {
+    public static readonly BindableProperty ViewModelProperty =
+        BindableProperty.Create(
+            nameof(ViewModel),
+            typeof(SidebarViewModel),
+            typeof(SidebarView),
+            null);
+
     private double _sidebarWidth;
     private bool _showLabels;
+    private bool _isInitialized;
+    private Page? _parentPage;
 
     public double SidebarWidth
     {
@@ -27,13 +36,20 @@ public partial class SidebarView : ContentView
         }
     }
 
+    public SidebarViewModel? ViewModel
+    {
+        get => (SidebarViewModel?)GetValue(ViewModelProperty);
+        set => SetValue(ViewModelProperty, value);
+    }
+
     private bool IsPhone => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
 
     public SidebarView()
     {
         InitializeComponent();
-        BindingContext = new SidebarViewModel();
+        IsVisible = !IsPhone;
         ConfigureSidebar();
+        Loaded += OnLoaded;
     }
 
     private void ConfigureSidebar()
@@ -60,5 +76,53 @@ public partial class SidebarView : ContentView
             return;
 
         SetExpanded(!ShowLabels);
+    }
+
+    private async void OnLoaded(object? sender, EventArgs e)
+    {
+        if (!IsVisible)
+            return;
+
+        if (Handler?.MauiContext?.Services.GetService(typeof(SidebarViewModel)) is not SidebarViewModel vm)
+            return;
+
+        ViewModel = vm;
+
+        if (!_isInitialized)
+        {
+            AttachToParentPage();
+            _isInitialized = true;
+        }
+
+        await vm.EnsureLoadedAsync(forceRefresh: true);
+    }
+
+    private void AttachToParentPage()
+    {
+        _parentPage = FindParentPage();
+        if (_parentPage is not null)
+            _parentPage.Appearing += OnParentPageAppearing;
+    }
+
+    private async void OnParentPageAppearing(object? sender, EventArgs e)
+    {
+        if (ViewModel is null)
+            return;
+
+        await ViewModel.EnsureLoadedAsync(forceRefresh: true);
+    }
+
+    private Page? FindParentPage()
+    {
+        Element? current = Parent;
+        while (current is not null)
+        {
+            if (current is Page page)
+                return page;
+
+            current = current.Parent;
+        }
+
+        return null;
     }
 }

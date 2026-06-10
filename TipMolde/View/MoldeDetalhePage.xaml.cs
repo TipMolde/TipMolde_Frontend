@@ -6,6 +6,7 @@ public partial class MoldeDetalhePage : ContentPage, IQueryAttributable
 {
     private readonly MoldeDetalheViewModel _viewModel;
     private int? _lastMoldeId;
+    private bool _hasLoadedOnce;
 
     public MoldeDetalhePage(MoldeDetalheViewModel viewModel)
     {
@@ -37,5 +38,16 @@ public partial class MoldeDetalhePage : ContentPage, IQueryAttributable
 
         _lastMoldeId = moldeId.Value;
         await _viewModel.LoadAsync(moldeId.Value);
+        _hasLoadedOnce = true;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        if (!_hasLoadedOnce || !_lastMoldeId.HasValue)
+            return;
+
+        await _viewModel.RefreshPecasAsync();
     }
 }

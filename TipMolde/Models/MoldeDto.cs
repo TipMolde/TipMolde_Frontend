@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using TipMolde.Helper;
 
 namespace TipMolde.Models;
 
@@ -16,6 +17,9 @@ public sealed class MoldeDto
     [JsonPropertyName("nome")]
     public string Nome { get; set; } = string.Empty;
 
+    [JsonPropertyName("imagemCapaPath")]
+    public string ImagemCapaPath { get; set; } = string.Empty;
+
     [JsonPropertyName("descricao")]
     public string Descricao { get; set; } = string.Empty;
 
@@ -24,4 +28,6 @@ public sealed class MoldeDto
 
     [JsonPropertyName("tipoPedido")]
     public string TipoPedido { get; set; } = string.Empty;
+
+    public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
 }

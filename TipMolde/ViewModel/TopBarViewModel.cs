@@ -6,14 +6,17 @@ namespace TipMolde.ViewModel;
 
 public partial class TopBarViewModel : ObservableObject
 {
+    private readonly AuthorizationService _authorizationService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private readonly UtilizadoresService _utilizadoresService;
     private bool _isLoaded;
 
     public TopBarViewModel(
+        AuthorizationService authorizationService,
         SessaoPersistidaService sessaoPersistidaService,
         UtilizadoresService utilizadoresService)
     {
+        _authorizationService = authorizationService;
         _sessaoPersistidaService = sessaoPersistidaService;
         _utilizadoresService = utilizadoresService;
     }
@@ -26,14 +29,16 @@ public partial class TopBarViewModel : ObservableObject
             ? GetFirstName(CurrentUserName)
             : CurrentUserName;
 
+    public bool ShowNavigationMenu => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
+
     partial void OnCurrentUserNameChanged(string value)
     {
         OnPropertyChanged(nameof(DisplayUserName));
     }
 
-    public async Task EnsureLoadedAsync()
+    public async Task EnsureLoadedAsync(bool forceRefresh = false)
     {
-        if (_isLoaded)
+        if (_isLoaded && !forceRefresh)
             return;
 
         _isLoaded = true;
@@ -58,9 +63,32 @@ public partial class TopBarViewModel : ObservableObject
         }
     }
 
+    public void Reset()
+    {
+        _isLoaded = false;
+        CurrentUserName = "Utilizador";
+    }
+
+    [RelayCommand]
+    private async Task OpenDefinicoes()
+    {
+        await Shell.Current.GoToAsync("//Definicoes");
+    }
+
+    [RelayCommand]
+    private Task OpenNavigationMenuAsync()
+    {
+        if (Shell.Current is not null)
+            Shell.Current.FlyoutIsPresented = true;
+
+        return Task.CompletedTask;
+    }
+
     [RelayCommand]
     private async Task Logout()
     {
+        Reset();
+        _authorizationService.Clear();
         await _sessaoPersistidaService.ClearSessionAsync();
         await Shell.Current.GoToAsync("//AutenticacaoPage");
     }

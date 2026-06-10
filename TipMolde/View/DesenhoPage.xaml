@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.DesenhoPage"
+             x:Name="PaginaDesenho"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Desenho" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="{OnIdiom Phone='16,16,16,14', Desktop='28,22,28,18'}"
+                                     Spacing="18">
+
+                    <Grid ColumnDefinitions="{OnIdiom Phone='*', Desktop='*,*'}"
+                          RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                          ColumnSpacing="16">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Moldes para desenho"
+                                       FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding TotalMoldes}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="28" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
+                                Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="8">
+                                <Label Text="Encomendas confirmadas"
+                                       FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding TotalEncomendasConfirmadas}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="28" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="14">
+                            <Label Text="Pesquisar moldes"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18" />
+
+                            <SearchBar Placeholder="Pesquisar por molde, encomenda ou cliente"
+                                       Text="{Binding SearchTerm}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
+
+                    <CollectionView ItemsSource="{Binding Moldes}"
+                                    SelectionMode="None">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical"
+                                               ItemSpacing="16" />
+                        </CollectionView.ItemsLayout>
+
+                        <CollectionView.EmptyView>
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                    StrokeThickness="1"
+                                    Padding="28">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="24" />
+                                </Border.StrokeShape>
+                                <Label Text="{Binding EmptyMessage}"
+                                       HorizontalOptions="Center" />
+                            </Border>
+                        </CollectionView.EmptyView>
+
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:DesenhoMoldeItem">
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                        StrokeThickness="1"
+                                        Padding="20">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="24" />
+                                    </Border.StrokeShape>
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldeCommand, Source={x:Reference PaginaDesenho}}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Grid ColumnDefinitions="Auto,*,Auto"
+                                          ColumnSpacing="16">
+                                        <Border WidthRequest="{OnIdiom Phone='72', Desktop='76'}"
+                                                HeightRequest="{OnIdiom Phone='72', Desktop='76'}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                HorizontalOptions="Start"
+                                                VerticalOptions="Start">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+                                            <Border.GestureRecognizers>
+                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldeCommand, Source={x:Reference PaginaDesenho}}"
+                                                                      CommandParameter="{Binding .}" />
+                                            </Border.GestureRecognizers>
+
+                                            <Image Source="{Binding ImagemCapaSource}"
+                                                   Aspect="AspectFill"
+                                                   WidthRequest="{OnIdiom Phone='72', Desktop='76'}"
+                                                   HeightRequest="{OnIdiom Phone='72', Desktop='76'}" />
+                                        </Border>
+
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Spacing="8">
+                                            <Label Text="{Binding NumeroMoldeDisplay}"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="22" />
+
+                                            <Grid ColumnDefinitions="*,*"
+                                                  RowDefinitions="Auto,Auto"
+                                                  ColumnSpacing="16"
+                                                  RowSpacing="8">
+                                                <Label Text="{Binding NumeroEncomendaDisplay, StringFormat='Encomenda: {0}'}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                <Label Grid.Row="1"
+                                                       Text="{Binding DataEntregaPrevistaDisplay, StringFormat='Entrega: {0}'}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                <Label Grid.Column="1"
+                                                       Text="{Binding TotalPecasDisplay, StringFormat='Nº de Pecas: {0}'}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </Grid>
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Column="2"
+                                                             VerticalOptions="Center"
+                                                             Spacing="10">
+                                            <Button Text="Inserir Pecas"
+                                                    Command="{Binding BindingContext.InserirPecasCommand, Source={x:Reference PaginaDesenho}}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                    TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                    HeightRequest="42" />
+
+                                            <Border BackgroundColor="{AppThemeBinding Light=#EFF6FF, Dark=#172554}"
+                                                    StrokeThickness="0"
+                                                    Padding="10,8">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="14" />
+                                                </Border.StrokeShape>
+                                                <Label Text="Pronto para desenho"
+                                                       TextColor="{AppThemeBinding Light=#1D4ED8, Dark=#BFDBFE}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       HorizontalOptions="Center" />
+                                            </Border>
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <shared:PaginationBarView Page="{Binding Page}"
+                                              TotalPages="{Binding TotalPages}"
+                                              PageInput="{Binding PageInput}"
+                                              CanGoFirst="{Binding CanGoFirst}"
+                                              CanGoPrevious="{Binding CanGoPrevious}"
+                                              CanGoNext="{Binding CanGoNext}"
+                                              CanGoLast="{Binding CanGoLast}"
+                                              FirstPageCommand="{Binding FirstPageCommand}"
+                                              PreviousPageCommand="{Binding PreviousPageCommand}"
+                                              GoToPageCommand="{Binding GoToPageCommand}"
+                                              NextPageCommand="{Binding NextPageCommand}"
+                                              LastPageCommand="{Binding LastPageCommand}" />
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>
