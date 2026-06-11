@@ -22,7 +22,7 @@ public partial class AutenticacaoViewModel : ObservableObject
         _autenticacaoService = autenticacaoService;
         _authorizationService = authorizationService;
         _sessaoPersistidaService = sessaoPersistidaService;
-        RememberSession = _sessaoPersistidaService.ShouldRememberSession;
+        RememberSession = SessaoPersistidaService.ShouldRememberSession;
     }
 
     [ObservableProperty]

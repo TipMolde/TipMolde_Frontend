@@ -28,25 +28,19 @@ public sealed class DialogService : IDialogService
         return selection == cancel ? null : selection;
     }
 
-    public async Task<string?> PromptAsync(
-        string title,
-        string message,
-        string accept = "OK",
-        string cancel = "Cancelar",
-        string initialValue = "",
-        int maxLength = -1,
-        Keyboard? keyboard = null,
-        string placeholder = "")
+    public async Task<string?> PromptAsync(string title, string message, PromptDialogOptions? options = null)
     {
+        options ??= new PromptDialogOptions();
+
         return await GetCurrentPage().DisplayPromptAsync(
             title,
             message,
-            accept,
-            cancel,
-            placeholder,
-            maxLength,
-            keyboard,
-            initialValue);
+            options.Accept,
+            options.Cancel,
+            options.Placeholder,
+            options.MaxLength,
+            options.Keyboard,
+            options.InitialValue);
     }
 
     public async Task<bool> ConfirmDeleteAsync(string message)

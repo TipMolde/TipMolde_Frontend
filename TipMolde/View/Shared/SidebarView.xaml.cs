@@ -42,7 +42,7 @@ public partial class SidebarView : ContentView
         set => SetValue(ViewModelProperty, value);
     }
 
-    private bool IsPhone => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
+    private static bool IsPhone => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
 
     public SidebarView()
     {

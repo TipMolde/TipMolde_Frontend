@@ -17,18 +17,18 @@ public sealed class ThemePreferenceService
         DarkThemeOption
     };
 
-    public string GetStoredTheme()
+    public static string GetStoredTheme()
     {
         var storedTheme = Preferences.Default.Get(ThemePreferenceKey, SystemThemeOption);
         return NormalizeThemeOption(storedTheme);
     }
 
-    public void ApplyStoredTheme()
+    public static void ApplyStoredTheme()
     {
         ApplyTheme(GetStoredTheme());
     }
 
-    public void ApplyTheme(string themeOption)
+    public static void ApplyTheme(string themeOption)
     {
         var normalizedTheme = NormalizeThemeOption(themeOption);
 

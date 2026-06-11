@@ -10,15 +10,19 @@ public partial class AdicionarPecaViewModel : ObservableObject
 {
     private readonly PecasService _pecasService;
     private readonly FasesProducaoService _fasesProducaoService;
+    private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
+    private bool _permissionsLoaded;
 
     public AdicionarPecaViewModel(
         PecasService pecasService,
         FasesProducaoService fasesProducaoService,
+        AuthorizationService authorizationService,
         IDialogService dialogService)
     {
         _pecasService = pecasService;
         _fasesProducaoService = fasesProducaoService;
+        _authorizationService = authorizationService;
         _dialogService = dialogService;
     }
 
@@ -66,15 +70,24 @@ public partial class AdicionarPecaViewModel : ObservableObject
     [ObservableProperty]
     private string errorMessage = string.Empty;
 
+    [ObservableProperty]
+    private bool canManagePieces;
+
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
-    public bool CanCreate => MoldeId > 0 &&
+    public bool CanCreate => CanManagePieces &&
+                             MoldeId > 0 &&
                              !IsSaving &&
                              !string.IsNullOrWhiteSpace(Designacao) &&
                              Prioridade > 0 &&
                              Quantidade > 0;
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
+    partial void OnCanManagePiecesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanCreate));
+        CreateCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnMoldeIdChanged(int value)
     {
@@ -110,9 +123,17 @@ public partial class AdicionarPecaViewModel : ObservableObject
 
     public async Task LoadAsync(int moldeId, string? numeroMolde)
     {
+        await EnsurePermissionsLoadedAsync();
         MoldeId = moldeId;
         NumeroMolde = numeroMolde?.Trim() ?? string.Empty;
         ErrorMessage = string.Empty;
+
+        if (!CanManagePieces)
+        {
+            ErrorMessage = "Nao tens permissao para adicionar pecas.";
+            return;
+        }
+
         await EnsureFasesLoadedAsync();
     }
 
@@ -125,7 +146,7 @@ public partial class AdicionarPecaViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanCreate))]
     private async Task CreateAsync()
     {
-        if (IsSaving)
+        if (IsSaving || !CanManagePieces)
             return;
 
         var validationMessage = BuildValidationMessage();
@@ -142,16 +163,19 @@ public partial class AdicionarPecaViewModel : ObservableObject
         {
             await _pecasService.CreateAsync(
                 MoldeId,
-                Designacao,
-                Prioridade,
-                Quantidade,
-                proximaFaseId: SelectedProximaFase?.FasesProducao_id,
-                numeroPeca: NumeroPeca,
-                referencia: Referencia,
-                materialDesignacao: MaterialDesignacao,
-                tratamentoTermico: TratamentoTermico,
-                massa: Massa,
-                observacao: Observacao);
+                new PecaUpsertRequest
+                {
+                    Designacao = Designacao,
+                    Prioridade = Prioridade,
+                    Quantidade = Quantidade,
+                    ProximaFaseId = SelectedProximaFase?.FasesProducao_id,
+                    NumeroPeca = NumeroPeca,
+                    Referencia = Referencia,
+                    MaterialDesignacao = MaterialDesignacao,
+                    TratamentoTermico = TratamentoTermico,
+                    Massa = Massa,
+                    Observacao = Observacao
+                });
 
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
@@ -171,6 +195,9 @@ public partial class AdicionarPecaViewModel : ObservableObject
 
     private string BuildValidationMessage()
     {
+        if (!CanManagePieces)
+            return "Nao tens permissao para adicionar pecas.";
+
         if (MoldeId <= 0)
             return "Nao foi possivel identificar o molde para criar a peca.";
 
@@ -184,6 +211,16 @@ public partial class AdicionarPecaViewModel : ObservableObject
             return "Indique uma quantidade valida.";
 
         return string.Empty;
+    }
+
+    private async Task EnsurePermissionsLoadedAsync(bool forceRefresh = false)
+    {
+        if (_permissionsLoaded && !forceRefresh)
+            return;
+
+        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
+        CanManagePieces = _authorizationService.CanManagePieces();
+        _permissionsLoaded = true;
     }
 
     private async Task EnsureFasesLoadedAsync()

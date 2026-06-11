@@ -3,7 +3,7 @@ using Microsoft.Maui.Graphics;
 
 namespace TipMolde.View.Shared;
 
-public sealed class CicloVidaPieChartView : GraphicsView
+public sealed partial class CicloVidaPieChartView : GraphicsView
 {
     private static readonly Color StrokeColor = Color.FromArgb("#E54B67");
     private static readonly Color EmptyFillColor = Color.FromArgb("#FFF1F2");
@@ -162,14 +162,15 @@ public sealed class CicloVidaPieChartView : GraphicsView
                     WindingMode.NonZero);
 
                 DrawLabel(
-            canvas,
-            centerX,
-            centerY,
-            radius,
-            anguloAtual + (sweep / 2f),
-            sweep,
-            segmento.Valor,
-            totalDistribuicao);
+                    canvas,
+                    new SegmentLabelLayout(
+                        centerX,
+                        centerY,
+                        radius,
+                        anguloAtual + (sweep / 2f),
+                        sweep),
+                    segmento.Valor,
+                    totalDistribuicao);
 
                 anguloAtual = endAngle;
             }
@@ -254,24 +255,20 @@ public sealed class CicloVidaPieChartView : GraphicsView
 
         private static void DrawLabel(
             ICanvas canvas,
-            float centerX,
-            float centerY,
-            float radius,
-            float angle,
-            float sweep,
+            SegmentLabelLayout layout,
             int valor,
             int total)
         {
-            var angleRadians = DegreesToRadians(angle);
-            var distanceFactor = sweep < 48f ? 0.7f : 0.58f;
-            var labelX = centerX + (MathF.Cos(angleRadians) * radius * distanceFactor);
-            var labelY = centerY + (MathF.Sin(angleRadians) * radius * distanceFactor);
-            var labelWidth = sweep < 48f ? 74f : 92f;
-            var labelHeight = sweep < 48f ? 30f : 40f;
+            var angleRadians = DegreesToRadians(layout.Angle);
+            var distanceFactor = layout.Sweep < 48f ? 0.7f : 0.58f;
+            var labelX = layout.CenterX + (MathF.Cos(angleRadians) * layout.Radius * distanceFactor);
+            var labelY = layout.CenterY + (MathF.Sin(angleRadians) * layout.Radius * distanceFactor);
+            var labelWidth = layout.Sweep < 48f ? 74f : 92f;
+            var labelHeight = layout.Sweep < 48f ? 30f : 40f;
             var percentagem = total <= 0 ? 0m : (decimal)valor / total * 100m;
 
             canvas.FontColor = Color.FromArgb("#7F1D1D");
-            canvas.FontSize = sweep < 48f ? 10f : 12f;
+            canvas.FontSize = layout.Sweep < 48f ? 10f : 12f;
             canvas.Font = Microsoft.Maui.Graphics.Font.DefaultBold;
             canvas.DrawString(
                 $"{valor} pecas",
@@ -283,7 +280,7 @@ public sealed class CicloVidaPieChartView : GraphicsView
                 VerticalAlignment.Center);
 
             canvas.FontColor = Color.FromArgb("#9F1239");
-            canvas.FontSize = sweep < 48f ? 10f : 11f;
+            canvas.FontSize = layout.Sweep < 48f ? 10f : 11f;
             canvas.Font = Microsoft.Maui.Graphics.Font.Default;
             canvas.DrawString(
                 $"{percentagem:0.#}%",
@@ -296,6 +293,13 @@ public sealed class CicloVidaPieChartView : GraphicsView
         }
 
         private static float DegreesToRadians(float degrees) => degrees * MathF.PI / 180f;
+
+        private readonly record struct SegmentLabelLayout(
+            float CenterX,
+            float CenterY,
+            float Radius,
+            float Angle,
+            float Sweep);
 
         private readonly record struct Segmento(string Legenda, int Valor, Color Cor);
     }

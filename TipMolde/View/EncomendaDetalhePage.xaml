@@ -287,11 +287,11 @@
 
                                             <VerticalStackLayout Grid.Column="3"
                                                                  Spacing="4">
-                                                <Label Text="Por entregar"
+                                                <Label Text="Estado do molde"
                                                        FontFamily="OpenSansSemibold"
                                                        FontSize="13"
                                                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
-                                                <Label Text="{Binding QuantidadePorEntregarDisplay}"
+                                                <Label Text="{Binding EstadoDisplay}"
                                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </VerticalStackLayout>
                                         </Grid>
@@ -312,10 +312,10 @@
                                             <VerticalStackLayout Grid.Column="1"
                                                                  Spacing="10"
                                                                  VerticalOptions="Center">
-                                                <Button Text="Entrega"
-                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.RegistarEntregaMoldeCommand}"
+                                                <Button Text="Iniciar producao"
+                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.IniciarProducaoMoldeCommand}"
                                                         CommandParameter="{Binding .}"
-                                                        IsEnabled="{Binding CanRegistarEntrega}"
+                                                        IsVisible="{Binding CanIniciarProducao}"
                                                         BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1D4ED8}"
                                                         TextColor="{AppThemeBinding Light=#1D4ED8, Dark=White}"
                                                         CornerRadius="14"
@@ -323,13 +323,24 @@
                                                         HeightRequest="36"
                                                         Padding="14,6" />
 
-                                                <Label Text="{Binding EstadoEntregaDisplay}"
+                                                <Button Text="Concluir molde"
+                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.ConcluirMoldeCommand}"
+                                                        CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding CanConcluirMolde}"
+                                                        BackgroundColor="{AppThemeBinding Light=#DCFCE7, Dark=#166534}"
+                                                        TextColor="{AppThemeBinding Light=#166534, Dark=White}"
+                                                        CornerRadius="14"
+                                                        FontSize="12"
+                                                        HeightRequest="36"
+                                                        Padding="14,6" />
+
+                                                <Label Text="{Binding EstadoDisplay}"
                                                        HorizontalOptions="Center"
                                                        FontSize="12"
                                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
-                                                <Button Text="Guardar entrega"
-                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.GuardarEntregaMoldeCommand}"
+                                                <Button Text="Guardar prazo"
+                                                        Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.GuardarPrazoMoldeCommand}"
                                                         CommandParameter="{Binding .}"
                                                         IsEnabled="{Binding CanEditarDataEntrega}"
                                                         BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"

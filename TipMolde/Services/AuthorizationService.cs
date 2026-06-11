@@ -19,8 +19,8 @@ public sealed class AuthorizationService
         .GetValues<AppFeature>()
         .ToHashSet();
 
-    private static readonly IReadOnlyDictionary<string, HashSet<AppFeature>> RolePermissions =
-        new Dictionary<string, HashSet<AppFeature>>(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, HashSet<AppFeature>> RolePermissions =
+        new(StringComparer.OrdinalIgnoreCase)
         {
             ["ADMIN"] = new HashSet<AppFeature>(AllFeatures),
             ["GESTOR_COMERCIAL"] = new()
@@ -97,7 +97,19 @@ public sealed class AuthorizationService
         return IsRoleAuthorized(role, feature);
     }
 
-    public bool CanAccess(AppFeature feature) => IsRoleAuthorized(_cachedRole, feature);
+    public bool CanCreateMachines() => HasAnyRole("ADMIN");
+
+    public bool CanDeleteMachines() => HasAnyRole("ADMIN");
+
+    public bool CanManageProductionPhases() => HasAnyRole("ADMIN");
+
+    public bool CanEditMachineAdministrativeFields() => HasAnyRole("ADMIN");
+
+    public bool CanEditMachineState() => HasAnyRole("ADMIN", "GESTOR_PRODUCAO");
+
+    public bool CanManagePieces() => HasAnyRole("ADMIN", "GESTOR_DESENHO");
+
+    public bool CanDeleteClients() => HasAnyRole("ADMIN");
 
     public void Clear()
     {
@@ -113,6 +125,15 @@ public sealed class AuthorizationService
 
         return RolePermissions.TryGetValue(normalizedRole, out var allowedFeatures) &&
                allowedFeatures.Contains(feature);
+    }
+
+    private bool HasAnyRole(params string[] roles)
+    {
+        var normalizedRole = NormalizeRole(_cachedRole);
+        if (string.IsNullOrWhiteSpace(normalizedRole))
+            return false;
+
+        return roles.Any(role => string.Equals(normalizedRole, NormalizeRole(role), StringComparison.Ordinal));
     }
 
     private static string? NormalizeRole(string? role) =>

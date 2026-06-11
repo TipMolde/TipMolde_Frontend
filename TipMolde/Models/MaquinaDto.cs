@@ -54,14 +54,22 @@ public sealed class MaquinaItem
     public bool EmManutencao => string.Equals(Estado, "MANUTENCAO", StringComparison.OrdinalIgnoreCase);
 
     [JsonIgnore]
-    public bool Disponivel => string.Equals(Estado, "DISPONIVEL", StringComparison.OrdinalIgnoreCase);
+    public string UtilizacaoDisplay
+    {
+        get
+        {
+            if (EmUtilizacao)
+                return "Em utilizacao";
+
+            if (EmManutencao)
+                return "Em manutencao";
+
+            return "Disponivel";
+        }
+    }
 
     [JsonIgnore]
-    public string UtilizacaoDisplay => EmUtilizacao
-        ? "Em utilizacao"
-        : EmManutencao
-            ? "Em manutencao"
-            : "Disponivel";
+    public bool Disponivel => string.Equals(Estado, "DISPONIVEL", StringComparison.OrdinalIgnoreCase);
 
     [JsonIgnore]
     public string LigacaoDisplay => HasIpAddress ? "Conexao configurada" : "Sem conexao";

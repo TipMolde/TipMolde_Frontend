@@ -16,7 +16,7 @@ public abstract class ApiServiceBase
 
     protected HttpClient HttpClient { get; }
 
-    protected async Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
+    protected static async Task<T?> DeserializeAsync<T>(HttpResponseMessage response)
     {
         var content = await response.Content.ReadAsStringAsync();
 
@@ -26,7 +26,7 @@ public abstract class ApiServiceBase
         return JsonSerializer.Deserialize<T>(content, JsonOptions);
     }
 
-    protected async Task EnsureSuccessAsync(HttpResponseMessage response, string fallbackMessage)
+    protected static async Task EnsureSuccessAsync(HttpResponseMessage response, string fallbackMessage)
     {
         if (response.IsSuccessStatusCode)
             return;
@@ -49,49 +49,67 @@ public abstract class ApiServiceBase
         try
         {
             using var document = JsonDocument.Parse(content);
-            var root = document.RootElement;
-
-            if (root.TryGetProperty("detail", out var detailElement) &&
-                detailElement.ValueKind == JsonValueKind.String)
-            {
-                var detail = detailElement.GetString();
-                if (!string.IsNullOrWhiteSpace(detail))
-                    return detail;
-            }
-
-            if (root.TryGetProperty("errors", out var errorsElement) &&
-                errorsElement.ValueKind == JsonValueKind.Object)
-            {
-                foreach (var property in errorsElement.EnumerateObject())
-                {
-                    if (property.Value.ValueKind != JsonValueKind.Array)
-                        continue;
-
-                    foreach (var item in property.Value.EnumerateArray())
-                    {
-                        if (item.ValueKind != JsonValueKind.String)
-                            continue;
-
-                        var error = item.GetString();
-                        if (!string.IsNullOrWhiteSpace(error))
-                            return error;
-                    }
-                }
-            }
-
-            if (root.TryGetProperty("title", out var titleElement) &&
-                titleElement.ValueKind == JsonValueKind.String)
-            {
-                var title = titleElement.GetString();
-                if (!string.IsNullOrWhiteSpace(title))
-                    return title;
-            }
+            return TryExtractJsonErrorMessage(document.RootElement) ?? content;
         }
         catch (JsonException)
         {
             // If the backend returns plain text instead of JSON, fall back to raw content.
+            return content;
+        }
+    }
+
+    private static string? TryExtractJsonErrorMessage(JsonElement root)
+    {
+        return TryGetStringProperty(root, "detail")
+            ?? TryExtractValidationError(root)
+            ?? TryGetStringProperty(root, "title");
+    }
+
+    private static string? TryGetStringProperty(JsonElement root, string propertyName)
+    {
+        if (!root.TryGetProperty(propertyName, out var element) ||
+            element.ValueKind != JsonValueKind.String)
+        {
+            return null;
         }
 
-        return content;
+        var value = element.GetString();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private static string? TryExtractValidationError(JsonElement root)
+    {
+        if (!root.TryGetProperty("errors", out var errorsElement) ||
+            errorsElement.ValueKind != JsonValueKind.Object)
+        {
+            return null;
+        }
+
+        foreach (var property in errorsElement.EnumerateObject())
+        {
+            var error = TryExtractFirstStringFromArray(property.Value);
+            if (error is not null)
+                return error;
+        }
+
+        return null;
+    }
+
+    private static string? TryExtractFirstStringFromArray(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Array)
+            return null;
+
+        foreach (var item in element.EnumerateArray())
+        {
+            if (item.ValueKind != JsonValueKind.String)
+                continue;
+
+            var value = item.GetString();
+            if (!string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return null;
     }
 }

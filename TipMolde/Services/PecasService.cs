@@ -11,36 +11,9 @@ public sealed class PecasService : ApiServiceBase
     {
     }
 
-    public async Task<PecaDto?> CreateAsync(
-        int moldeId,
-        string designacao,
-        int prioridade,
-        int quantidade,
-        int? proximaFaseId = null,
-        string? numeroPeca = null,
-        string? referencia = null,
-        string? materialDesignacao = null,
-        string? tratamentoTermico = null,
-        string? massa = null,
-        string? observacao = null,
-        bool materialRecebido = false)
+    public async Task<PecaDto?> CreateAsync(int moldeId, PecaUpsertRequest request)
     {
-        var payload = new
-        {
-            NumeroPeca = NormalizeOptional(numeroPeca),
-            Designacao = designacao.Trim(),
-            Prioridade = prioridade,
-            Quantidade = quantidade,
-            Referencia = NormalizeOptional(referencia),
-            MaterialDesignacao = NormalizeOptional(materialDesignacao),
-            TratamentoTermico = NormalizeOptional(tratamentoTermico),
-            Massa = NormalizeOptional(massa),
-            Observacao = NormalizeOptional(observacao),
-            MaterialRecebido = materialRecebido,
-            ProximaFase_id = proximaFaseId,
-            Molde_id = moldeId
-        };
-
+        var payload = BuildCreatePayload(moldeId, request);
         using var response = await HttpClient.PostAsJsonAsync("api/pecas", payload);
         await EnsureSuccessAsync(response, $"Nao foi possivel criar a peca para o molde {moldeId}. Estado: {(int)response.StatusCode}");
 
@@ -84,33 +57,9 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PecaDto>(response);
     }
 
-    public async Task UpdateAsync(
-        int pecaId,
-        string designacao,
-        int prioridade,
-        int quantidade,
-        int? proximaFaseId = null,
-        string? numeroPeca = null,
-        string? referencia = null,
-        string? materialDesignacao = null,
-        string? tratamentoTermico = null,
-        string? massa = null,
-        string? observacao = null)
+    public async Task UpdateAsync(int pecaId, PecaUpsertRequest request)
     {
-        var payload = new
-        {
-            NumeroPeca = NormalizeOptional(numeroPeca),
-            Designacao = designacao.Trim(),
-            Prioridade = prioridade,
-            Quantidade = quantidade,
-            Referencia = NormalizeOptional(referencia),
-            MaterialDesignacao = NormalizeOptional(materialDesignacao),
-            TratamentoTermico = NormalizeOptional(tratamentoTermico),
-            Massa = NormalizeOptional(massa),
-            Observacao = NormalizeOptional(observacao),
-            ProximaFase_id = proximaFaseId
-        };
-
+        var payload = BuildUpdatePayload(request);
         using var response = await HttpClient.PutAsJsonAsync($"api/pecas/{pecaId}", payload);
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar a peca {pecaId}. Estado: {(int)response.StatusCode}");
     }
@@ -128,7 +77,12 @@ public sealed class PecasService : ApiServiceBase
             MaterialRecebido = materialRecebido
         };
 
-        using var response = await HttpClient.PutAsJsonAsync($"api/pecas/{pecaId}", payload);
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"api/pecas/{pecaId}/material-recebido")
+        {
+            Content = JsonContent.Create(payload)
+        };
+
+        using var response = await HttpClient.SendAsync(request);
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar a rececao de material da peca {pecaId}. Estado: {(int)response.StatusCode}");
     }
 
@@ -147,4 +101,55 @@ public sealed class PecasService : ApiServiceBase
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
+
+    private static object BuildCreatePayload(int moldeId, PecaUpsertRequest request)
+    {
+        return new
+        {
+            NumeroPeca = NormalizeOptional(request.NumeroPeca),
+            Designacao = request.Designacao.Trim(),
+            Prioridade = request.Prioridade,
+            Quantidade = request.Quantidade,
+            Referencia = NormalizeOptional(request.Referencia),
+            MaterialDesignacao = NormalizeOptional(request.MaterialDesignacao),
+            TratamentoTermico = NormalizeOptional(request.TratamentoTermico),
+            Massa = NormalizeOptional(request.Massa),
+            Observacao = NormalizeOptional(request.Observacao),
+            MaterialRecebido = request.MaterialRecebido,
+            ProximaFase_id = request.ProximaFaseId,
+            Molde_id = moldeId
+        };
+    }
+
+    private static object BuildUpdatePayload(PecaUpsertRequest request)
+    {
+        return new
+        {
+            NumeroPeca = NormalizeOptional(request.NumeroPeca),
+            Designacao = request.Designacao.Trim(),
+            Prioridade = request.Prioridade,
+            Quantidade = request.Quantidade,
+            Referencia = NormalizeOptional(request.Referencia),
+            MaterialDesignacao = NormalizeOptional(request.MaterialDesignacao),
+            TratamentoTermico = NormalizeOptional(request.TratamentoTermico),
+            Massa = NormalizeOptional(request.Massa),
+            Observacao = NormalizeOptional(request.Observacao),
+            ProximaFase_id = request.ProximaFaseId
+        };
+    }
+}
+
+public sealed record PecaUpsertRequest
+{
+    public string Designacao { get; init; } = string.Empty;
+    public int Prioridade { get; init; }
+    public int Quantidade { get; init; }
+    public int? ProximaFaseId { get; init; }
+    public string? NumeroPeca { get; init; }
+    public string? Referencia { get; init; }
+    public string? MaterialDesignacao { get; init; }
+    public string? TratamentoTermico { get; init; }
+    public string? Massa { get; init; }
+    public string? Observacao { get; init; }
+    public bool MaterialRecebido { get; init; }
 }

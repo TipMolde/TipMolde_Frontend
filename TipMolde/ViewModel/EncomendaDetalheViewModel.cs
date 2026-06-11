@@ -8,7 +8,7 @@ using TipMolde.View;
 namespace TipMolde.ViewModel;
 
 /// <summary>
-/// Apresenta o detalhe da encomenda, permite ajustar datas de entrega e registar entregas parciais por molde.
+/// Apresenta o detalhe da encomenda, permite ajustar datas de entrega e gerir o estado operacional dos moldes associados.
 /// </summary>
 public partial class EncomendaDetalheViewModel : ObservableObject
 {
@@ -91,24 +91,24 @@ public partial class EncomendaDetalheViewModel : ObservableObject
                                       !IsCancelling &&
                                       (string.Equals(Estado, "CONFIRMADA", StringComparison.OrdinalIgnoreCase) ||
                                        string.Equals(Estado, "EM_PRODUCAO", StringComparison.OrdinalIgnoreCase));
-    public bool CanEditarEntregaMoldes => Encomenda_id > 0 &&
-                                          !IsLoading &&
-                                          !IsCancelling &&
-                                          !string.Equals(Estado, "CONCLUIDA", StringComparison.OrdinalIgnoreCase) &&
-                                          !string.Equals(Estado, "CANCELADA", StringComparison.OrdinalIgnoreCase);
+    public bool CanGerirMoldes => Encomenda_id > 0 &&
+                                  !IsLoading &&
+                                  !IsCancelling &&
+                                  !string.Equals(Estado, "CONCLUIDA", StringComparison.OrdinalIgnoreCase) &&
+                                  !string.Equals(Estado, "CANCELADA", StringComparison.OrdinalIgnoreCase);
 
     partial void OnIsLoadingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
-        UpdateEntregaAvailability();
+        OnPropertyChanged(nameof(CanGerirMoldes));
+        UpdateMoldeAvailability();
     }
 
     partial void OnIsCancellingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
-        UpdateEntregaAvailability();
+        OnPropertyChanged(nameof(CanGerirMoldes));
+        UpdateMoldeAvailability();
     }
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNomeClienteChanged(string value) => OnPropertyChanged(nameof(NomeClienteDisplay));
@@ -120,8 +120,8 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(EstadoDisplay));
         OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanEditarEntregaMoldes));
-        UpdateEntregaAvailability();
+        OnPropertyChanged(nameof(CanGerirMoldes));
+        UpdateMoldeAvailability();
     }
     partial void OnQuantidadeTotalPrevistaChanged(int value) => OnPropertyChanged(nameof(QuantidadeTotalPrevista));
 
@@ -186,13 +186,11 @@ public partial class EncomendaDetalheViewModel : ObservableObject
                     Quantidade = associacao.Quantidade,
                     Prioridade = associacao.Prioridade,
                     DataEntregaPrevista = associacao.DataEntregaPrevista,
-                    QuantidadePorEntregar = Math.Max(0, associacao.QuantidadePorEntregar ?? associacao.Quantidade),
-                    IsEntregue = associacao.Entregue ?? ((associacao.QuantidadePorEntregar ?? associacao.Quantidade) <= 0)
+                    Estado = associacao.Estado
                 });
             }
 
             QuantidadeTotalPrevista = associacoes.Sum(item => item.Quantidade);
-            ApplyDeliveredStateFromLoadedData();
             NotifyMoldeStateChanged();
         }
         catch (Exception ex)
@@ -271,7 +269,7 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task GuardarEntregaMoldeAsync(EncomendaMoldeItemDto? molde)
+    private async Task GuardarPrazoMoldeAsync(EncomendaMoldeItemDto? molde)
     {
         if (molde is null || molde.EncomendaMoldeId <= 0)
             return;
@@ -308,16 +306,49 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private Task RegistarEntregaMoldeAsync(EncomendaMoldeItemDto? molde)
+    private Task IniciarProducaoMoldeAsync(EncomendaMoldeItemDto? molde)
     {
-        if (molde is null || !CanEditarEntregaMoldes || !molde.CanRegistarEntrega)
-            return Task.CompletedTask;
+        return AtualizarEstadoMoldeAsync(
+            molde,
+            "EM_PRODUCAO",
+            "Inicio de producao",
+            item => $"O molde {item.NumeroMoldeDisplay} foi colocado em producao.");
+    }
 
-        molde.QuantidadePorEntregar = Math.Max(0, molde.QuantidadePorEntregar - 1);
-        RecalculateEstadoFromEntregas();
-        UpdateEntregaAvailability();
+    [RelayCommand]
+    private Task ConcluirMoldeAsync(EncomendaMoldeItemDto? molde)
+    {
+        return AtualizarEstadoMoldeAsync(
+            molde,
+            "CONCLUIDO",
+            "Conclusao do molde",
+            item => $"O molde {item.NumeroMoldeDisplay} foi marcado como concluido.");
+    }
 
-        return Task.CompletedTask;
+    private async Task AtualizarEstadoMoldeAsync(
+        EncomendaMoldeItemDto? molde,
+        string estadoDestino,
+        string successTitle,
+        Func<EncomendaMoldeItemDto, string> successMessageFactory)
+    {
+        if (molde is null || !CanGerirMoldes || molde.EncomendaMoldeId <= 0)
+            return;
+
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await _encomendasService.UpdateEncomendaMoldeEstadoAsync(molde.EncomendaMoldeId, estadoDestino);
+            await LoadAsync(Encomenda_id);
+
+            await _dialogService.ShowSuccessAsync(
+                successTitle,
+                successMessageFactory(molde));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
     }
 
     private void NotifyMoldeStateChanged()
@@ -325,46 +356,13 @@ public partial class EncomendaDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(HasMoldes));
         OnPropertyChanged(nameof(HasNoMoldes));
         OnPropertyChanged(nameof(TotalMoldesAssociados));
-        UpdateEntregaAvailability();
+        UpdateMoldeAvailability();
     }
 
-    private void ApplyDeliveredStateFromLoadedData()
-    {
-        if (Moldes.Count == 0)
-            return;
-
-        if (Moldes.All(item => item.QuantidadePorEntregar <= 0))
-        {
-            Estado = "CONCLUIDA";
-            return;
-        }
-
-        if (Moldes.Any(item => item.QuantidadePorEntregar < item.Quantidade))
-            Estado = "PARCIALMENTE_ENTREGUE";
-    }
-
-    private void RecalculateEstadoFromEntregas()
-    {
-        if (Moldes.Count == 0)
-            return;
-
-        if (Moldes.All(item => item.QuantidadePorEntregar <= 0))
-        {
-            Estado = "CONCLUIDA";
-            return;
-        }
-
-        if (Moldes.Any(item => item.QuantidadePorEntregar < item.Quantidade))
-        {
-            Estado = "PARCIALMENTE_ENTREGUE";
-            return;
-        }
-    }
-
-    private void UpdateEntregaAvailability()
+    private void UpdateMoldeAvailability()
     {
         foreach (var molde in Moldes)
-            molde.CanEditarEntrega = CanEditarEntregaMoldes;
+            molde.CanGerirMolde = CanGerirMoldes;
     }
 
     private static string FirstNonEmpty(params string?[] values)

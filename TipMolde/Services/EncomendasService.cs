@@ -173,4 +173,20 @@ public sealed class EncomendasService : ApiServiceBase
         using var response = await HttpClient.PutAsJsonAsync($"api/encomenda-moldes/{encomendaMoldeId}", payload);
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar a associacao {encomendaMoldeId}. Estado: {(int)response.StatusCode}");
     }
+
+    public async Task UpdateEncomendaMoldeEstadoAsync(int encomendaMoldeId, string estado)
+    {
+        var payload = new
+        {
+            Estado = estado
+        };
+
+        using var request = new HttpRequestMessage(HttpMethod.Patch, $"api/encomenda-moldes/{encomendaMoldeId}/estado")
+        {
+            Content = JsonContent.Create(payload)
+        };
+
+        using var response = await HttpClient.SendAsync(request);
+        await EnsureSuccessAsync(response, $"Nao foi possivel atualizar o estado operacional do molde {encomendaMoldeId}. Estado: {(int)response.StatusCode}");
+    }
 }

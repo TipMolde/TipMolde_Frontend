@@ -66,7 +66,6 @@ namespace TipMolde
             builder.Services.AddTransient<MaquinasService>();
             builder.Services.AddTransient<FasesProducaoService>();
             builder.Services.AddTransient<RegistosProducaoService>();
-            builder.Services.AddTransient<MoldePdfService>();
             builder.Services.AddTransient<GlobalMoldePriorityService>();
             builder.Services.AddTransient<RelatoriosService>();
 

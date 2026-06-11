@@ -1,4 +1,5 @@
 using Microsoft.Maui.Storage;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -18,7 +19,7 @@ public sealed class SessaoPersistidaService
         _httpClient = httpClient;
     }
 
-    public bool ShouldRememberSession => Preferences.Default.Get(RememberSessionKey, false);
+    public static bool ShouldRememberSession => Preferences.Default.Get(RememberSessionKey, false);
 
     public async Task SaveSessionAsync(string token, DateTimeOffset expiresAt, bool rememberSession)
     {
@@ -54,7 +55,12 @@ public sealed class SessaoPersistidaService
         var expiresAtRaw = Preferences.Default.Get(AuthTokenExpiresAtKey, string.Empty);
 
         if (string.IsNullOrWhiteSpace(token) ||
-            !DateTimeOffset.TryParse(expiresAtRaw, out var expiresAt) ||
+            !DateTimeOffset.TryParseExact(
+                expiresAtRaw,
+                "O",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.RoundtripKind,
+                out var expiresAt) ||
             expiresAt <= DateTimeOffset.UtcNow)
         {
             await ClearSessionAsync();

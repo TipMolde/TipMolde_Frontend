@@ -42,10 +42,12 @@
                     </Border>
 
                     <Grid ColumnDefinitions="*,*"
-                          ColumnSpacing="12">
+                          ColumnSpacing="12"
+                          IsVisible="{Binding HasMachineManagementShortcuts}">
                         <Button Grid.Column="0"
                                 Text="Adicionar Maquinas"
                                 Command="{Binding ToggleAdicionarMaquinaCommand}"
+                                IsVisible="{Binding CanCreateMachine}"
                                 BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                 TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                 HeightRequest="44" />
@@ -53,6 +55,7 @@
                         <Button Grid.Column="1"
                                 Text="Fases Producao"
                                 Command="{Binding ToggleFasesProducaoCommand}"
+                                IsVisible="{Binding CanManageProductionPhases}"
                                 BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                                 TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                 HeightRequest="44" />
@@ -114,6 +117,7 @@
                                 <Button Text="Adicionar fase"
                                         Command="{Binding ConfirmarAdicionarFaseCommand}"
                                         IsEnabled="{Binding CanAdicionarFase}"
+                                        IsVisible="{Binding CanManageProductionPhases}"
                                         BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                         TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                         HeightRequest="42" />
@@ -169,6 +173,7 @@
                                                         Text="Apagar"
                                                         Command="{Binding BindingContext.EliminarFaseCommand, Source={x:Reference PaginaMaquinas}}"
                                                         CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding BindingContext.CanManageProductionPhases, Source={x:Reference PaginaMaquinas}}"
                                                         BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#7F1D1D}"
                                                         TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
                                                         HeightRequest="40"
@@ -463,12 +468,14 @@
                                                 <Button Text="Editar"
                                                         Command="{Binding BindingContext.EditarMaquinaCommand, Source={x:Reference PaginaMaquinas}}"
                                                         CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding BindingContext.CanEditMachine, Source={x:Reference PaginaMaquinas}}"
                                                         BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                                                         TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                                         HeightRequest="40" />
                                                 <Button Text="Apagar"
                                                         Command="{Binding BindingContext.EliminarMaquinaCommand, Source={x:Reference PaginaMaquinas}}"
                                                         CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding BindingContext.CanDeleteMachine, Source={x:Reference PaginaMaquinas}}"
                                                         BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#7F1D1D}"
                                                         TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
                                                         HeightRequest="40" />

@@ -10,15 +10,19 @@ public partial class EditarPecaViewModel : ObservableObject
 {
     private readonly PecasService _pecasService;
     private readonly FasesProducaoService _fasesProducaoService;
+    private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
+    private bool _permissionsLoaded;
 
     public EditarPecaViewModel(
         PecasService pecasService,
         FasesProducaoService fasesProducaoService,
+        AuthorizationService authorizationService,
         IDialogService dialogService)
     {
         _pecasService = pecasService;
         _fasesProducaoService = fasesProducaoService;
+        _authorizationService = authorizationService;
         _dialogService = dialogService;
     }
 
@@ -72,9 +76,13 @@ public partial class EditarPecaViewModel : ObservableObject
     [ObservableProperty]
     private string errorMessage = string.Empty;
 
+    [ObservableProperty]
+    private bool canManagePieces;
+
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
-    public bool CanSave => PecaId > 0 &&
+    public bool CanSave => CanManagePieces &&
+                           PecaId > 0 &&
                            !IsLoading &&
                            !IsSaving &&
                            !string.IsNullOrWhiteSpace(Designacao) &&
@@ -83,6 +91,11 @@ public partial class EditarPecaViewModel : ObservableObject
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNumeroMoldeChanged(string value) => OnPropertyChanged(nameof(NumeroMoldeDisplay));
+    partial void OnCanManagePiecesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnPecaIdChanged(int value)
     {
@@ -122,9 +135,17 @@ public partial class EditarPecaViewModel : ObservableObject
 
     public async Task LoadAsync(int pecaId, string? numeroMolde)
     {
+        await EnsurePermissionsLoadedAsync();
         PecaId = pecaId;
         NumeroMolde = numeroMolde?.Trim() ?? string.Empty;
         ErrorMessage = string.Empty;
+
+        if (!CanManagePieces)
+        {
+            ErrorMessage = "Nao tens permissao para editar pecas.";
+            return;
+        }
+
         IsLoading = true;
 
         try
@@ -169,7 +190,7 @@ public partial class EditarPecaViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSave))]
     private async Task SaveAsync()
     {
-        if (IsSaving)
+        if (IsSaving || !CanManagePieces)
             return;
 
         var validationMessage = BuildValidationMessage();
@@ -186,16 +207,19 @@ public partial class EditarPecaViewModel : ObservableObject
         {
             await _pecasService.UpdateAsync(
                 PecaId,
-                Designacao,
-                Prioridade,
-                Quantidade,
-                proximaFaseId: SelectedProximaFase?.FasesProducao_id,
-                numeroPeca: NumeroPeca,
-                referencia: Referencia,
-                materialDesignacao: MaterialDesignacao,
-                tratamentoTermico: TratamentoTermico,
-                massa: Massa,
-                observacao: Observacao);
+                new PecaUpsertRequest
+                {
+                    Designacao = Designacao,
+                    Prioridade = Prioridade,
+                    Quantidade = Quantidade,
+                    ProximaFaseId = SelectedProximaFase?.FasesProducao_id,
+                    NumeroPeca = NumeroPeca,
+                    Referencia = Referencia,
+                    MaterialDesignacao = MaterialDesignacao,
+                    TratamentoTermico = TratamentoTermico,
+                    Massa = Massa,
+                    Observacao = Observacao
+                });
 
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
@@ -215,6 +239,9 @@ public partial class EditarPecaViewModel : ObservableObject
 
     private string BuildValidationMessage()
     {
+        if (!CanManagePieces)
+            return "Nao tens permissao para editar pecas.";
+
         if (PecaId <= 0)
             return "Nao foi possivel identificar a peca a editar.";
 
@@ -228,6 +255,16 @@ public partial class EditarPecaViewModel : ObservableObject
             return "Indique uma quantidade valida.";
 
         return string.Empty;
+    }
+
+    private async Task EnsurePermissionsLoadedAsync(bool forceRefresh = false)
+    {
+        if (_permissionsLoaded && !forceRefresh)
+            return;
+
+        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
+        CanManagePieces = _authorizationService.CanManagePieces();
+        _permissionsLoaded = true;
     }
 
     private async Task EnsureFasesLoadedAsync()

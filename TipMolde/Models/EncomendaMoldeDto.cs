@@ -22,11 +22,8 @@ public sealed class EncomendaMoldeDto
     [JsonPropertyName("dataEntregaPrevista")]
     public DateTime DataEntregaPrevista { get; set; }
 
-    [JsonPropertyName("quantidadePorEntregar")]
-    public int? QuantidadePorEntregar { get; set; }
-
-    [JsonPropertyName("entregue")]
-    public bool? Entregue { get; set; }
+    [JsonPropertyName("estado")]
+    public string Estado { get; set; } = string.Empty;
 
     [JsonPropertyName("numeroEncomendaCliente")]
     public string NumeroEncomendaCliente { get; set; } = string.Empty;

@@ -59,17 +59,15 @@ public partial class AppShell : Shell
 
         try
         {
-            await _authorizationService.GetCurrentRoleAsync();
-
-            DashboardShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Dashboard);
-            UtilizadoresShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Utilizadores);
-            ClientesShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Clientes);
-            EncomendasShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Encomendas);
-            ProducaoShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Producao);
-            MaquinasShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Maquinas);
-            DesenhoShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Desenho);
-            RelatoriosShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Relatorios);
-            DefinicoesShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Definicoes);
+            DashboardShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Dashboard);
+            UtilizadoresShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Utilizadores);
+            ClientesShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Clientes);
+            EncomendasShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Encomendas);
+            ProducaoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Producao);
+            MaquinasShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Maquinas);
+            DesenhoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
+            RelatoriosShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Relatorios);
+            DefinicoesShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Definicoes);
         }
         finally
         {

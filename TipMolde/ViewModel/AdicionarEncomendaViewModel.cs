@@ -160,14 +160,13 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
 
     partial void OnIsSavingChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
+        UpdateCanCreateState();
     }
 
     partial void OnIsLoadingDataChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
+        if (value == IsLoadingData)
+            UpdateCanCreateState();
     }
 
     /// <summary>
@@ -234,7 +233,7 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Voltar()
+    private static async Task Voltar()
     {
         await Shell.Current.GoToAsync("..");
     }
@@ -271,47 +270,7 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
 
         try
         {
-            var numeroEncomenda = NumeroEncomendaCliente.Trim();
-            var numeroProjeto = NormalizeOptional(NumeroProjetoCliente);
-            var nomeResponsavel = NormalizeOptional(NomeResponsavelCliente);
-
-            var encomendaCriada = await _encomendasService.CreateAsync(
-                SelectedClienteOption!.Cliente.Cliente_id,
-                numeroEncomenda,
-                numeroProjeto,
-                NomeServicoCliente,
-                nomeResponsavel);
-
-            if (encomendaCriada is null || encomendaCriada.Encomenda_id <= 0)
-                throw new InvalidOperationException("A encomenda foi enviada, mas nao foi possivel confirmar a criacao.");
-
-            var moldesSelecionados = MoldesSelecionados.ToList();
-
-            try
-            {
-                foreach (var moldeSelecionado in moldesSelecionados.OrderBy(item => item.Prioridade))
-                {
-                    await _encomendasService.CreateEncomendaMoldeAsync(
-                        encomendaCriada.Encomenda_id,
-                        moldeSelecionado.Molde.MoldeId,
-                        quantidade: moldeSelecionado.QuantidadePedida,
-                        prioridade: moldeSelecionado.Prioridade,
-                        dataEntregaPrevista: moldeSelecionado.DataEntregaPrevista);
-                }
-
-                await _globalMoldePriorityService.RebalanceAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException(
-                    $"A encomenda {numeroEncomenda} foi criada, mas falhou a associacao dos moldes ou o recalculo das prioridades globais. Detalhe: {ex.Message}");
-            }
-
-            await _dialogService.ShowSuccessAsync(
-                "Sucesso",
-                $"A encomenda {numeroEncomenda} foi criada com sucesso com {moldesSelecionados.Count} molde(s) associado(s).");
-
-            await Shell.Current.GoToAsync("..");
+            await CreateEncomendaWithSelectedMoldesAsync();
         }
         catch (Exception ex)
         {
@@ -320,6 +279,62 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
         finally
         {
             IsSaving = false;
+        }
+    }
+
+    private async Task CreateEncomendaWithSelectedMoldesAsync()
+    {
+        var numeroEncomenda = NumeroEncomendaCliente.Trim();
+        var encomendaCriada = await CreateEncomendaAsync(numeroEncomenda);
+        var moldesSelecionados = MoldesSelecionados.ToList();
+
+        await AssociateSelectedMoldesAsync(encomendaCriada.Encomenda_id, numeroEncomenda, moldesSelecionados);
+
+        await _dialogService.ShowSuccessAsync(
+            "Sucesso",
+            $"A encomenda {numeroEncomenda} foi criada com sucesso com {moldesSelecionados.Count} molde(s) associado(s).");
+
+        await Shell.Current.GoToAsync("..");
+    }
+
+    private async Task<EncomendaResumoDto> CreateEncomendaAsync(string numeroEncomenda)
+    {
+        var encomendaCriada = await _encomendasService.CreateAsync(
+            SelectedClienteOption!.Cliente.Cliente_id,
+            numeroEncomenda,
+            NormalizeOptional(NumeroProjetoCliente),
+            NomeServicoCliente,
+            NormalizeOptional(NomeResponsavelCliente));
+
+        if (encomendaCriada is null || encomendaCriada.Encomenda_id <= 0)
+            throw new InvalidOperationException("A encomenda foi enviada, mas nao foi possivel confirmar a criacao.");
+
+        return encomendaCriada;
+    }
+
+    private async Task AssociateSelectedMoldesAsync(
+        int encomendaId,
+        string numeroEncomenda,
+        IReadOnlyList<SelectableMoldeItem> moldesSelecionados)
+    {
+        try
+        {
+            foreach (var moldeSelecionado in moldesSelecionados.OrderBy(item => item.Prioridade))
+            {
+                await _encomendasService.CreateEncomendaMoldeAsync(
+                    encomendaId,
+                    moldeSelecionado.Molde.MoldeId,
+                    quantidade: moldeSelecionado.QuantidadePedida,
+                    prioridade: moldeSelecionado.Prioridade,
+                    dataEntregaPrevista: moldeSelecionado.DataEntregaPrevista);
+            }
+
+            await _globalMoldePriorityService.RebalanceAsync();
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"A encomenda {numeroEncomenda} foi criada, mas falhou a associacao dos moldes ou o recalculo das prioridades globais. Detalhe: {ex.Message}");
         }
     }
 
@@ -564,6 +579,12 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
     private static string? NormalizeOptional(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private void UpdateCanCreateState()
+    {
+        OnPropertyChanged(nameof(CanCreate));
+        CreateCommand.NotifyCanExecuteChanged();
     }
 }
 

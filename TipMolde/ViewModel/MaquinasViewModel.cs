@@ -12,20 +12,24 @@ public partial class MaquinasViewModel : PaginatedViewModel
 {
     private readonly MaquinasService _maquinasService;
     private readonly FasesProducaoService _fasesProducaoService;
+    private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
     private readonly Dictionary<int, string> _fasesPorId = [];
     private readonly List<MaquinaItem> _todasMaquinas = [];
     private readonly List<MaquinaItem> _maquinasFiltradas = [];
     private bool _fasesLoaded;
     private bool _maquinasLoaded;
+    private bool _permissionsLoaded;
 
     public MaquinasViewModel(
         MaquinasService maquinasService,
         FasesProducaoService fasesProducaoService,
+        AuthorizationService authorizationService,
         IDialogService dialogService)
     {
         _maquinasService = maquinasService;
         _fasesProducaoService = fasesProducaoService;
+        _authorizationService = authorizationService;
         _dialogService = dialogService;
         PageSize = 8;
 
@@ -107,8 +111,21 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [ObservableProperty]
     private string fasesErrorMessage = string.Empty;
 
+    [ObservableProperty]
+    private bool canCreateMachine;
+
+    [ObservableProperty]
+    private bool canDeleteMachine;
+
+    [ObservableProperty]
+    private bool canManageProductionPhases;
+
+    [ObservableProperty]
+    private bool canEditMachine;
+
     public bool HasMaquinas => Maquinas.Count > 0;
     public bool HasFasesProducao => FasesProducao.Count > 0;
+    public bool HasMachineManagementShortcuts => CanCreateMachine || CanManageProductionPhases;
     public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
         ? "Nao existem maquinas registadas para apresentar."
         : "Nenhuma maquina corresponde aos filtros atuais.";
@@ -118,6 +135,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
     public int TotalMaquinasManutencao => _maquinasFiltradas.Count(item => item.EmManutencao);
     public int TotalMaquinasComConexao => _maquinasFiltradas.Count(item => item.HasIpAddress);
     public bool CanAdicionarMaquina => !IsLoading
+                                       && CanCreateMachine
                                        && !IsSaving
                                        && !string.IsNullOrWhiteSpace(NovoMaquinaId)
                                        && !string.IsNullOrWhiteSpace(NovoNumero)
@@ -126,6 +144,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
                                        && SelectedFaseDedicadaOption is not null;
     public bool HasFasesError => !string.IsNullOrWhiteSpace(FasesErrorMessage);
     public bool CanAdicionarFase => !IsLoading
+                                    && CanManageProductionPhases
                                     && !IsSavingFase
                                     && SelectedFaseNomeOption is not null;
     public bool CanGuardarEdicao => !IsLoading
@@ -212,6 +231,31 @@ public partial class MaquinasViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(HasFasesError));
     }
 
+    partial void OnCanCreateMachineChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HasMachineManagementShortcuts));
+        OnPropertyChanged(nameof(CanAdicionarMaquina));
+        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnCanDeleteMachineChanged(bool value)
+    {
+    }
+
+    partial void OnCanManageProductionPhasesChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HasMachineManagementShortcuts));
+        OnPropertyChanged(nameof(CanAdicionarFase));
+        ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
+
+        if (!value)
+            IsFasesProducaoVisible = false;
+    }
+
+    partial void OnCanEditMachineChanged(bool value)
+    {
+    }
+
     partial void OnMaquinaEmEdicaoChanged(MaquinaItem? value)
     {
         OnPropertyChanged(nameof(MaquinaEmEdicaoDisplay));
@@ -238,6 +282,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
         try
         {
             ErrorMessage = string.Empty;
+            await EnsurePermissionsLoadedAsync();
             await EnsureFasesLoadedAsync();
             await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: false);
         }
@@ -278,6 +323,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand]
     private void ToggleAdicionarMaquina()
     {
+        if (!CanCreateMachine)
+            return;
+
         IsAddMaquinaVisible = !IsAddMaquinaVisible;
         if (IsAddMaquinaVisible)
         {
@@ -292,6 +340,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task ToggleFasesProducaoAsync()
     {
+        if (!CanManageProductionPhases)
+            return;
+
         IsFasesProducaoVisible = !IsFasesProducaoVisible;
 
         if (IsFasesProducaoVisible)
@@ -320,6 +371,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand(CanExecute = nameof(CanAdicionarFase))]
     private async Task ConfirmarAdicionarFaseAsync()
     {
+        if (!CanManageProductionPhases)
+            return;
+
         if (SelectedFaseNomeOption is null)
         {
             FasesErrorMessage = "Selecione o nome da fase de producao.";
@@ -355,6 +409,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task EliminarFaseAsync(FaseProducaoItem? fase)
     {
+        if (!CanManageProductionPhases)
+            return;
+
         if (fase is null || fase.FasesProducao_id <= 0)
             return;
 
@@ -383,6 +440,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand(CanExecute = nameof(CanAdicionarMaquina))]
     private async Task ConfirmarAdicionarMaquinaAsync()
     {
+        if (!CanCreateMachine)
+            return;
+
         var validationMessage = BuildValidationMessage();
         if (!string.IsNullOrWhiteSpace(validationMessage))
         {
@@ -425,6 +485,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task EditarMaquinaAsync(MaquinaItem? maquina)
     {
+        if (!CanEditMachine)
+            return;
+
         if (maquina is null)
             return;
 
@@ -487,6 +550,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task EliminarMaquinaAsync(MaquinaItem? maquina)
     {
+        if (!CanDeleteMachine)
+            return;
+
         if (maquina is null || maquina.Maquina_id <= 0)
             return;
 
@@ -549,6 +615,20 @@ public partial class MaquinasViewModel : PaginatedViewModel
         LoadFormDefaultsFase();
         _fasesLoaded = true;
         NotifyFasesStateChanged();
+    }
+
+    private async Task EnsurePermissionsLoadedAsync(bool forceRefresh = false)
+    {
+        if (_permissionsLoaded && !forceRefresh)
+            return;
+
+        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
+
+        CanCreateMachine = _authorizationService.CanCreateMachines();
+        CanDeleteMachine = _authorizationService.CanDeleteMachines();
+        CanManageProductionPhases = _authorizationService.CanManageProductionPhases();
+        CanEditMachine = _authorizationService.CanEditMachineState();
+        _permissionsLoaded = true;
     }
 
     private async Task RefreshMaquinasAsync(bool forceReload, bool resetToFirstPage)

@@ -40,8 +40,14 @@
                                FontSize="20"
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
+                        <Label Text="Como gestor de producao so podes atualizar o estado operacional da maquina."
+                               IsVisible="{Binding IsStateOnlyEditMode}"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
                         <Grid ColumnDefinitions="*,*"
-                              ColumnSpacing="16">
+                              ColumnSpacing="16"
+                              IsVisible="{Binding CanEditMachineAdministrativeFields}">
                             <VerticalStackLayout Spacing="8">
                                 <Label Text="Numero"
                                        FontFamily="OpenSansSemibold"
@@ -64,6 +70,16 @@
                         </Grid>
 
                         <VerticalStackLayout Spacing="8">
+                            <Label Text="Fase dedicada"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Label Text="{Binding FaseDedicadaDisplay}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8"
+                                             IsVisible="{Binding CanEditMachineAdministrativeFields}">
                             <Label Text="Nome / modelo"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
@@ -83,7 +99,8 @@
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout Spacing="8">
+                        <VerticalStackLayout Spacing="8"
+                                             IsVisible="{Binding CanEditMachineAdministrativeFields}">
                             <Label Text="IP da maquina"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"

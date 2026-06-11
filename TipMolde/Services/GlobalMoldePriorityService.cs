@@ -145,7 +145,7 @@ public sealed class GlobalMoldePriorityService
 
     // Porque: esta ordenacao e a base comum para preview no frontend e para o rebalanceamento
     // final das prioridades, garantindo um criterio estavel mesmo quando entram novos moldes.
-    private static IReadOnlyList<PriorityAssignment> BuildAssignments(
+    private static List<PriorityAssignment> BuildAssignments(
         IReadOnlyCollection<OpenEncomendaMoldePriorityItem> existingAssociations,
         IReadOnlyCollection<GlobalMoldeDraftPriorityItem> drafts)
     {

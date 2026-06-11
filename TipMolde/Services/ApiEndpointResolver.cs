@@ -13,7 +13,6 @@ namespace TipMolde.Services
         private const string EnvironmentVariableName = "TIPMOLDE_ENVIRONMENT";
         private const string BaseUrlVariableName = "TIPMOLDE_API_BASE_URL";
         private const string DefaultEnvironmentName = "Production";
-        private const string DevelopmentEnvironmentName = "Development";
 
         public static ApiOptions Resolve()
         {
@@ -58,7 +57,7 @@ namespace TipMolde.Services
                 return configuredEnvironment.Trim();
 
 #if DEBUG
-            return DevelopmentEnvironmentName;
+            return "Development";
 #else
             return DefaultEnvironmentName;
 #endif
@@ -171,7 +170,7 @@ namespace TipMolde.Services
                 return null;
 
             var normalized = value.Trim();
-            return normalized.EndsWith("/", StringComparison.Ordinal)
+            return normalized.EndsWith('/')
                 ? normalized
                 : $"{normalized}/";
         }

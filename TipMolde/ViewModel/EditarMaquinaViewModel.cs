@@ -8,13 +8,17 @@ namespace TipMolde.ViewModel;
 public partial class EditarMaquinaViewModel : ObservableObject
 {
     private readonly MaquinasService _maquinasService;
+    private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
+    private bool _permissionsLoaded;
 
     public EditarMaquinaViewModel(
         MaquinasService maquinasService,
+        AuthorizationService authorizationService,
         IDialogService dialogService)
     {
         _maquinasService = maquinasService;
+        _authorizationService = authorizationService;
         _dialogService = dialogService;
     }
 
@@ -62,6 +66,12 @@ public partial class EditarMaquinaViewModel : ObservableObject
     [ObservableProperty]
     private string ipAddressOriginal = string.Empty;
 
+    [ObservableProperty]
+    private bool canEditMachineAdministrativeFields;
+
+    [ObservableProperty]
+    private bool canEditMachineState;
+
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public string NumeroDisplay => Numero <= 0 ? "Sem numero" : Numero.ToString();
     public string NomeModeloDisplay => string.IsNullOrWhiteSpace(NomeModelo) ? "Maquina sem nome" : NomeModelo.Trim();
@@ -69,15 +79,30 @@ public partial class EditarMaquinaViewModel : ObservableObject
     public string EstadoAtualDisplay => string.IsNullOrWhiteSpace(EstadoAtualOriginal) ? "Sem estado" : EstadoAtualOriginal.Replace('_', ' ');
     public string MaquinaDisplay => $"{NumeroDisplay} - {NomeModeloDisplay}";
     public string TransicoesPermitidasDisplay => BuildTransicoesPermitidasDisplay();
+    public bool IsStateOnlyEditMode => CanEditMachineState && !CanEditMachineAdministrativeFields;
     public bool CanSave => MaquinaId > 0
+                           && CanEditMachineState
                            && !IsLoading
                            && !IsSaving
-                           && Numero > 0
-                           && !string.IsNullOrWhiteSpace(NomeModelo)
                            && SelectedEstadoMaquinaOption is not null
+                           && HasRequiredEditableFields()
                            && HasChanges();
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
+
+    partial void OnCanEditMachineAdministrativeFieldsChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsStateOnlyEditMode));
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnCanEditMachineStateChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsStateOnlyEditMode));
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnNumeroChanged(int value)
     {
@@ -147,7 +172,7 @@ public partial class EditarMaquinaViewModel : ObservableObject
         SaveCommand.NotifyCanExecuteChanged();
     }
 
-    public Task LoadAsync(
+    public async Task LoadAsync(
         int maquinaId,
         int numero,
         string? nomeModelo,
@@ -155,6 +180,8 @@ public partial class EditarMaquinaViewModel : ObservableObject
         string? estadoAtual,
         string? ipAddress)
     {
+        await EnsurePermissionsLoadedAsync();
+
         MaquinaId = maquinaId;
         Numero = numero;
         NumeroOriginal = numero;
@@ -174,7 +201,9 @@ public partial class EditarMaquinaViewModel : ObservableObject
         SelectedEstadoMaquinaOption = EstadoMaquinaOptions
             .FirstOrDefault(item => string.Equals(item.Value, EstadoAtualOriginal, StringComparison.OrdinalIgnoreCase));
 
-        return Task.CompletedTask;
+        ErrorMessage = CanEditMachineState
+            ? string.Empty
+            : "Nao tens permissao para editar esta maquina.";
     }
 
     [RelayCommand]
@@ -203,12 +232,14 @@ public partial class EditarMaquinaViewModel : ObservableObject
         {
             var nomeNormalizado = NomeModelo.Trim();
             var ipNormalizado = NormalizeOptional(IpAddress);
-            var numeroAlterado = Numero != NumeroOriginal;
-            var nomeAlterado = !string.Equals(nomeNormalizado, NomeModeloOriginal?.Trim(), StringComparison.Ordinal);
-            var ipAlterado = !string.Equals(
-                ipNormalizado,
-                NormalizeOptional(IpAddressOriginal),
-                StringComparison.OrdinalIgnoreCase);
+            var numeroAlterado = CanEditMachineAdministrativeFields && Numero != NumeroOriginal;
+            var nomeAlterado = CanEditMachineAdministrativeFields &&
+                               !string.Equals(nomeNormalizado, NomeModeloOriginal?.Trim(), StringComparison.Ordinal);
+            var ipAlterado = CanEditMachineAdministrativeFields &&
+                             !string.Equals(
+                                 ipNormalizado,
+                                 NormalizeOptional(IpAddressOriginal),
+                                 StringComparison.OrdinalIgnoreCase);
             var estadoAlterado = !string.Equals(
                 NormalizeEstado(EstadoAtualOriginal),
                 NormalizeEstado(SelectedEstadoMaquinaOption.Value),
@@ -242,10 +273,13 @@ public partial class EditarMaquinaViewModel : ObservableObject
         if (MaquinaId <= 0)
             return "Nao foi possivel identificar a maquina a editar.";
 
-        if (Numero <= 0)
+        if (!CanEditMachineState)
+            return "Nao tens permissao para editar esta maquina.";
+
+        if (CanEditMachineAdministrativeFields && Numero <= 0)
             return "Indique um numero valido para a maquina.";
 
-        if (string.IsNullOrWhiteSpace(NomeModelo))
+        if (CanEditMachineAdministrativeFields && string.IsNullOrWhiteSpace(NomeModelo))
             return "Indique o nome ou modelo da maquina.";
 
         if (SelectedEstadoMaquinaOption is null)
@@ -266,10 +300,33 @@ public partial class EditarMaquinaViewModel : ObservableObject
         var normalizedCurrentNome = (NomeModeloOriginal ?? string.Empty).Trim();
         var normalizedNewNome = (NomeModelo ?? string.Empty).Trim();
 
-        return Numero != NumeroOriginal
-            || !string.Equals(normalizedCurrentNome, normalizedNewNome, StringComparison.Ordinal)
-            || !string.Equals(normalizedCurrentIp, normalizedNewIp, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(normalizedCurrentEstado, normalizedNewEstado, StringComparison.OrdinalIgnoreCase);
+        var administrativeChanges = CanEditMachineAdministrativeFields &&
+                                    (Numero != NumeroOriginal
+                                     || !string.Equals(normalizedCurrentNome, normalizedNewNome, StringComparison.Ordinal)
+                                     || !string.Equals(normalizedCurrentIp, normalizedNewIp, StringComparison.OrdinalIgnoreCase));
+
+        var stateChange = !string.Equals(normalizedCurrentEstado, normalizedNewEstado, StringComparison.OrdinalIgnoreCase);
+
+        return administrativeChanges || stateChange;
+    }
+
+    private bool HasRequiredEditableFields()
+    {
+        if (!CanEditMachineAdministrativeFields)
+            return true;
+
+        return Numero > 0 && !string.IsNullOrWhiteSpace(NomeModelo);
+    }
+
+    private async Task EnsurePermissionsLoadedAsync(bool forceRefresh = false)
+    {
+        if (_permissionsLoaded && !forceRefresh)
+            return;
+
+        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
+        CanEditMachineAdministrativeFields = _authorizationService.CanEditMachineAdministrativeFields();
+        CanEditMachineState = _authorizationService.CanEditMachineState();
+        _permissionsLoaded = true;
     }
 
     private string BuildTransicoesPermitidasDisplay()

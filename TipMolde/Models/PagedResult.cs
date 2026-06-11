@@ -4,14 +4,19 @@ namespace TipMolde.Models;
 
 public sealed class PagedResult<T>
 {
+    private List<T>? _legacyItems;
+
     [JsonPropertyName("items")]
     public List<T> Items { get; set; } = [];
 
     [JsonPropertyName("itens")]
     public List<T>? LegacyItems
     {
+        get => _legacyItems;
         set
         {
+            _legacyItems = value;
+
             if (value is { Count: > 0 })
                 Items = value;
         }

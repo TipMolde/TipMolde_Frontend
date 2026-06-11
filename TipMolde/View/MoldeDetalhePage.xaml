@@ -380,13 +380,14 @@
                                            FontFamily="OpenSansSemibold"
                                            FontSize="18"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
-                                    <Label Text="Edita prioridades, quantidades e remove pecas erradas diretamente a partir deste detalhe."
+                                    <Label Text="{Binding PecasSectionDescription}"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
                                 <Button Grid.Column="1"
                                         Text="Adicionar peca"
                                         Command="{Binding AdicionarPecaCommand}"
+                                        IsVisible="{Binding CanManagePieces}"
                                         BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                         TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                         HeightRequest="42"
@@ -448,7 +449,8 @@
 
                                                 <VerticalStackLayout Grid.Column="1"
                                                                      Spacing="10"
-                                                                     VerticalOptions="Center">
+                                                                     VerticalOptions="Center"
+                                                                     IsVisible="{Binding BindingContext.CanManagePieces, Source={x:Reference PaginaMoldeDetalhe}}">
                                                     <Button Text="Editar"
                                                             Command="{Binding BindingContext.EditarPecaCommand, Source={x:Reference PaginaMoldeDetalhe}}"
                                                             CommandParameter="{Binding .}"

@@ -23,47 +23,40 @@ public partial class EncomendaMoldeItemDto : ObservableObject
     private DateTime dataEntregaPrevista;
 
     [ObservableProperty]
-    private int quantidadePorEntregar;
+    private string estado = string.Empty;
 
     [ObservableProperty]
-    private bool isEntregue;
-
-    [ObservableProperty]
-    private bool canEditarEntrega = true;
+    private bool canGerirMolde = true;
 
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string DescricaoMoldeDisplay => string.IsNullOrWhiteSpace(DescricaoMolde) ? "Sem descricao disponivel." : DescricaoMolde;
     public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
-    public string QuantidadePorEntregarDisplay => $"{Math.Max(0, QuantidadePorEntregar)}";
-    public string EstadoEntregaDisplay => IsEntregue ? "Entregue" : "Por entregar";
-    public bool CanRegistarEntrega => QuantidadePorEntregar > 0 && CanEditarEntrega;
-    public bool HasEntregasRegistadas => QuantidadePorEntregar < Quantidade;
-    public bool CanEditarDataEntrega => CanEditarEntrega && !HasEntregasRegistadas;
+    public string EstadoDisplay => string.IsNullOrWhiteSpace(Estado) ? "Sem estado" : Estado.Replace('_', ' ');
+    public bool IsPendente => IsEstado("PENDENTE");
+    public bool IsEmProducao => IsEstado("EM_PRODUCAO");
+    public bool IsConcluido => IsEstado("CONCLUIDO");
+    public bool CanIniciarProducao => CanGerirMolde && IsPendente;
+    public bool CanConcluirMolde => CanGerirMolde && IsEmProducao;
+    public bool CanEditarDataEntrega => CanGerirMolde && !IsConcluido;
 
-    partial void OnQuantidadePorEntregarChanged(int value)
+    partial void OnEstadoChanged(string value)
     {
-        if (value <= 0 && !IsEntregue)
-            IsEntregue = true;
-        else if (value > 0 && IsEntregue)
-            IsEntregue = false;
-
-        OnPropertyChanged(nameof(QuantidadePorEntregarDisplay));
-        OnPropertyChanged(nameof(EstadoEntregaDisplay));
-        OnPropertyChanged(nameof(CanRegistarEntrega));
-        OnPropertyChanged(nameof(HasEntregasRegistadas));
+        OnPropertyChanged(nameof(EstadoDisplay));
+        OnPropertyChanged(nameof(IsPendente));
+        OnPropertyChanged(nameof(IsEmProducao));
+        OnPropertyChanged(nameof(IsConcluido));
+        OnPropertyChanged(nameof(CanIniciarProducao));
+        OnPropertyChanged(nameof(CanConcluirMolde));
         OnPropertyChanged(nameof(CanEditarDataEntrega));
     }
 
-    partial void OnIsEntregueChanged(bool value)
+    partial void OnCanGerirMoldeChanged(bool value)
     {
-        OnPropertyChanged(nameof(EstadoEntregaDisplay));
-        OnPropertyChanged(nameof(CanRegistarEntrega));
-    }
-
-    partial void OnCanEditarEntregaChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanRegistarEntrega));
+        OnPropertyChanged(nameof(CanIniciarProducao));
+        OnPropertyChanged(nameof(CanConcluirMolde));
         OnPropertyChanged(nameof(CanEditarDataEntrega));
     }
+
+    private bool IsEstado(string estado) => string.Equals(Estado, estado, StringComparison.OrdinalIgnoreCase);
 }

@@ -50,7 +50,7 @@ public partial class AdicionarClienteViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Voltar()
+    private static async Task Voltar()
     {
         await Shell.Current.GoToAsync("..");
     }

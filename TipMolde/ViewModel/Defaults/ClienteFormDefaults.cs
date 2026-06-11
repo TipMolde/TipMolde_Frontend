@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.RegularExpressions;
 
@@ -6,10 +6,11 @@ namespace TipMolde.ViewModel.Defaults;
 
 public static class ClienteFormDefaults
 {
+    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
     private static readonly CultureInfo PtPtCulture = CultureInfo.GetCultureInfo("pt-PT");
     private static readonly EmailAddressAttribute EmailValidator = new();
-    private static readonly Regex TelefoneRegex = new(@"^\+?\d+$", RegexOptions.Compiled);
-    private static readonly Regex PaisCaracteresRegex = new(@"^[\p{L}]+(?:[ '\-][\p{L}]+)*$", RegexOptions.Compiled);
+    private static readonly Regex TelefoneRegex = new(@"^\+?\d+$", RegexOptions.Compiled, RegexTimeout);
+    private static readonly Regex PaisCaracteresRegex = new(@"^[\p{L}]+(?:[ '\-][\p{L}]+)*$", RegexOptions.Compiled, RegexTimeout);
 
     public static string? NormalizeOptional(string value)
     {
@@ -89,3 +90,4 @@ public static class ClienteFormDefaults
         return PtPtCulture.TextInfo.ToTitleCase(pais.ToLower(PtPtCulture));
     }
 }
+

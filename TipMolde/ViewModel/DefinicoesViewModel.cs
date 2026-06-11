@@ -32,7 +32,7 @@ public partial class DefinicoesViewModel : ObservableObject
         _topBarViewModel = topBarViewModel;
 
         ThemeOptions = _themePreferenceService.AvailableThemes;
-        SelectedThemeOption = _themePreferenceService.GetStoredTheme();
+        SelectedThemeOption = ThemePreferenceService.GetStoredTheme();
     }
 
     public IReadOnlyList<string> ThemeOptions { get; }
@@ -253,7 +253,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
         try
         {
-            _themePreferenceService.ApplyTheme(SelectedThemeOption);
+            ThemePreferenceService.ApplyTheme(SelectedThemeOption);
         }
         finally
         {
@@ -270,7 +270,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
         IsLoading = true;
         ErrorMessage = string.Empty;
-        SelectedThemeOption = _themePreferenceService.GetStoredTheme();
+        SelectedThemeOption = ThemePreferenceService.GetStoredTheme();
 
         try
         {

@@ -423,10 +423,7 @@ public partial class DashboardViewModel : ObservableObject
     {
         try
         {
-            var role = await _authorizationService.GetCurrentRoleAsync();
-            CanUseRececaoMaterial = string.Equals(role, "ADMIN", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(role, "GESTOR_DESENHO", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(role, "GESTOR_PRODUCAO", StringComparison.OrdinalIgnoreCase);
+            CanUseRececaoMaterial = await _authorizationService.CanAccessAsync(AppFeature.Dashboard);
         }
         catch
         {

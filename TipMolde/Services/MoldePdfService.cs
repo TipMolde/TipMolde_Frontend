@@ -4,9 +4,9 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
-public sealed class MoldePdfService
+public static class MoldePdfService
 {
-    public async Task<string> GenerateCicloVidaPdfAsync(
+    public static async Task<string> GenerateCicloVidaPdfAsync(
         string numero,
         string nome,
         string descricao,

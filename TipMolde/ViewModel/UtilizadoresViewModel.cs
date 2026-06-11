@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
@@ -117,12 +117,15 @@ public partial class UtilizadoresViewModel : SearchableViewModel
         var novaPassword = await _dialogService.PromptAsync(
             "Repor password",
             $"Introduz a nova password para {utilizador.Nome}.{Environment.NewLine}Tem de ter pelo menos 8 caracteres, maiuscula, minuscula, numero e simbolo.",
-            accept: "Guardar",
-            cancel: "Cancelar",
-            initialValue: UtilizadorDefaults.DefaultPassword,
-            placeholder: "Ex.: TipMolde2026!",
-            maxLength: 255,
-            keyboard: Keyboard.Text);
+            new PromptDialogOptions
+            {
+                Accept = "Guardar",
+                Cancel = "Cancelar",
+                InitialValue = UtilizadorDefaults.CreateSuggestedPassword(),
+                Placeholder = "Introduz uma password forte.",
+                MaxLength = 255,
+                Keyboard = Keyboard.Text
+            });
 
         if (string.IsNullOrWhiteSpace(novaPassword))
             return;

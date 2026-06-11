@@ -16,25 +16,19 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
     private readonly MoldesService _moldesService;
     private readonly PecasService _pecasService;
-    private readonly MoldePdfService _moldePdfService;
-    private readonly SessaoPersistidaService _sessaoPersistidaService;
-    private readonly UtilizadoresService _utilizadoresService;
+    private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
     private bool _roleLoaded;
 
     public MoldeDetalheViewModel(
         MoldesService moldesService,
         PecasService pecasService,
-        MoldePdfService moldePdfService,
-        SessaoPersistidaService sessaoPersistidaService,
-        UtilizadoresService utilizadoresService,
+        AuthorizationService authorizationService,
         IDialogService dialogService)
     {
         _moldesService = moldesService;
         _pecasService = pecasService;
-        _moldePdfService = moldePdfService;
-        _sessaoPersistidaService = sessaoPersistidaService;
-        _utilizadoresService = utilizadoresService;
+        _authorizationService = authorizationService;
         _dialogService = dialogService;
         PageSize = 8;
     }
@@ -69,6 +63,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     [ObservableProperty]
     private bool isGeneratingPdf;
 
+    [ObservableProperty]
+    private bool canManagePieces;
+
     public bool HasDashboard => Dashboard is not null;
     public bool CanGeneratePdf => IsAdmin && HasDashboard && !IsGeneratingPdf;
     public bool HasPecas => Pecas.Count > 0;
@@ -86,6 +83,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     public string MaterialPendenteDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.MaterialPendente ?? 0);
     public string EmEsperaDistribuicaoDisplay => BuildDistribuicaoDisplay(Dashboard?.EmEspera ?? 0);
     public string EmptyPecasMessage => "Este molde ainda nao tem pecas registadas.";
+    public string PecasSectionDescription => CanManagePieces
+        ? "Edita prioridades, quantidades e remove pecas erradas diretamente a partir deste detalhe."
+        : "Consulta as pecas registadas para este molde.";
     public ObservableCollection<PecaDto> Pecas { get; } = new();
 
     partial void OnNumeroChanged(string value) => OnPropertyChanged(nameof(NumeroDisplay));
@@ -117,6 +117,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(PdfButtonText));
         GerarPdfCommand.NotifyCanExecuteChanged();
     }
+    partial void OnCanManagePiecesChanged(bool value) => OnPropertyChanged(nameof(PecasSectionDescription));
 
     public async Task LoadAsync(int moldeId)
     {
@@ -199,7 +200,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
         try
         {
-            var filePath = await _moldePdfService.GenerateCicloVidaPdfAsync(
+            var filePath = await MoldePdfService.GenerateCicloVidaPdfAsync(
                 NumeroDisplay,
                 NomeDisplay,
                 DescricaoDisplay,
@@ -234,6 +235,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task AdicionarPecaAsync()
     {
+        if (!CanManagePieces)
+            return;
+
         if (MoldeId <= 0)
             return;
 
@@ -244,6 +248,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task EditarPecaAsync(PecaDto? peca)
     {
+        if (!CanManagePieces)
+            return;
+
         if (peca is null || peca.PecaId <= 0)
             return;
 
@@ -254,6 +261,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     [RelayCommand]
     private async Task ApagarPecaAsync(PecaDto? peca)
     {
+        if (!CanManagePieces)
+            return;
+
         if (peca is null || peca.PecaId <= 0)
             return;
 
@@ -288,21 +298,16 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
         _roleLoaded = true;
 
-        var currentUserId = _sessaoPersistidaService.TryGetCurrentUserId();
-        if (!currentUserId.HasValue)
-        {
-            IsAdmin = false;
-            return;
-        }
-
         try
         {
-            var utilizador = await _utilizadoresService.GetUtilizadorByIdAsync(currentUserId.Value);
-            IsAdmin = string.Equals(utilizador.Role, "Admin", StringComparison.OrdinalIgnoreCase);
+            await _authorizationService.GetCurrentRoleAsync();
+            IsAdmin = _authorizationService.CanCreateMachines();
+            CanManagePieces = _authorizationService.CanManagePieces();
         }
         catch
         {
             IsAdmin = false;
+            CanManagePieces = false;
         }
     }
 

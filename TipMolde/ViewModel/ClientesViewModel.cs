@@ -15,13 +15,17 @@ public partial class ClientesViewModel : SearchableViewModel
 
     private readonly ClientesService _clientesService;
     private readonly IDialogService _dialogService;
+    private readonly AuthorizationService _authorizationService;
+    private bool _permissionsLoaded;
 
     public ClientesViewModel(
         ClientesService clientesService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        AuthorizationService authorizationService)
     {
         _clientesService = clientesService;
         _dialogService = dialogService;
+        _authorizationService = authorizationService;
     }
 
     public ObservableCollection<ClienteDto> Clientes { get; } = new();
@@ -35,6 +39,9 @@ public partial class ClientesViewModel : SearchableViewModel
     [ObservableProperty]
     private int selectedSearchModeIndex = -1;
 
+    [ObservableProperty]
+    private bool canDeleteClients;
+
     public void EnsureDefaultSearchMode()
     {
         if (SelectedSearchModeIndex >= 0)
@@ -45,6 +52,7 @@ public partial class ClientesViewModel : SearchableViewModel
 
     public async Task LoadClientesAsync()
     {
+        await EnsurePermissionsLoadedAsync();
         await ReloadCurrentPageAsync();
     }
 
@@ -125,7 +133,7 @@ public partial class ClientesViewModel : SearchableViewModel
     [RelayCommand]
     private async Task DeleteAsync(ClienteDto? cliente)
     {
-        if (cliente is null)
+        if (cliente is null || !CanDeleteClients)
             return;
 
         var confirmar = await _dialogService.ConfirmDeleteAsync(cliente.Nome);
@@ -152,5 +160,15 @@ public partial class ClientesViewModel : SearchableViewModel
                 "Erro",
                 ex.Message);
         }
+    }
+
+    private async Task EnsurePermissionsLoadedAsync(bool forceRefresh = false)
+    {
+        if (_permissionsLoaded && !forceRefresh)
+            return;
+
+        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
+        CanDeleteClients = _authorizationService.CanDeleteClients();
+        _permissionsLoaded = true;
     }
 }

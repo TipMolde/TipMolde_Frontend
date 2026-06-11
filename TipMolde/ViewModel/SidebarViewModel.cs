@@ -47,8 +47,7 @@ public partial class SidebarViewModel : ObservableObject
         if (_isLoaded && !forceRefresh)
             return;
 
-        await _authorizationService.GetCurrentRoleAsync(forceRefresh);
-        UpdateVisibility();
+        await UpdateVisibilityAsync(forceRefresh);
         _isLoaded = true;
     }
 
@@ -106,16 +105,16 @@ public partial class SidebarViewModel : ObservableObject
         await NavigateToFeatureAsync(AppFeature.Definicoes, "//Definicoes", "Definicoes");
     }
 
-    private void UpdateVisibility()
+    private async Task UpdateVisibilityAsync(bool forceRefresh = false)
     {
-        CanViewDashboard = _authorizationService.CanAccess(AppFeature.Dashboard);
-        CanViewUtilizadores = _authorizationService.CanAccess(AppFeature.Utilizadores);
-        CanViewClientes = _authorizationService.CanAccess(AppFeature.Clientes);
-        CanViewEncomendas = _authorizationService.CanAccess(AppFeature.Encomendas);
-        CanViewProducao = _authorizationService.CanAccess(AppFeature.Producao);
-        CanViewMaquinas = _authorizationService.CanAccess(AppFeature.Maquinas);
-        CanViewDesenho = _authorizationService.CanAccess(AppFeature.Desenho);
-        CanViewRelatorios = _authorizationService.CanAccess(AppFeature.Relatorios);
+        CanViewDashboard = await _authorizationService.CanAccessAsync(AppFeature.Dashboard, forceRefresh);
+        CanViewUtilizadores = await _authorizationService.CanAccessAsync(AppFeature.Utilizadores);
+        CanViewClientes = await _authorizationService.CanAccessAsync(AppFeature.Clientes);
+        CanViewEncomendas = await _authorizationService.CanAccessAsync(AppFeature.Encomendas);
+        CanViewProducao = await _authorizationService.CanAccessAsync(AppFeature.Producao);
+        CanViewMaquinas = await _authorizationService.CanAccessAsync(AppFeature.Maquinas);
+        CanViewDesenho = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
+        CanViewRelatorios = await _authorizationService.CanAccessAsync(AppFeature.Relatorios);
     }
 
     private async Task NavigateToFeatureAsync(AppFeature feature, string route, string featureDisplayName)
@@ -124,7 +123,7 @@ public partial class SidebarViewModel : ObservableObject
         {
             await EnsureLoadedAsync();
 
-            if (!_authorizationService.CanAccess(feature))
+            if (!await _authorizationService.CanAccessAsync(feature))
             {
                 await _dialogService.ShowErrorAsync(
                     "Acesso restrito",

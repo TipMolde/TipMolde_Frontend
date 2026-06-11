@@ -1,7 +1,6 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
 using TipMolde.Services;
 using TipMolde.ViewModel.Defaults;
 
@@ -19,7 +18,7 @@ public partial class AdicionarUtilizadorViewModel : ObservableObject
         _utilizadoresService = utilizadoresService;
         _dialogService = dialogService;
         SelectedRole = UtilizadorDefaults.AvailableRoles.First();
-        Password = UtilizadorDefaults.DefaultPassword;
+        Password = UtilizadorDefaults.CreateSuggestedPassword();
     }
 
     public IReadOnlyList<string> AvailableRoles => UtilizadorDefaults.AvailableRoles;
@@ -122,3 +121,4 @@ public partial class AdicionarUtilizadorViewModel : ObservableObject
         }
     }
 }
+

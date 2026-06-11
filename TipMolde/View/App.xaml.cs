@@ -4,13 +4,10 @@ namespace TipMolde.View;
 
 public partial class App : Application
 {
-    public App(
-        AppShell appShell,
-        SessaoPersistidaService sessaoPersistidaService,
-        ThemePreferenceService themePreferenceService)
+    public App(AppShell appShell, SessaoPersistidaService sessaoPersistidaService)
     {
         InitializeComponent();
-        themePreferenceService.ApplyStoredTheme();
+        ThemePreferenceService.ApplyStoredTheme();
 
         MainPage = appShell;
         _ = InitializeAsync(appShell, sessaoPersistidaService);
