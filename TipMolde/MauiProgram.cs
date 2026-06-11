@@ -68,6 +68,7 @@ namespace TipMolde
             builder.Services.AddTransient<RegistosProducaoService>();
             builder.Services.AddTransient<MoldePdfService>();
             builder.Services.AddTransient<GlobalMoldePriorityService>();
+            builder.Services.AddTransient<RelatoriosService>();
 
             builder.Services.AddTransient<AdicionarClienteViewModel>();
             builder.Services.AddTransient<AdicionarClientePage>();
@@ -109,6 +110,8 @@ namespace TipMolde
             builder.Services.AddTransient<MaquinasPage>();
             builder.Services.AddTransient<DesenhoViewModel>();
             builder.Services.AddTransient<DesenhoPage>();
+            builder.Services.AddTransient<RelatoriosViewModel>();
+            builder.Services.AddTransient<RelatoriosPage>();
 
             builder.Services.AddTransient<DefinicoesViewModel>();
             builder.Services.AddTransient<Definicoes>();

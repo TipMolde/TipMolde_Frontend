@@ -115,10 +115,10 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     /// <summary>
     /// Carrega as opcoes de tipo de pedido disponiveis.
     /// </summary>
-    public async Task LoadAsync()
+    public Task LoadAsync()
     {
         if (_loaded || IsLoadingData)
-            return;
+            return Task.CompletedTask;
 
         IsLoadingData = true;
         ErrorMessage = string.Empty;
@@ -142,6 +142,8 @@ public partial class AdicionarMoldeViewModel : ObservableObject
         {
             IsLoadingData = false;
         }
+
+        return Task.CompletedTask;
     }
 
     [RelayCommand]

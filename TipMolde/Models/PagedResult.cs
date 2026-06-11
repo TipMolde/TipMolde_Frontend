@@ -7,6 +7,16 @@ public sealed class PagedResult<T>
     [JsonPropertyName("items")]
     public List<T> Items { get; set; } = [];
 
+    [JsonPropertyName("itens")]
+    public List<T>? LegacyItems
+    {
+        set
+        {
+            if (value is { Count: > 0 })
+                Items = value;
+        }
+    }
+
     [JsonPropertyName("currentPage")]
     public int Page { get; set; }
 

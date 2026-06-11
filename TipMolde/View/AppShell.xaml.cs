@@ -14,6 +14,7 @@ public partial class AppShell : Shell
             ["Producao"] = AppFeature.Producao,
             ["Maquinas"] = AppFeature.Maquinas,
             ["Desenho"] = AppFeature.Desenho,
+            ["Relatorios"] = AppFeature.Relatorios,
             ["Definicoes"] = AppFeature.Definicoes
         };
 
@@ -45,6 +46,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(MoldeDetalhePage), typeof(MoldeDetalhePage));
         Routing.RegisterRoute(nameof(MaquinasPage), typeof(MaquinasPage));
         Routing.RegisterRoute(nameof(DesenhoPage), typeof(DesenhoPage));
+        Routing.RegisterRoute(nameof(RelatoriosPage), typeof(RelatoriosPage));
         Routing.RegisterRoute(nameof(RegistoProducaoPage), typeof(RegistoProducaoPage));
     }
 
@@ -66,6 +68,7 @@ public partial class AppShell : Shell
             ProducaoShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Producao);
             MaquinasShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Maquinas);
             DesenhoShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Desenho);
+            RelatoriosShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Relatorios);
             DefinicoesShellItem.FlyoutItemIsVisible = _authorizationService.CanAccess(AppFeature.Definicoes);
         }
         finally

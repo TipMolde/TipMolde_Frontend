@@ -9,6 +9,7 @@ public enum AppFeature
     Producao,
     Maquinas,
     Desenho,
+    Relatorios,
     Definicoes
 }
 

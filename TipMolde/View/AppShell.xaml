@@ -48,6 +48,11 @@
          Route="Desenho" />
 
     <ShellContent
+         x:Name="RelatoriosShellItem"
+         ContentTemplate="{DataTemplate local:RelatoriosPage}"
+         Route="Relatorios" />
+
+    <ShellContent
          x:Name="DefinicoesShellItem"
          ContentTemplate="{DataTemplate local:Definicoes}"
          Route="Definicoes" />

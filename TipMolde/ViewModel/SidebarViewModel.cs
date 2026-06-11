@@ -39,6 +39,9 @@ public partial class SidebarViewModel : ObservableObject
     [ObservableProperty]
     private bool canViewDesenho;
 
+    [ObservableProperty]
+    private bool canViewRelatorios;
+
     public async Task EnsureLoadedAsync(bool forceRefresh = false)
     {
         if (_isLoaded && !forceRefresh)
@@ -92,6 +95,12 @@ public partial class SidebarViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task OpenRelatoriosAsync()
+    {
+        await NavigateToFeatureAsync(AppFeature.Relatorios, "//Relatorios", "Relatorios");
+    }
+
+    [RelayCommand]
     private async Task OpenDefinicoesAsync()
     {
         await NavigateToFeatureAsync(AppFeature.Definicoes, "//Definicoes", "Definicoes");
@@ -106,6 +115,7 @@ public partial class SidebarViewModel : ObservableObject
         CanViewProducao = _authorizationService.CanAccess(AppFeature.Producao);
         CanViewMaquinas = _authorizationService.CanAccess(AppFeature.Maquinas);
         CanViewDesenho = _authorizationService.CanAccess(AppFeature.Desenho);
+        CanViewRelatorios = _authorizationService.CanAccess(AppFeature.Relatorios);
     }
 
     private async Task NavigateToFeatureAsync(AppFeature feature, string route, string featureDisplayName)

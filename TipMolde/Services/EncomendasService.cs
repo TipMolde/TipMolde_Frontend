@@ -64,6 +64,17 @@ public sealed class EncomendasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<EncomendaMoldeDto>>(response);
     }
 
+    public async Task<PagedResult<EncomendaMoldeDto>?> GetEncomendaMoldesByMoldeIdAsync(int moldeId, int page, int pageSize)
+    {
+        using var response = await HttpClient.GetAsync(
+            $"api/encomenda-moldes/por-molde/{moldeId}?page={page}&pageSize={pageSize}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<EncomendaMoldeDto>>(response);
+    }
+
     public async Task<PagedResult<FilaGlobalMoldeItemDto>?> GetFilaGlobalMoldeAsync(int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync(

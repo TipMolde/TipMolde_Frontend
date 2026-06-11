@@ -49,4 +49,6 @@ public sealed class EncomendaMoldeDto
     public string QuantidadeDisplay => Quantidade <= 0
         ? "Quantidade por definir"
         : Quantidade.ToString();
+
+    public string ContextoDisplay => $"{NumeroEncomendaClienteDisplay} | prioridade {Prioridade} | entrega {DataEntregaPrevistaDisplay}";
 }

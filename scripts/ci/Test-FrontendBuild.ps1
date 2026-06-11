@@ -6,7 +6,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$windowsRuntimeId = 'win-x64'
+$windowsRuntimeId = 'win10-x64'
 $windowsTargetFramework = 'net8.0-windows10.0.19041.0'
 $androidTargetFramework = 'net8.0-android'
 
@@ -106,8 +106,8 @@ try {
         else {
             Write-Host "Workload(s) 'maui-windows' are already installed."
         }
-        dotnet restore TipMolde/TipMolde.csproj --runtime $windowsRuntimeId --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$windowsTargetFramework
-        dotnet build TipMolde/TipMolde.csproj --configuration Release --framework $windowsTargetFramework --runtime $windowsRuntimeId --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$windowsTargetFramework
+        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId
+        dotnet publish TipMolde/TipMolde.csproj --configuration Release --framework $windowsTargetFramework --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId -p:WindowsPackageType=None
     }
 }
 finally {

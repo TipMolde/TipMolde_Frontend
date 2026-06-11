@@ -238,6 +238,33 @@
                         </HorizontalStackLayout>
                     </Border>
 
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewRelatorios, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenRelatoriosCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="R"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Relatorios"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
+
                 </VerticalStackLayout>
             </ScrollView>
         </Grid>
