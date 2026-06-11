@@ -13,10 +13,12 @@ $androidTargetFramework = 'net8.0-android'
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
 Set-Location $repoRoot
 
-$env:DOTNET_CLI_HOME = Join-Path $repoRoot '.dotnet-cli-home'
-$env:NUGET_PACKAGES = Join-Path $repoRoot '.nuget\packages'
-$env:NUGET_HTTP_CACHE_PATH = Join-Path $repoRoot '.nuget\http-cache'
-$env:NUGET_SCRATCH = Join-Path $repoRoot '.nuget\scratch'
+$ciRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("tipmolde-ci-" + [Guid]::NewGuid().ToString("N"))
+
+$env:DOTNET_CLI_HOME = Join-Path $ciRoot 'dotnet'
+$env:NUGET_PACKAGES = Join-Path $ciRoot 'nuget\packages'
+$env:NUGET_HTTP_CACHE_PATH = Join-Path $ciRoot 'nuget\http-cache'
+$env:NUGET_SCRATCH = Join-Path $ciRoot 'nuget\scratch'
 
 New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
 New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
@@ -106,12 +108,21 @@ try {
         else {
             Write-Host "Workload(s) 'maui-windows' are already installed."
         }
-        dotnet restore TipMolde/TipMolde.csproj --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId
-        dotnet publish TipMolde/TipMolde.csproj --configuration Release --framework $windowsTargetFramework --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId -p:WindowsPackageType=None
+        dotnet restore TipMolde/TipMolde.csproj --runtime win-x64 --disable-build-servers --disable-parallel --force --force-evaluate -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId
+        dotnet publish TipMolde/TipMolde.csproj --configuration Release --framework $windowsTargetFramework --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=$windowsTargetFramework -p:RuntimeIdentifierOverride=$windowsRuntimeId -p:WindowsPackageType=None -p:PublishReadyToRun=false
     }
 }
 finally {
     if ($createdTemporaryGlobalJson -and (Test-Path $temporaryGlobalJson)) {
         Remove-Item -LiteralPath $temporaryGlobalJson -Force
+    }
+
+    if (Test-Path $ciRoot) {
+        try {
+            Remove-Item -LiteralPath $ciRoot -Recurse -Force
+        }
+        catch {
+            Write-Warning "Could not fully remove temporary CI directory $ciRoot."
+        }
     }
 }
