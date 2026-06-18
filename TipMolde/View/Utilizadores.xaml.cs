@@ -1,4 +1,3 @@
-using TipMolde.Models;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
              xmlns:shared="clr-namespace:TipMolde.View.Shared"
              x:Class="TipMolde.View.Producao"
              x:Name="PaginaProducao"
@@ -22,23 +23,6 @@
                 <VerticalStackLayout Padding="{OnIdiom Phone='16,16,16,14', Desktop='28,22,28,18'}"
                                      Spacing="18">
 
-                    <Border Background="{StaticResource BrandGradientBrush}"
-                            StrokeThickness="0"
-                            Padding="{OnIdiom Phone='20', Desktop='26'}">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="28" />
-                        </Border.StrokeShape>
-
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="Pecas prontas para producao"
-                                   FontFamily="OpenSansSemibold"
-                                   FontSize="{OnIdiom Phone='24', Desktop='28'}"
-                                   TextColor="White" />
-                            <Label Text="A lista abaixo mostra apenas pecas com material recebido e que nao estao a ser trabalhadas neste momento. A ordenacao respeita primeiro a prioridade do molde e depois a prioridade da peca."
-                                   FontSize="14"
-                                   TextColor="#E2E8F0" />
-                        </VerticalStackLayout>
-                    </Border>
 
                     <FlexLayout Direction="Row"
                                 Wrap="Wrap"
@@ -104,9 +88,9 @@
                             </Grid>
 
                             <VerticalStackLayout Spacing="10">
-                                <Label Text="Pesquisar producao"
-                                       FontFamily="OpenSansSemibold"
-                                       FontSize="14" />
+                                    <Label Text="Pesquisar producao"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="14" />
 
                                 <FlexLayout Direction="Row"
                                             Wrap="Wrap"
@@ -117,7 +101,7 @@
                                             ItemsSource="{Binding SearchModes}"
                                             SelectedIndex="{Binding SelectedSearchModeIndex}" />
 
-                                    <SearchBar Placeholder="Pesquisar por molde, peca ou fase"
+                                    <SearchBar Placeholder="Pesquisar por molde ou peca"
                                                FlexLayout.Grow="1"
                                                Margin="0,0,10,10"
                                                Text="{Binding SearchTerm}"
@@ -155,7 +139,7 @@
                                         <Border.StrokeShape>
                                             <RoundRectangle CornerRadius="18" />
                                         </Border.StrokeShape>
-                                        <Label Text="{Binding EmptyPecasMessage}"
+                                        <Label Text="{x:Static viewmodel:ProducaoViewModel.EmptyPecasMessage}"
                                                HorizontalOptions="Center" />
                                     </Border>
                                 </CollectionView.EmptyView>
@@ -208,11 +192,6 @@
                                                                Text="{Binding EstadoAtualDisplay}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                     </Grid>
-
-                                                    <Label Text="{Binding ResumoFases}"
-                                                           FontSize="12"
-                                                           LineBreakMode="WordWrap"
-                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
                                                     <Label Text="{Binding ProximoPassoDisplay, StringFormat='Proximo passo: {0}'}"
                                                            FontSize="12"

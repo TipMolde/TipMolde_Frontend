@@ -34,7 +34,7 @@
                                 <RoundRectangle CornerRadius="24" />
                             </Border.StrokeShape>
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="Moldes para desenho"
+                                <Label Text="Moldes elegiveis para desenho"
                                        FontFamily="OpenSansSemibold" />
                                 <Label Text="{Binding TotalMoldes}"
                                        FontFamily="OpenSansSemibold"
@@ -52,7 +52,7 @@
                                 <RoundRectangle CornerRadius="24" />
                             </Border.StrokeShape>
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="Encomendas confirmadas"
+                                <Label Text="Encomendas associadas"
                                        FontFamily="OpenSansSemibold" />
                                 <Label Text="{Binding TotalEncomendasConfirmadas}"
                                        FontFamily="OpenSansSemibold"
@@ -161,9 +161,14 @@
                                                        Text="{Binding DataEntregaPrevistaDisplay, StringFormat='Entrega: {0}'}"
                                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                 <Label Grid.Column="1"
-                                                       Text="{Binding TotalPecasDisplay, StringFormat='Nº de Pecas: {0}'}"
+                                                       Text="{Binding TotalPecasDisplay, StringFormat='Total de pecas: {0}'}"
                                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                             </Grid>
+
+                                            <Label Text="{Binding PecasResumoDisplayText}"
+                                                   FontSize="12"
+                                                   LineBreakMode="WordWrap"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </VerticalStackLayout>
 
                                         <VerticalStackLayout Grid.Column="2"

@@ -160,7 +160,7 @@ namespace TipMolde.Services
         private static string GetPlatformFallbackBaseUrl()
         {
             return DeviceInfo.Current.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2:57664/"
+                ? "https://10.0.2.2:57663/"
                 : "http://localhost:8080/";
         }
 

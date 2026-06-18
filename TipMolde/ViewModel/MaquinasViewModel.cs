@@ -10,6 +10,11 @@ namespace TipMolde.ViewModel;
 
 public partial class MaquinasViewModel : PaginatedViewModel
 {
+    private const string SuccessTitle = "Sucesso";
+    private const string EstadoDisponivel = "DISPONIVEL";
+    private const string EstadoEmUso = "EM_USO";
+    private const string EstadoManutencao = "MANUTENCAO";
+
     private readonly MaquinasService _maquinasService;
     private readonly FasesProducaoService _fasesProducaoService;
     private readonly AuthorizationService _authorizationService;
@@ -238,10 +243,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
         ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
     }
 
-    partial void OnCanDeleteMachineChanged(bool value)
-    {
-    }
-
     partial void OnCanManageProductionPhasesChanged(bool value)
     {
         OnPropertyChanged(nameof(HasMachineManagementShortcuts));
@@ -250,10 +251,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
         if (!value)
             IsFasesProducaoVisible = false;
-    }
-
-    partial void OnCanEditMachineChanged(bool value)
-    {
     }
 
     partial void OnMaquinaEmEdicaoChanged(MaquinaItem? value)
@@ -390,7 +387,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
                 NormalizeOptional(NovaDescricaoFase));
 
             await _dialogService.ShowSuccessAsync(
-                "Sucesso",
+                SuccessTitle,
                 $"A fase de producao {SelectedFaseNomeOption.DisplayName} foi criada com sucesso.");
 
             ResetFormularioFase();
@@ -426,7 +423,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
             await _fasesProducaoService.DeleteAsync(fase.FasesProducao_id);
 
             await _dialogService.ShowSuccessAsync(
-                "Sucesso",
+                SuccessTitle,
                 $"A fase de producao {fase.NomeDisplay} foi eliminada com sucesso.");
 
             await EnsureFasesLoadedAsync(forceReload: true);
@@ -464,7 +461,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
                 faseDedicadaId: SelectedFaseDedicadaOption!.Id);
 
             await _dialogService.ShowSuccessAsync(
-                "Sucesso",
+                SuccessTitle,
                 $"A maquina {NovoNumero.Trim()} foi criada com sucesso.");
 
             IsAddMaquinaVisible = false;
@@ -530,7 +527,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
                 estado: estadoAlterado ? SelectedEditEstadoMaquinaOption.Value : null);
 
             await _dialogService.ShowSuccessAsync(
-                "Sucesso",
+                SuccessTitle,
                 $"A maquina {MaquinaEmEdicao.NumeroDisplay} foi atualizada com sucesso.");
 
             IsEditMaquinaVisible = false;
@@ -567,7 +564,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
             await _maquinasService.DeleteAsync(maquina.Maquina_id);
 
             await _dialogService.ShowSuccessAsync(
-                "Sucesso",
+                SuccessTitle,
                 $"A maquina {maquina.NumeroDisplay} foi eliminada com sucesso.");
 
             await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: false);
@@ -733,8 +730,8 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
     private void LoadFormDefaults()
     {
-        SelectedEstadoMaquinaOption ??= EstadoMaquinaOptions.FirstOrDefault();
-        SelectedFaseDedicadaOption ??= FasesDedicadas.FirstOrDefault();
+        SelectedEstadoMaquinaOption ??= EstadoMaquinaOptions.First();
+        SelectedFaseDedicadaOption ??= FasesDedicadas.First();
     }
 
     private void LoadFaseNomeOptions()
@@ -748,7 +745,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
     private void LoadFormDefaultsFase()
     {
-        SelectedFaseNomeOption ??= FaseNomeOptions.FirstOrDefault();
+        SelectedFaseNomeOption ??= FaseNomeOptions.First();
     }
 
     private void ResetFormulario()
@@ -757,8 +754,8 @@ public partial class MaquinasViewModel : PaginatedViewModel
         NovoNumero = string.Empty;
         NovoNomeModelo = string.Empty;
         NovoIpAddress = string.Empty;
-        SelectedEstadoMaquinaOption = EstadoMaquinaOptions.FirstOrDefault();
-        SelectedFaseDedicadaOption = FasesDedicadas.FirstOrDefault();
+        SelectedEstadoMaquinaOption = EstadoMaquinaOptions.First();
+        SelectedFaseDedicadaOption = FasesDedicadas.First();
         ErrorMessage = string.Empty;
     }
 
@@ -773,9 +770,15 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
     private void ResetFormularioFase()
     {
-        SelectedFaseNomeOption = FaseNomeOptions.FirstOrDefault();
+        SelectedFaseNomeOption = FaseNomeOptions.First();
         NovaDescricaoFase = string.Empty;
         FasesErrorMessage = string.Empty;
+    }
+
+    private void NotifyFasesStateChanged()
+    {
+        OnPropertyChanged(nameof(HasFasesProducao));
+        OnPropertyChanged(nameof(EmptyFasesMessage));
     }
 
     private void NotifyCollectionStateChanged()
@@ -786,12 +789,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(TotalMaquinasEmUso));
         OnPropertyChanged(nameof(TotalMaquinasManutencao));
         OnPropertyChanged(nameof(TotalMaquinasComConexao));
-    }
-
-    private void NotifyFasesStateChanged()
-    {
-        OnPropertyChanged(nameof(HasFasesProducao));
-        OnPropertyChanged(nameof(EmptyFasesMessage));
     }
 
     private string BuildValidationMessage()
@@ -812,14 +809,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
             return "Selecione a fase dedicada da maquina.";
 
         return string.Empty;
-    }
-
-    private void LoadEstadoOptionsParaEdicao(MaquinaItem maquina)
-    {
-        EditEstadoMaquinaOptions.Clear();
-
-        foreach (var option in GetEstadoOptionsParaEdicao(maquina.Estado))
-            EditEstadoMaquinaOptions.Add(option);
     }
 
     private bool HasMudancasEdicao()
@@ -843,9 +832,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
         return NormalizeEstado(MaquinaEmEdicao.Estado) switch
         {
-            "DISPONIVEL" => "Transicoes permitidas: Disponivel -> Manutencao.",
-            "EM_USO" => "Transicoes permitidas: Em Uso -> Manutencao.",
-            "MANUTENCAO" => "Transicoes permitidas: Manutencao -> Disponivel.",
+            EstadoDisponivel => "Transicoes permitidas: Disponivel -> Manutencao.",
+            EstadoEmUso => "Transicoes permitidas: Em Uso -> Manutencao.",
+            EstadoManutencao => "Transicoes permitidas: Manutencao -> Disponivel.",
             _ => "Transicoes permitidas: manter estado atual."
         };
     }
@@ -854,9 +843,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     {
         return
         [
-            new EstadoMaquinaOption("DISPONIVEL", "Disponivel"),
-            new EstadoMaquinaOption("EM_USO", "Em Uso"),
-            new EstadoMaquinaOption("MANUTENCAO", "Manutencao")
+            new EstadoMaquinaOption(EstadoDisponivel, "Disponivel"),
+            new EstadoMaquinaOption(EstadoEmUso, "Em Uso"),
+            new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
         ];
     }
 
@@ -864,20 +853,20 @@ public partial class MaquinasViewModel : PaginatedViewModel
     {
         return NormalizeEstado(estadoAtual) switch
         {
-            "DISPONIVEL" =>
+            EstadoDisponivel =>
             [
-                new EstadoMaquinaOption("DISPONIVEL", "Disponivel"),
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao")
+                new EstadoMaquinaOption(EstadoDisponivel, "Disponivel"),
+                new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
             ],
-            "EM_USO" =>
+            EstadoEmUso =>
             [
-                new EstadoMaquinaOption("EM_USO", "Em Uso"),
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao")
+                new EstadoMaquinaOption(EstadoEmUso, "Em Uso"),
+                new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
             ],
-            "MANUTENCAO" =>
+            EstadoManutencao =>
             [
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao"),
-                new EstadoMaquinaOption("DISPONIVEL", "Disponivel")
+                new EstadoMaquinaOption(EstadoManutencao, "Manutencao"),
+                new EstadoMaquinaOption(EstadoDisponivel, "Disponivel")
             ],
             _ =>
             [

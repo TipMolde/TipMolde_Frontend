@@ -160,6 +160,188 @@
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                         </VerticalStackLayout>
 
+                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="18">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="20" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Especificacoes tecnicas"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="18"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="Preenche os dados tecnicos recebidos com a encomenda."
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Grid ColumnDefinitions="*,*,*"
+                                      RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                                      ColumnSpacing="14"
+                                      RowSpacing="12">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Largura"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding Largura}"
+                                               Placeholder="Opcional"
+                                               Keyboard="Numeric"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="1"
+                                                         Spacing="8">
+                                        <Label Text="Comprimento"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding Comprimento}"
+                                               Placeholder="Opcional"
+                                               Keyboard="Numeric"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Column="2"
+                                                         Spacing="8">
+                                        <Label Text="Altura"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding Altura}"
+                                               Placeholder="Opcional"
+                                               Keyboard="Numeric"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="1"
+                                                         Spacing="8">
+                                        <Label Text="Peso estimado"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding PesoEstimado}"
+                                               Placeholder="Opcional"
+                                               Keyboard="Numeric"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="1"
+                                                         Grid.Column="1"
+                                                         Spacing="8">
+                                        <Label Text="Tipo de injecao"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding TipoInjecao}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="1"
+                                                         Grid.Column="2"
+                                                         Spacing="8">
+                                        <Label Text="Sistema de injecao"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding SistemaInjecao}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="2"
+                                                         Spacing="8">
+                                        <Label Text="Contracao"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding Contracao}"
+                                               Placeholder="Opcional"
+                                               Keyboard="Numeric"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="2"
+                                                         Grid.Column="1"
+                                                         Spacing="8">
+                                        <Label Text="Acabamento da peca"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding AcabamentoPeca}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="2"
+                                                         Grid.Column="2"
+                                                         Spacing="8">
+                                        <Label Text="Cor"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Picker Title="Selecionar cor"
+                                                ItemsSource="{Binding CorOptions}"
+                                                SelectedItem="{Binding SelectedCorOption, Mode=TwoWay}"
+                                                ItemDisplayBinding="{Binding DisplayName}"
+                                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="3"
+                                                         Spacing="8">
+                                        <Label Text="Material macho"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding MaterialMacho}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="3"
+                                                         Grid.Column="1"
+                                                         Spacing="8">
+                                        <Label Text="Material cavidade"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding MaterialCavidade}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="3"
+                                                         Grid.Column="2"
+                                                         Spacing="8">
+                                        <Label Text="Material movimentos"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding MaterialMovimentos}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Grid.Row="4"
+                                                         Grid.ColumnSpan="3"
+                                                         Spacing="8">
+                                        <Label Text="Material de injecao"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Entry Text="{Binding MaterialInjecao}"
+                                               Placeholder="Opcional"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
                         <VerticalStackLayout Spacing="8">
                             <Label Text="Numero de cavidades"
                                    FontFamily="OpenSansSemibold"

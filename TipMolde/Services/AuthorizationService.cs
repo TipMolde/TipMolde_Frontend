@@ -6,6 +6,7 @@ public enum AppFeature
     Utilizadores,
     Clientes,
     Encomendas,
+    PedidosMaterial,
     Producao,
     Maquinas,
     Desenho,
@@ -15,6 +16,8 @@ public enum AppFeature
 
 public sealed class AuthorizationService
 {
+    private const string AdminRole = "ADMIN";
+
     private static readonly HashSet<AppFeature> AllFeatures = Enum
         .GetValues<AppFeature>()
         .ToHashSet();
@@ -22,12 +25,13 @@ public sealed class AuthorizationService
     private static readonly Dictionary<string, HashSet<AppFeature>> RolePermissions =
         new(StringComparer.OrdinalIgnoreCase)
         {
-            ["ADMIN"] = new HashSet<AppFeature>(AllFeatures),
+            [AdminRole] = new HashSet<AppFeature>(AllFeatures),
             ["GESTOR_COMERCIAL"] = new()
             {
                 AppFeature.Dashboard,
                 AppFeature.Clientes,
                 AppFeature.Encomendas,
+                AppFeature.PedidosMaterial,
                 AppFeature.Definicoes
             },
             ["GESTOR_DESENHO"] = new()
@@ -97,19 +101,19 @@ public sealed class AuthorizationService
         return IsRoleAuthorized(role, feature);
     }
 
-    public bool CanCreateMachines() => HasAnyRole("ADMIN");
+    public bool CanCreateMachines() => HasAnyRole(AdminRole);
 
-    public bool CanDeleteMachines() => HasAnyRole("ADMIN");
+    public bool CanDeleteMachines() => HasAnyRole(AdminRole);
 
-    public bool CanManageProductionPhases() => HasAnyRole("ADMIN");
+    public bool CanManageProductionPhases() => HasAnyRole(AdminRole);
 
-    public bool CanEditMachineAdministrativeFields() => HasAnyRole("ADMIN");
+    public bool CanEditMachineAdministrativeFields() => HasAnyRole(AdminRole);
 
-    public bool CanEditMachineState() => HasAnyRole("ADMIN", "GESTOR_PRODUCAO");
+    public bool CanEditMachineState() => HasAnyRole(AdminRole, "GESTOR_PRODUCAO");
 
-    public bool CanManagePieces() => HasAnyRole("ADMIN", "GESTOR_DESENHO");
+    public bool CanManagePieces() => HasAnyRole(AdminRole, "GESTOR_DESENHO");
 
-    public bool CanDeleteClients() => HasAnyRole("ADMIN");
+    public bool CanDeleteClients() => HasAnyRole(AdminRole);
 
     public void Clear()
     {

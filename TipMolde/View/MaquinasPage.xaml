@@ -23,24 +23,6 @@
                 <VerticalStackLayout Padding="{OnIdiom Phone='16,16,16,14', Desktop='28,22,28,18'}"
                                      Spacing="18">
 
-                    <Border Background="{StaticResource BrandGradientBrush}"
-                            StrokeThickness="0"
-                            Padding="{OnIdiom Phone='20', Desktop='26'}">
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="28" />
-                        </Border.StrokeShape>
-
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="Parque de maquinas"
-                                   FontFamily="OpenSansSemibold"
-                                   FontSize="{OnIdiom Phone='24', Desktop='28'}"
-                                   TextColor="White" />
-                            <Label Text="Lista paginada das maquinas existentes, com estado operacional e configuracao de ligacao para integrares mais tarde."
-                                   FontSize="14"
-                                   TextColor="#E2E8F0" />
-                        </VerticalStackLayout>
-                    </Border>
-
                     <Grid ColumnDefinitions="*,*"
                           ColumnSpacing="12"
                           IsVisible="{Binding HasMachineManagementShortcuts}">
@@ -185,7 +167,6 @@
                             </CollectionView>
                         </VerticalStackLayout>
                     </Border>
-
                     <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
                             Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                             StrokeThickness="1"

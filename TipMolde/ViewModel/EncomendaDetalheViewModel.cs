@@ -85,7 +85,7 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     public string NumeroProjetoClienteDisplay => string.IsNullOrWhiteSpace(NumeroProjetoCliente) ? ValorNaoDefinido : NumeroProjetoCliente;
     public string EstadoDisplay => string.IsNullOrWhiteSpace(Estado) ? ValorNaoDefinido : Estado.Replace('_', ' ');
     public int TotalMoldesAssociados => Moldes.Count;
-    public string EmptyMoldesMessage => "Esta encomenda ainda nao tem moldes associados.";
+    public static string EmptyMoldesMessage => "Esta encomenda ainda nao tem moldes associados.";
     public bool CanCancelEncomenda => Encomenda_id > 0 &&
                                       !IsLoading &&
                                       !IsCancelling &&
@@ -215,9 +215,9 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand]

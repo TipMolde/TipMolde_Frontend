@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
 using TipMolde.View;
@@ -14,7 +12,9 @@ public partial class ProducaoViewModel : SearchableViewModel
 {
     private const string SearchModeMolde = "Molde";
     private const string SearchModePeca = "Peca";
-    private const string SearchModeFase = "Fase";
+    private const string EstadoPendente = "PENDENTE";
+    private const string EstadoPreparacao = "PREPARACAO";
+    private const string EstadoEmCurso = "EM_CURSO";
 
     private readonly EncomendasService _encomendasService;
     private readonly PecasService _pecasService;
@@ -28,22 +28,19 @@ public partial class ProducaoViewModel : SearchableViewModel
     private readonly List<ProducaoPecaDisponivelItem> _todasPecasDisponiveis = [];
     private List<FaseProducaoItem> _todasFases = [];
     private List<MaquinaItem> _todasMaquinas = [];
+    private bool _maquinasLoaded;
 
     public ProducaoViewModel(
-        EncomendasService encomendasService,
-        PecasService pecasService,
-        FasesProducaoService fasesProducaoService,
-        MaquinasService maquinasService,
-        RegistosProducaoService registosProducaoService,
+        ProducaoViewModelDependencies dependencies,
         SessaoPersistidaService sessaoPersistidaService,
         UtilizadoresService utilizadoresService,
         IDialogService dialogService)
     {
-        _encomendasService = encomendasService;
-        _pecasService = pecasService;
-        _fasesProducaoService = fasesProducaoService;
-        _maquinasService = maquinasService;
-        _registosProducaoService = registosProducaoService;
+        _encomendasService = dependencies.EncomendasService;
+        _pecasService = dependencies.PecasService;
+        _fasesProducaoService = dependencies.FasesProducaoService;
+        _maquinasService = dependencies.MaquinasService;
+        _registosProducaoService = dependencies.RegistosProducaoService;
         _sessaoPersistidaService = sessaoPersistidaService;
         _utilizadoresService = utilizadoresService;
         _dialogService = dialogService;
@@ -56,7 +53,7 @@ public partial class ProducaoViewModel : SearchableViewModel
     public ObservableCollection<FaseProducaoItem> FasesRegistoDisponiveis { get; } = new();
     public ObservableCollection<EstadoProducaoOption> EstadosRegistoDisponiveis { get; } = new();
     public ObservableCollection<MaquinaItem> MaquinasRegistoDisponiveis { get; } = new();
-    public IReadOnlyList<string> SearchModes { get; } = [SearchModeMolde, SearchModePeca, SearchModeFase];
+    public IReadOnlyList<string> SearchModes { get; } = [SearchModeMolde, SearchModePeca];
 
     [ObservableProperty]
     private int selectedSearchModeIndex;
@@ -90,22 +87,15 @@ public partial class ProducaoViewModel : SearchableViewModel
     public bool HasRegistoError => !string.IsNullOrWhiteSpace(RegistoErrorMessage);
     public bool HasMaquinasRegistoDisponiveis => MaquinasRegistoDisponiveis.Count > 0;
     public bool IsMachineSelectionVisible => SelectedEstadoRegisto is not null && EstadoRequerMaquina(SelectedEstadoRegisto.Value);
-    public string EmptyPecasMessage => "Nao existem pecas disponiveis para trabalhar neste momento.";
-    public string GestorProducaoDisplay => GestorProducaoId.HasValue
-        ? $"{(string.IsNullOrWhiteSpace(GestorProducaoNome) ? $"Gestor de producao #{GestorProducaoId}" : GestorProducaoNome)} (#{GestorProducaoId})"
-        : "Sessao sem gestor de producao identificado";
+    public static string EmptyPecasMessage => "Nao existem pecas disponiveis para trabalhar neste momento.";
+    public string GestorProducaoDisplay => GetGestorProducaoDisplay();
     public string PecaSelecionadaResumo => SelectedPeca is null
         ? "Seleciona uma peca da lista para preparar o registo."
         : $"{SelectedPeca.DesignacaoDisplay} | {SelectedPeca.NumeroMoldeDisplay} | {SelectedPeca.PrioridadeResumo}";
     public string EstadoSelecionadoResumo => SelectedEstadoRegisto?.DisplayName ?? "Seleciona uma fase para ver o proximo estado permitido.";
     public string FaseSelecionadaResumo => SelectedFase?.NomeDisplay ?? "Seleciona uma fase.";
-    public string ResumoFasesPecaSelecionada => SelectedPeca?.ResumoFases ?? "Sem historico para apresentar.";
     public string RegistarButtonText => IsSavingRegisto ? "A registar..." : "Registar producao";
-    public string MaquinasHint => !IsMachineSelectionVisible
-        ? "Esta transicao nao exige maquina."
-        : MaquinasRegistoDisponiveis.Count == 0
-            ? "Nao ha maquinas configuradas para a fase selecionada, mas podes continuar sem maquina."
-            : "Seleciona uma maquina disponivel ou usa Nenhuma Maquina para trabalho manual.";
+    public string MaquinasHint => GetMaquinasHint();
     public bool CanRegistarProducao =>
         !IsSavingRegisto &&
         !IsLoading &&
@@ -126,7 +116,6 @@ public partial class ProducaoViewModel : SearchableViewModel
     {
         OnPropertyChanged(nameof(HasSelectedPeca));
         OnPropertyChanged(nameof(PecaSelecionadaResumo));
-        OnPropertyChanged(nameof(ResumoFasesPecaSelecionada));
         AtualizarFasesRegistoDisponiveis();
         RegistarProducaoCommand.NotifyCanExecuteChanged();
     }
@@ -142,7 +131,7 @@ public partial class ProducaoViewModel : SearchableViewModel
     {
         OnPropertyChanged(nameof(EstadoSelecionadoResumo));
         OnPropertyChanged(nameof(IsMachineSelectionVisible));
-        AtualizarMaquinasDisponiveis();
+        _ = AtualizarMaquinasDisponiveisAsync();
         RegistarProducaoCommand.NotifyCanExecuteChanged();
     }
 
@@ -166,6 +155,32 @@ public partial class ProducaoViewModel : SearchableViewModel
 
     partial void OnGestorProducaoNomeChanged(string value) => OnPropertyChanged(nameof(GestorProducaoDisplay));
 
+    private string GetGestorProducaoDisplay()
+    {
+        if (!GestorProducaoId.HasValue)
+            return "Sessao sem gestor de producao identificado";
+
+        var gestorNome = string.IsNullOrWhiteSpace(GestorProducaoNome)
+            ? $"Gestor de producao #{GestorProducaoId}"
+            : GestorProducaoNome;
+
+        return $"{gestorNome} (#{GestorProducaoId})";
+    }
+
+    private string GetMaquinasHint()
+    {
+        if (!IsMachineSelectionVisible)
+            return "Esta transicao nao exige maquina.";
+
+        if (!_maquinasLoaded)
+            return "A carregar maquinas disponiveis...";
+
+        if (MaquinasRegistoDisponiveis.Count == 0)
+            return "Nao ha maquinas configuradas para a fase selecionada, mas podes continuar sem maquina.";
+
+        return "Seleciona uma maquina disponivel ou usa Nenhuma Maquina para trabalho manual.";
+    }
+
     public async Task LoadAsync()
     {
         var previouslySelectedPecaId = SelectedPeca?.PecaId;
@@ -178,13 +193,13 @@ public partial class ProducaoViewModel : SearchableViewModel
             {
                 var filaGlobalTask = GetAllFilaGlobalMoldeAsync();
                 var fasesTask = GetAllFasesAsync();
-                var maquinasTask = GetAllMaquinasAsync();
                 var gestorProducaoTask = GetGestorProducaoAtualAsync();
 
-                await Task.WhenAll(filaGlobalTask, fasesTask, maquinasTask, gestorProducaoTask);
+                await Task.WhenAll(filaGlobalTask, fasesTask, gestorProducaoTask);
 
                 _todasFases = fasesTask.Result;
-                _todasMaquinas = maquinasTask.Result;
+                _todasMaquinas.Clear();
+                _maquinasLoaded = false;
 
                 GestorProducaoId = gestorProducaoTask.Result?.User_id;
                 GestorProducaoNome = gestorProducaoTask.Result?.Nome ?? string.Empty;
@@ -350,7 +365,7 @@ public partial class ProducaoViewModel : SearchableViewModel
                 if (fasePlaneada is null)
                     return null;
 
-                if (GetEstadosDisponiveis(ultimosRegistos, fasePlaneada).Count == 0)
+                if (GetEstadosDisponiveis(ultimosRegistos, fasePlaneada, peca.ProximaFase_id, fases).Count == 0)
                     return null;
 
                 var ultimoGlobal = ultimosRegistos.Values
@@ -380,7 +395,6 @@ public partial class ProducaoViewModel : SearchableViewModel
                     ProximaFaseNome = fasePlaneada.NomeDisplay,
                     FaseTrabalho = fasePlaneada.NomeDisplay,
                     ProximoPasso = GetProximoPassoDisplay(ultimosRegistos, fasePlaneada),
-                    ResumoFases = BuildResumoFases(ultimosRegistos, fases),
                     UltimosRegistosPorFase = new Dictionary<int, RegistoProducaoDto?>(ultimosRegistos)
                 };
             });
@@ -562,7 +576,6 @@ public partial class ProducaoViewModel : SearchableViewModel
             PecasDisponiveis.Add(item);
 
         OnPropertyChanged(nameof(HasPecasDisponiveis));
-        OnPropertyChanged(nameof(EmptyPecasMessage));
     }
 
     private List<ProducaoPecaDisponivelItem> GetPecasFiltradas()
@@ -579,10 +592,6 @@ public partial class ProducaoViewModel : SearchableViewModel
             1 => query.Where(item =>
                 item.DesignacaoDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                 item.NumeroPecaDisplay.Contains(term, StringComparison.OrdinalIgnoreCase)),
-            2 => query.Where(item =>
-                item.ProximaFaseDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.FaseTrabalhoDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.ProximoPassoDisplay.Contains(term, StringComparison.OrdinalIgnoreCase)),
             _ => query.Where(item =>
                 item.NumeroMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                 item.NomeMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
@@ -611,7 +620,6 @@ public partial class ProducaoViewModel : SearchableViewModel
         UpdatePagination(0, 1);
         LimparSelecaoInterna();
         OnPropertyChanged(nameof(HasPecasDisponiveis));
-        OnPropertyChanged(nameof(EmptyPecasMessage));
     }
 
     private void LimparSelecaoInterna()
@@ -644,10 +652,11 @@ public partial class ProducaoViewModel : SearchableViewModel
         }
 
         var fasePlaneada = ResolveFasePlaneada(SelectedPeca.ProximaFaseId, _todasFases, SelectedPeca.UltimosRegistosPorFase);
-        if (fasePlaneada is not null && GetEstadosDisponiveis(SelectedPeca, fasePlaneada).Count > 0)
+        if (fasePlaneada is not null && GetEstadosDisponiveis(SelectedPeca, fasePlaneada, _todasFases).Count > 0)
             FasesRegistoDisponiveis.Add(fasePlaneada);
 
-        SelectedFase = FasesRegistoDisponiveis.FirstOrDefault();
+        if (FasesRegistoDisponiveis.Count > 0)
+            SelectedFase = FasesRegistoDisponiveis.First();
         OnPropertyChanged(nameof(MaquinasHint));
     }
 
@@ -664,14 +673,15 @@ public partial class ProducaoViewModel : SearchableViewModel
             return;
         }
 
-        foreach (var estado in GetEstadosDisponiveis(SelectedPeca, SelectedFase))
+        foreach (var estado in GetEstadosDisponiveis(SelectedPeca, SelectedFase, _todasFases))
             EstadosRegistoDisponiveis.Add(estado);
 
-        SelectedEstadoRegisto = EstadosRegistoDisponiveis.FirstOrDefault();
+        if (EstadosRegistoDisponiveis.Count > 0)
+            SelectedEstadoRegisto = EstadosRegistoDisponiveis.First();
         OnPropertyChanged(nameof(MaquinasHint));
     }
 
-    private void AtualizarMaquinasDisponiveis()
+    private async Task AtualizarMaquinasDisponiveisAsync()
     {
         MaquinasRegistoDisponiveis.Clear();
         SelectedMaquina = null;
@@ -679,6 +689,18 @@ public partial class ProducaoViewModel : SearchableViewModel
         if (SelectedFase is null || SelectedEstadoRegisto is null || !EstadoRequerMaquina(SelectedEstadoRegisto.Value))
         {
             OnPropertyChanged(nameof(HasMaquinasRegistoDisponiveis));
+            OnPropertyChanged(nameof(MaquinasHint));
+            return;
+        }
+
+        try
+        {
+            await EnsureMaquinasLoadedAsync();
+        }
+        catch (Exception ex)
+        {
+            RegistoErrorMessage = ex.Message;
+            OnPropertyChanged(nameof(HasRegistoError));
             OnPropertyChanged(nameof(MaquinasHint));
             return;
         }
@@ -693,7 +715,8 @@ public partial class ProducaoViewModel : SearchableViewModel
             MaquinasRegistoDisponiveis.Add(maquina);
         }
 
-        SelectedMaquina = MaquinasRegistoDisponiveis.FirstOrDefault();
+        if (MaquinasRegistoDisponiveis.Count > 0)
+            SelectedMaquina = MaquinasRegistoDisponiveis.First();
         OnPropertyChanged(nameof(HasMaquinasRegistoDisponiveis));
         OnPropertyChanged(nameof(MaquinasHint));
     }
@@ -702,16 +725,27 @@ public partial class ProducaoViewModel : SearchableViewModel
     {
         return ultimosRegistos.Values.Any(registo =>
             registo is not null &&
-            (IsEstado(registo.EstadoProducao, "PREPARACAO") || IsEstado(registo.EstadoProducao, "EM_CURSO")));
+            (IsEstado(registo.EstadoProducao, EstadoPreparacao) || IsEstado(registo.EstadoProducao, EstadoEmCurso)));
     }
 
     private static bool EstadoContaComoAtivo(string? estado)
     {
-        return IsEstado(estado, "PREPARACAO") || IsEstado(estado, "EM_CURSO");
+        return IsEstado(estado, EstadoPreparacao) || IsEstado(estado, EstadoEmCurso);
     }
 
-    private string GetProximoPassoDisplay(
-        IReadOnlyDictionary<int, RegistoProducaoDto?> ultimosRegistos,
+    private async Task EnsureMaquinasLoadedAsync(bool forceReload = false)
+    {
+        if (_maquinasLoaded && !forceReload)
+            return;
+
+        var maquinas = await GetAllMaquinasAsync();
+        _todasMaquinas.Clear();
+        _todasMaquinas.AddRange(maquinas);
+        _maquinasLoaded = true;
+    }
+
+    private static string GetProximoPassoDisplay(
+        Dictionary<int, RegistoProducaoDto?> ultimosRegistos,
         FaseProducaoItem fase)
     {
         ultimosRegistos.TryGetValue(fase.FasesProducao_id, out var ultimo);
@@ -720,16 +754,16 @@ public partial class ProducaoViewModel : SearchableViewModel
         return estadoAtual switch
         {
             "PAUSADO" => $"Retomar {fase.NomeDisplay}",
-            "PREPARACAO" => $"Continuar {fase.NomeDisplay}",
+            EstadoPreparacao => $"Continuar {fase.NomeDisplay}",
             "PENDENTE" => $"Iniciar {fase.NomeDisplay}",
             _ => $"Iniciar {fase.NomeDisplay}"
         };
     }
 
-    private FaseProducaoItem? ResolveFasePlaneada(
+    private static FaseProducaoItem? ResolveFasePlaneada(
         int? proximaFaseId,
         IEnumerable<FaseProducaoItem> fases,
-        IReadOnlyDictionary<int, RegistoProducaoDto?> ultimosRegistos)
+        Dictionary<int, RegistoProducaoDto?> ultimosRegistos)
     {
         if (proximaFaseId.HasValue)
         {
@@ -741,8 +775,8 @@ public partial class ProducaoViewModel : SearchableViewModel
         return GetFaseBloqueante(ultimosRegistos, fases);
     }
 
-    private FaseProducaoItem? GetFaseBloqueante(
-        IReadOnlyDictionary<int, RegistoProducaoDto?> ultimosRegistos,
+    private static FaseProducaoItem? GetFaseBloqueante(
+        Dictionary<int, RegistoProducaoDto?> ultimosRegistos,
         IEnumerable<FaseProducaoItem> fases)
     {
         foreach (var fase in fases.OrderBy(item => GetPhaseSortOrder(item.Nome)).ThenBy(item => item.FasesProducao_id))
@@ -755,30 +789,39 @@ public partial class ProducaoViewModel : SearchableViewModel
         return null;
     }
 
-    private List<EstadoProducaoOption> GetEstadosDisponiveis(ProducaoPecaDisponivelItem item, FaseProducaoItem fase)
+    private static List<EstadoProducaoOption> GetEstadosDisponiveis(
+        ProducaoPecaDisponivelItem item,
+        FaseProducaoItem fase,
+        IEnumerable<FaseProducaoItem> fases)
     {
-        return GetEstadosDisponiveis(item.UltimosRegistosPorFase, fase);
+        return GetEstadosDisponiveis(item.UltimosRegistosPorFase, fase, item.ProximaFaseId, fases);
     }
 
-    private List<EstadoProducaoOption> GetEstadosDisponiveis(
-        IReadOnlyDictionary<int, RegistoProducaoDto?> ultimosRegistos,
-        FaseProducaoItem fase)
+    private static List<EstadoProducaoOption> GetEstadosDisponiveis(
+        Dictionary<int, RegistoProducaoDto?> ultimosRegistos,
+        FaseProducaoItem fase,
+        int? proximaFaseId,
+        IEnumerable<FaseProducaoItem> fases)
     {
+        var faseBloqueante = ResolveFasePlaneada(proximaFaseId, fases, ultimosRegistos);
+        if (faseBloqueante is null || faseBloqueante.FasesProducao_id != fase.FasesProducao_id)
+            return [];
+
         ultimosRegistos.TryGetValue(fase.FasesProducao_id, out var ultimo);
         var estadoAtual = Normalize(ultimo?.EstadoProducao);
         var isMontagem = IsFaseMontagem(fase.Nome);
 
         return estadoAtual switch
         {
-            "" => [CreateEstadoOption(isMontagem ? "PENDENTE" : "PREPARACAO")],
+            "" => [CreateEstadoOption(isMontagem ? "PENDENTE" : EstadoPreparacao)],
             "PENDENTE" => isMontagem
-                ? [CreateEstadoOption("EM_CURSO")]
-                : [CreateEstadoOption("PREPARACAO")],
-            "PREPARACAO" => [CreateEstadoOption("EM_CURSO")],
-            "EM_CURSO" => [CreateEstadoOption("PAUSADO"), CreateEstadoOption("CONCLUIDO")],
+                ? [CreateEstadoOption(EstadoEmCurso)]
+                : [CreateEstadoOption(EstadoPreparacao)],
+            EstadoPreparacao => [CreateEstadoOption(EstadoEmCurso)],
+            EstadoEmCurso => [CreateEstadoOption("PAUSADO"), CreateEstadoOption("CONCLUIDO")],
             "PAUSADO" => isMontagem
-                ? [CreateEstadoOption("EM_CURSO")]
-                : [CreateEstadoOption("EM_CURSO"), CreateEstadoOption("PREPARACAO")],
+                ? [CreateEstadoOption(EstadoEmCurso)]
+                : [CreateEstadoOption(EstadoEmCurso), CreateEstadoOption(EstadoPreparacao)],
             _ => []
         };
     }
@@ -794,7 +837,7 @@ public partial class ProducaoViewModel : SearchableViewModel
 
     private static bool EstadoRequerMaquina(string estado)
     {
-        return IsEstado(estado, "PREPARACAO") || IsEstado(estado, "EM_CURSO");
+        return IsEstado(estado, EstadoPreparacao) || IsEstado(estado, EstadoEmCurso);
     }
 
     private static MaquinaItem CreateNenhumaMaquinaOption()
@@ -840,19 +883,5 @@ public partial class ProducaoViewModel : SearchableViewModel
     {
         var fase = _todasFases.FirstOrDefault(item => item.FasesProducao_id == faseId);
         return fase?.NomeDisplay ?? $"Fase #{faseId}";
-    }
-
-    private string BuildResumoFases(
-        IReadOnlyDictionary<int, RegistoProducaoDto?> ultimosRegistos,
-        IEnumerable<FaseProducaoItem> fases)
-    {
-        var partes = fases.Select(fase =>
-        {
-            ultimosRegistos.TryGetValue(fase.FasesProducao_id, out var registo);
-            var estado = registo?.EstadoProducao?.Replace('_', ' ') ?? "SEM HISTORICO";
-            return $"{fase.NomeDisplay}: {estado}";
-        });
-
-        return string.Join(" | ", partes);
     }
 }

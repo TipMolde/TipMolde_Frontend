@@ -104,6 +104,7 @@ public partial class AutenticacaoViewModel : ObservableObject
             }
             catch
             {
+                // A sessão ja foi guardada; o papel sera recarregado quando a app voltar a precisar dele.
             }
 
             Password = string.Empty;

@@ -1,18 +1,11 @@
-﻿using System.Linq;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace TipMolde.ViewModel.Defaults;
 
 internal static class UtilizadorDefaults
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
-    private const string UppercasePasswordChars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    private const string LowercasePasswordChars = "abcdefghijkmnopqrstuvwxyz";
-    private const string DigitPasswordChars = "23456789";
-    private const string SymbolPasswordChars = "!@$?_-";
-    private static readonly string SuggestedPasswordChars =
-        string.Concat(UppercasePasswordChars, LowercasePasswordChars, DigitPasswordChars, SymbolPasswordChars);
+    public const string PasswordSuggestionHint = "Password temporaria acordada pela equipa";
 
     private static readonly Regex NomeRegex = new(
     @"^[A-ZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ][a-záàâãéèêíìîóòôõúùûç]+(?: [A-ZÁÀÂÃÉÈÊÍÌÎÓÒÔÕÚÙÛÇ][a-záàâãéèêíìîóòôõúùûç]+)*$",
@@ -31,26 +24,6 @@ internal static class UtilizadorDefaults
         "GESTOR_DESENHO",
         "GESTOR_PRODUCAO"
     };
-
-    public static string CreateSuggestedPassword(int length = 16)
-    {
-        const int minimumLength = 8;
-
-        if (length < minimumLength)
-            throw new ArgumentOutOfRangeException(nameof(length), "A password sugerida deve ter pelo menos 8 caracteres.");
-
-        var password = new char[length];
-        password[0] = GetRandomChar(UppercasePasswordChars);
-        password[1] = GetRandomChar(LowercasePasswordChars);
-        password[2] = GetRandomChar(DigitPasswordChars);
-        password[3] = GetRandomChar(SymbolPasswordChars);
-
-        for (var i = 4; i < password.Length; i++)
-            password[i] = GetRandomChar(SuggestedPasswordChars);
-
-        Shuffle(password);
-        return new string(password);
-    }
 
     public static string? ValidatePassword(string password)
     {
@@ -97,20 +70,6 @@ internal static class UtilizadorDefaults
             return "O email tem de ter o formato nome@dominio.xx.";
 
         return null;
-    }
-
-    private static char GetRandomChar(string source)
-    {
-        return source[RandomNumberGenerator.GetInt32(source.Length)];
-    }
-
-    private static void Shuffle(Span<char> value)
-    {
-        for (var i = value.Length - 1; i > 0; i--)
-        {
-            var swapIndex = RandomNumberGenerator.GetInt32(i + 1);
-            (value[i], value[swapIndex]) = (value[swapIndex], value[i]);
-        }
     }
 }
 

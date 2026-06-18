@@ -1,8 +1,8 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using TipMolde.Models;
 using TipMolde.Services;
 using TipMolde.View;
@@ -108,7 +108,7 @@ public partial class DashboardViewModel : ObservableObject
         : ValorNaoDefinido;
     public string EncomendasConcluidasUltimosTresMesesDisplay => EncomendasConcluidasUltimosTresMeses?.ToString() ?? ValorNaoDefinido;
     public string MoldesComAtrasoDisplay => MoldesComAtraso?.ToString() ?? ValorNaoDefinido;
-    public string IntervaloUltimosTresMesesDisplay => $"{DateTime.Today.AddMonths(-3):dd/MM/yyyy} - {DateTime.Today:dd/MM/yyyy}";
+    public static string IntervaloUltimosTresMesesDisplay => $"{DateTime.Today.AddMonths(-3):dd/MM/yyyy} - {DateTime.Today:dd/MM/yyyy}";
     public bool HasRececaoMaterialError => !string.IsNullOrWhiteSpace(RececaoMaterialErrorMessage);
     public bool HasMoldesRececaoDisponiveis => MoldesRececaoDisponiveis.Count > 0;
     public bool HasNoMoldesRececaoDisponiveis => CanUseRececaoMaterial && !IsLoadingHero && MoldesRececaoDisponiveis.Count == 0;
@@ -124,7 +124,7 @@ public partial class DashboardViewModel : ObservableObject
         ? "A registar chegada..."
         : "Registar chegada de material";
     public string SelectedMoldeRececaoResumo => SelectedMoldeRececao is null
-        ? "Seleciona um molde em producao para marcar as pecas que chegaram."
+        ? "Seleciona um molde com pedido de material ativo para marcar as pecas que chegaram."
         : $"Encomenda {SelectedMoldeRececao.EncomendaDisplay} | entrega {SelectedMoldeRececao.DataEntregaDisplay}";
     public string PecasRececaoSelectionSummary
     {
@@ -451,6 +451,8 @@ public partial class DashboardViewModel : ObservableObject
             .ThenBy(item => item.Prioridade)
             .ToList();
 
+        candidatos = await FiltrarMoldesComPedidoMaterialAtivoAsync(candidatos);
+
         MoldesRececaoDisponiveis.Clear();
 
         foreach (var item in candidatos)
@@ -475,7 +477,7 @@ public partial class DashboardViewModel : ObservableObject
         }
 
         var restoredSelection = MoldesRececaoDisponiveis.FirstOrDefault(option => option.MoldeId == moldeRececaoSelecionadoId)
-                                ?? MoldesRececaoDisponiveis.FirstOrDefault();
+                                ?? MoldesRececaoDisponiveis.First();
 
         _suppressSelectedMoldeRececaoChanged = true;
         SelectedMoldeRececao = restoredSelection;
@@ -488,6 +490,25 @@ public partial class DashboardViewModel : ObservableObject
         }
 
         await LoadPecasPendentesRececaoAsync(restoredSelection.MoldeId);
+    }
+
+    private async Task<List<FilaGlobalMoldeItemDto>> FiltrarMoldesComPedidoMaterialAtivoAsync(
+        IReadOnlyCollection<FilaGlobalMoldeItemDto> candidatos)
+    {
+        var verificacoes = candidatos.Select(async candidato =>
+        {
+            var pagina = await _pecasService.GetByMoldeIdPendingMaterialReceiptAsync(candidato.MoldeId, 1, 1);
+            return pagina?.TotalItems > 0
+                ? candidato
+                : null;
+        });
+
+        var resultados = await Task.WhenAll(verificacoes);
+
+        return resultados
+            .Where(item => item is not null)
+            .Select(item => item!)
+            .ToList();
     }
 
     private async Task LoadPecasPendentesRececaoAsync(int moldeId)
@@ -505,12 +526,25 @@ public partial class DashboardViewModel : ObservableObject
 
         try
         {
-            var pecas = await GetAllPecasByMoldeIdAsync(moldeId);
+            var primeiraPagina = await _pecasService.GetByMoldeIdPendingMaterialReceiptAsync(moldeId, 1, 100);
+            if (primeiraPagina is null)
+                throw new InvalidOperationException($"Nao foi possivel carregar as pecas com pedido de material pendente do molde {moldeId}.");
+
             if (loadVersion != _rececaoMaterialLoadVersion || SelectedMoldeRececao?.MoldeId != moldeId)
                 return;
 
+            var pecas = primeiraPagina.Items.ToList();
+
+            for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+            {
+                var pagina = await _pecasService.GetByMoldeIdPendingMaterialReceiptAsync(moldeId, page, 100);
+                if (pagina?.Items is null)
+                    continue;
+
+                pecas.AddRange(pagina.Items);
+            }
+
             var pendentes = pecas
-                .Where(peca => !peca.MaterialRecebido)
                 .OrderBy(peca => peca.Prioridade)
                 .ThenBy(peca => peca.NumeroPeca)
                 .ThenBy(peca => peca.Designacao)
@@ -531,26 +565,6 @@ public partial class DashboardViewModel : ObservableObject
             if (loadVersion == _rececaoMaterialLoadVersion)
                 IsLoadingRececaoMaterial = false;
         }
-    }
-
-    private async Task<List<PecaDto>> GetAllPecasByMoldeIdAsync(int moldeId)
-    {
-        var primeiraPagina = await _pecasService.GetByMoldeIdAsync(moldeId, 1, 100);
-        if (primeiraPagina is null)
-            throw new InvalidOperationException($"Nao foi possivel carregar as pecas do molde {moldeId}.");
-
-        var pecas = primeiraPagina.Items.ToList();
-
-        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
-        {
-            var pagina = await _pecasService.GetByMoldeIdAsync(moldeId, page, 100);
-            if (pagina?.Items is null)
-                continue;
-
-            pecas.AddRange(pagina.Items);
-        }
-
-        return pecas;
     }
 
     private async Task<List<EncomendaResumoDto>?> GetAllEncomendasEmProducaoAsync()

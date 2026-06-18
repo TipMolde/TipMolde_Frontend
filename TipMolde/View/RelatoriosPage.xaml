@@ -32,12 +32,15 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="12">
-                            <Label Text="Exportacao assistida de FTL, FRE, FRM, FRA e FOP"
+                            <Label Text="Geracao assistida de FTL, FRE, FRM, FRA e FOP"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="24"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
-                            <Label Text="Seleciona um molde, escolhe o contexto da encomenda e usa a pre-visualizacao para validar o ficheiro antes da geracao final."
+                            <Label Text="A lista mostra apenas moldes com associacao Encomenda-Molde."
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                            <Label Text="Seleciona um molde, escolhe o contexto da encomenda e guarda o ficheiro diretamente na pasta que escolheres."
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
                             <Grid ColumnDefinitions="*,Auto,Auto"
@@ -70,6 +73,38 @@
                         </VerticalStackLayout>
                     </Border>
 
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <Grid ColumnDefinitions="*,Auto"
+                              ColumnSpacing="16">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Destino da descarga"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                <Label Text="Escolhe a pasta onde o relatório final será guardado."
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                <Label Text="{Binding SelectedDestinationFolderDisplay}"
+                                       LineBreakMode="TailTruncation"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="1"
+                                    Text="{Binding DestinationButtonText}"
+                                    Command="{Binding EscolherDestinoCommand}"
+                                    HeightRequest="44"
+                                    Padding="18,10"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=White}" />
+                        </Grid>
+                    </Border>
+
                     <ActivityIndicator IsRunning="{Binding IsBusy}"
                                        IsVisible="{Binding IsBusy}"
                                        HorizontalOptions="Center" />
@@ -86,7 +121,7 @@
                             </Border.StrokeShape>
 
                             <VerticalStackLayout Spacing="16">
-                                <Label Text="Moldes disponiveis"
+                                <Label Text="Moldes com Encomenda-Molde"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="18"
                                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -103,7 +138,7 @@
                                                 <RoundRectangle CornerRadius="18" />
                                             </Border.StrokeShape>
 
-                                            <Label Text="Nao existem moldes para apresentar com este filtro."
+                                            <Label Text="Nao existem moldes com associacao Encomenda-Molde para apresentar."
                                                    HorizontalOptions="Center"
                                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                         </Border>
@@ -227,17 +262,9 @@
                                                 TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                                     </VerticalStackLayout>
 
-                                    <Grid ColumnDefinitions="*,*"
+                                    <Grid ColumnDefinitions="*"
                                           ColumnSpacing="12">
-                                        <Button Text="{Binding PreviewButtonText}"
-                                                Command="{Binding PreviewCommand}"
-                                                IsEnabled="{Binding CanPreview}"
-                                                HeightRequest="46"
-                                                BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1D4ED8}"
-                                                TextColor="{AppThemeBinding Light=#1D4ED8, Dark=White}" />
-
-                                        <Button Grid.Column="1"
-                                                Text="{Binding GenerateButtonText}"
+                                        <Button Text="{Binding GenerateButtonText}"
                                                 Command="{Binding GenerateCommand}"
                                                 IsEnabled="{Binding CanGenerate}"
                                                 HeightRequest="46"
@@ -256,9 +283,14 @@
                                 </Border.StrokeShape>
 
                                 <VerticalStackLayout Spacing="12">
-                                    <Label Text="{Binding PreviewTitulo}"
+                                    <Label Text="Último relatório gerado"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="18"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                                    <Label Text="{Binding PreviewTitulo}"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="16"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
                                     <Label Text="{Binding PreviewResumo}"

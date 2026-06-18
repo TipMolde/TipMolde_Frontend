@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.ApplicationModel;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
@@ -33,6 +32,7 @@ public partial class RelatoriosViewModel : ObservableObject
         _encomendasService = encomendasService;
         _relatoriosService = relatoriosService;
         _dialogService = dialogService;
+        SelectedDestinationFolder = ResolveDefaultDestinationFolder();
     }
 
     public ObservableCollection<MoldeDto> Moldes { get; } = new();
@@ -52,6 +52,9 @@ public partial class RelatoriosViewModel : ObservableObject
     private bool isGenerating;
 
     [ObservableProperty]
+    private bool isSelectingDestination;
+
+    [ObservableProperty]
     private string searchTerm = string.Empty;
 
     [ObservableProperty]
@@ -67,16 +70,19 @@ public partial class RelatoriosViewModel : ObservableObject
     private string selectedTipoRelatorio = "FLT";
 
     [ObservableProperty]
+    private string selectedDestinationFolder = string.Empty;
+
+    [ObservableProperty]
     private bool hasPreview;
 
     [ObservableProperty]
     private bool isReportAvailable;
 
     [ObservableProperty]
-    private string previewTitulo = "Sem pre-visualizacao";
+    private string previewTitulo = "Sem relatorio gerado";
 
     [ObservableProperty]
-    private string previewResumo = "Seleciona um molde, escolhe o tipo de relatorio e usa a pre-visualizacao para validar o contexto antes de gerar.";
+    private string previewResumo = "Seleciona um molde, escolhe o tipo de relatorio e gera o ficheiro final para descarregar.";
 
     [ObservableProperty]
     private string previewDetalhes = string.Empty;
@@ -87,23 +93,24 @@ public partial class RelatoriosViewModel : ObservableObject
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public bool HasSearch => !string.IsNullOrWhiteSpace(SearchTerm);
     public bool HasSelectedMolde => SelectedMolde is not null;
+    public bool HasSelectedDestination => !string.IsNullOrWhiteSpace(SelectedDestinationFolder);
     public bool HasContextos => ContextosEncomenda.Count > 0;
     public bool HasMultipleContextos => ContextosEncomenda.Count > 1;
-    public bool IsBusy => IsLoadingCatalogo || IsLoadingContextos || IsPreviewing || IsGenerating;
+    public bool IsBusy => IsLoadingCatalogo || IsLoadingContextos || IsPreviewing || IsGenerating || IsSelectingDestination;
     public bool CanPreview => SelectedMolde is not null && SelectedContexto is not null && !IsBusy;
     public bool CanGenerate => SelectedMolde is not null && SelectedContexto is not null && !IsBusy;
     public string PreviewButtonText => IsPreviewing ? "A abrir pre-visualizacao..." : "Pre-visualizar";
-    public string GenerateButtonText => IsGenerating ? "A gerar relatorio..." : "Gerar relatorio";
+    public string GenerateButtonText => IsGenerating ? "A gerar e descarregar..." : "Gerar e descarregar";
+    public string DestinationButtonText => IsSelectingDestination ? "A escolher pasta..." : "Escolher destino";
+    public string SelectedDestinationFolderDisplay => string.IsNullOrWhiteSpace(SelectedDestinationFolder)
+        ? "Nenhuma pasta selecionada"
+        : SelectedDestinationFolder;
     public string SelectedMoldeDisplay => SelectedMolde is null
         ? "Nenhum molde selecionado"
         : $"{SelectedMolde.Numero} - {SelectedMolde.Nome}";
-    public string SelectedMoldeDescricao => SelectedMolde is null
-        ? "Escolhe um molde na lista para carregar os contextos de encomenda e os relatorios disponiveis."
-        : string.IsNullOrWhiteSpace(SelectedMolde.Descricao)
-            ? "Sem descricao disponivel."
-            : SelectedMolde.Descricao;
+    public string SelectedMoldeDescricao => GetSelectedMoldeDescricao();
     public string ContextosHint => HasMultipleContextos
-        ? "Este molde existe em mais do que uma encomenda. Escolhe o contexto certo antes de pre-visualizar ou gerar."
+        ? "Este molde existe em mais do que uma encomenda. Escolhe o contexto certo antes de gerar."
         : "O contexto da encomenda sera usado para localizar a FLT e as fichas editaveis relacionadas.";
 
     partial void OnSearchTermChanged(string value)
@@ -139,6 +146,12 @@ public partial class RelatoriosViewModel : ObservableObject
         ResetPreviewState();
     }
 
+    partial void OnSelectedDestinationFolderChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasSelectedDestination));
+        OnPropertyChanged(nameof(SelectedDestinationFolderDisplay));
+    }
+
     partial void OnIsLoadingCatalogoChanged(bool value) => NotifyBusyStateChanged();
     partial void OnIsLoadingContextosChanged(bool value) => NotifyBusyStateChanged();
     partial void OnIsPreviewingChanged(bool value)
@@ -150,6 +163,12 @@ public partial class RelatoriosViewModel : ObservableObject
     partial void OnIsGeneratingChanged(bool value)
     {
         OnPropertyChanged(nameof(GenerateButtonText));
+        NotifyBusyStateChanged();
+    }
+
+    partial void OnIsSelectingDestinationChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DestinationButtonText));
         NotifyBusyStateChanged();
     }
 
@@ -203,9 +222,9 @@ public partial class RelatoriosViewModel : ObservableObject
 
             HasPreview = true;
             IsReportAvailable = true;
-            PreviewTitulo = $"Pre-visualizacao {request.TipoRelatorio}";
+            PreviewTitulo = $"Relatorio {request.TipoRelatorio} pronto a gerar";
             PreviewResumo = $"O contexto do relatorio foi validado para o molde {SelectedMolde.Numero}. Se estiver tudo certo, podes gerar o ficheiro definitivo a seguir.";
-            PreviewOrigem = "Pre-visualizacao validada sem gerar ficheiro.";
+            PreviewOrigem = "Contexto validado sem gerar ficheiro.";
         }
         catch (Exception ex)
         {
@@ -224,6 +243,14 @@ public partial class RelatoriosViewModel : ObservableObject
         if (SelectedMolde is null || SelectedContexto is null)
             return;
 
+        if (string.IsNullOrWhiteSpace(SelectedDestinationFolder))
+        {
+            await EscolherDestinoAsync();
+
+            if (string.IsNullOrWhiteSpace(SelectedDestinationFolder))
+                return;
+        }
+
         ErrorMessage = string.Empty;
         IsGenerating = true;
 
@@ -233,15 +260,14 @@ public partial class RelatoriosViewModel : ObservableObject
             if (request is null)
                 return;
 
-            var generated = await _relatoriosService.GenerateAsync(request);
+            var generated = await _relatoriosService.GenerateAsync(request, SelectedDestinationFolder);
 
             HasPreview = true;
             IsReportAvailable = true;
-            PreviewTitulo = $"Relatorio {request.TipoRelatorio} pronto";
-            PreviewResumo = $"O relatorio foi gerado com sucesso para o molde {SelectedMolde.Numero}.";
-            PreviewOrigem = $"Ficheiro gerado: {generated.FileName}";
+            PreviewTitulo = $"Relatorio {request.TipoRelatorio} gerado";
+            PreviewResumo = $"O relatorio foi guardado com sucesso para o molde {SelectedMolde.Numero}.";
+            PreviewOrigem = $"Ficheiro guardado em: {generated.FilePath}";
 
-            await OpenFileAsync(generated, $"Relatorio {request.TipoRelatorio}");
             await _dialogService.ShowSuccessAsync(
                 "Relatorio gerado",
                 $"O relatorio {request.TipoRelatorio} foi gerado com sucesso em {generated.FilePath}.");
@@ -254,6 +280,29 @@ public partial class RelatoriosViewModel : ObservableObject
         finally
         {
             IsGenerating = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task EscolherDestinoAsync()
+    {
+        ErrorMessage = string.Empty;
+        IsSelectingDestination = true;
+
+        try
+        {
+            var pastaSelecionada = await SelecionarPastaDestinoAsync();
+            if (!string.IsNullOrWhiteSpace(pastaSelecionada))
+                SelectedDestinationFolder = pastaSelecionada;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            await _dialogService.ShowErrorAsync("Erro", ex.Message);
+        }
+        finally
+        {
+            IsSelectingDestination = false;
         }
     }
 
@@ -305,6 +354,8 @@ public partial class RelatoriosViewModel : ObservableObject
             }
             while (paginaAtual <= totalPaginas);
 
+            moldes = await FiltrarMoldesComContextoAsync(moldes);
+
             _catalogoCompleto.Clear();
             _catalogoCompleto.AddRange(moldes
                 .OrderBy(item => item.Numero)
@@ -321,6 +372,25 @@ public partial class RelatoriosViewModel : ObservableObject
         {
             IsLoadingCatalogo = false;
         }
+    }
+
+    private async Task<List<MoldeDto>> FiltrarMoldesComContextoAsync(IEnumerable<MoldeDto> moldes)
+    {
+        var filtrados = new List<MoldeDto>();
+
+        foreach (var molde in moldes)
+        {
+            if (await TemEncomendaMoldeAsync(molde.MoldeId))
+                filtrados.Add(molde);
+        }
+
+        return filtrados;
+    }
+
+    private async Task<bool> TemEncomendaMoldeAsync(int moldeId)
+    {
+        var pagina = await _encomendasService.GetEncomendaMoldesByMoldeIdAsync(moldeId, 1, 1);
+        return pagina is not null && (pagina.TotalItems > 0 || pagina.Items.Count > 0);
     }
 
     private async Task CarregarContextosAsync(int moldeId)
@@ -364,9 +434,9 @@ public partial class RelatoriosViewModel : ObservableObject
                 ContextosEncomenda.Add(contexto);
             }
 
-            SelectedContexto = ContextosEncomenda.FirstOrDefault();
-
-            if (SelectedContexto is null)
+            if (ContextosEncomenda.Count > 0)
+                SelectedContexto = ContextosEncomenda.First();
+            else
             {
                 PreviewTitulo = "Sem contexto comercial";
                 PreviewResumo = "O molde selecionado ainda nao tem nenhuma associacao Encomenda-Molde, por isso nao e possivel gerar relatorios.";
@@ -393,14 +463,22 @@ public partial class RelatoriosViewModel : ObservableObject
         if (!string.IsNullOrWhiteSpace(termo))
         {
             resultado = resultado.Where(item =>
-                item.Numero.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
-                item.Nome.Contains(termo, StringComparison.OrdinalIgnoreCase) ||
-                item.NumeroMoldeCliente.Contains(termo, StringComparison.OrdinalIgnoreCase));
+                ContainsIgnoreCase(item.Numero, termo) ||
+                ContainsIgnoreCase(item.Nome, termo) ||
+                ContainsIgnoreCase(item.NumeroMoldeCliente, termo));
         }
 
         Moldes.Clear();
         foreach (var molde in resultado)
             Moldes.Add(molde);
+    }
+
+    private static bool ContainsIgnoreCase(string? value, string term)
+    {
+        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(term))
+            return false;
+
+        return value.Contains(term, StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<RelatorioExportRequest?> ResolverPedidoAsync()
@@ -517,21 +595,56 @@ public partial class RelatoriosViewModel : ObservableObject
         return string.Join(Environment.NewLine, linhas);
     }
 
-    private async Task OpenFileAsync(RelatorioFileResult file, string title)
+    private static async Task OpenFileAsync(RelatorioFileResult file, string title)
     {
         await Launcher.Default.OpenAsync(new OpenFileRequest(
             title,
             new ReadOnlyFile(file.FilePath)));
     }
 
+    private string GetSelectedMoldeDescricao()
+    {
+        if (SelectedMolde is null)
+            return "Escolhe um molde na lista para carregar os contextos de encomenda e os relatorios disponiveis.";
+
+        if (string.IsNullOrWhiteSpace(SelectedMolde.Descricao))
+            return "Sem descricao disponivel.";
+
+        return SelectedMolde.Descricao;
+    }
+
     private void ResetPreviewState()
     {
         HasPreview = false;
         IsReportAvailable = false;
-        PreviewTitulo = "Sem pre-visualizacao";
-        PreviewResumo = "Seleciona um molde, escolhe o tipo de relatorio e usa a pre-visualizacao para validar o contexto antes de gerar.";
+        PreviewTitulo = "Sem relatorio gerado";
+        PreviewResumo = "Seleciona um molde, escolhe o tipo de relatorio e gera o ficheiro final para descarregar.";
         PreviewDetalhes = string.Empty;
         PreviewOrigem = string.Empty;
+    }
+
+    private async Task<string?> SelecionarPastaDestinoAsync()
+    {
+#if WINDOWS
+        var picker = new Windows.Storage.Pickers.FolderPicker();
+        picker.FileTypeFilter.Add("*");
+
+        var window = Application.Current?.Windows.FirstOrDefault();
+        if (window?.Handler?.PlatformView is not Microsoft.UI.Xaml.Window nativeWindow)
+            throw new InvalidOperationException("Nao foi possivel abrir o seletor de pasta.");
+
+        WinRT.Interop.InitializeWithWindow.Initialize(
+            picker,
+            WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow));
+
+        var pasta = await picker.PickSingleFolderAsync();
+        return pasta?.Path;
+#else
+        await _dialogService.ShowInfoAsync(
+            "Destino de ficheiro",
+            "A selecao de pasta de destino esta disponivel no Windows.");
+        return null;
+#endif
     }
 
     private void NotifyBusyStateChanged()
@@ -543,5 +656,17 @@ public partial class RelatoriosViewModel : ObservableObject
         OnPropertyChanged(nameof(GenerateButtonText));
         PreviewCommand.NotifyCanExecuteChanged();
         GenerateCommand.NotifyCanExecuteChanged();
+    }
+
+    private static string ResolveDefaultDestinationFolder()
+    {
+        try
+        {
+            return Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados");
+        }
+        catch
+        {
+            return Path.Combine(Path.GetTempPath(), "relatorios-gerados");
+        }
     }
 }

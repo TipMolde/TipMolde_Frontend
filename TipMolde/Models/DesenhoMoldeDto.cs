@@ -14,6 +14,7 @@ public sealed class DesenhoMoldeItem
     public string NomeMolde { get; set; } = string.Empty;
     public string DescricaoMolde { get; set; } = string.Empty;
     public string ImagemCapaPath { get; set; } = string.Empty;
+    public string PecasResumoDisplay { get; set; } = string.Empty;
     public DateTime DataRegistoEncomenda { get; set; }
     public DateTime? DataEntregaPrevista { get; set; }
 
@@ -24,6 +25,9 @@ public sealed class DesenhoMoldeItem
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string DescricaoMoldeDisplay => string.IsNullOrWhiteSpace(DescricaoMolde) ? "Sem descricao disponivel." : DescricaoMolde;
     public string TotalPecasDisplay => $"{Math.Max(0, TotalPecas)}";
+    public string PecasResumoDisplayText => string.IsNullOrWhiteSpace(PecasResumoDisplay)
+        ? "Sem detalhes adicionais das pecas."
+        : PecasResumoDisplay;
     public string DataEntregaPrevistaDisplay => DataEntregaPrevista.HasValue
         ? DataEntregaPrevista.Value.ToString("dd/MM/yyyy")
         : "Data por definir";

@@ -67,7 +67,7 @@ public partial class UtilizadoresViewModel : SearchableViewModel
     }
 
     [RelayCommand]
-    private async Task AbrirAdicionarUtilizadorAsync()
+    private static async Task AbrirAdicionarUtilizadorAsync()
     {
         await Shell.Current.GoToAsync("AdicionarUtilizadorPage");
     }
@@ -116,13 +116,12 @@ public partial class UtilizadoresViewModel : SearchableViewModel
 
         var novaPassword = await _dialogService.PromptAsync(
             "Repor password",
-            $"Introduz a nova password para {utilizador.Nome}.{Environment.NewLine}Tem de ter pelo menos 8 caracteres, maiuscula, minuscula, numero e simbolo.",
+            $"Introduz a nova password para {utilizador.Nome}.{Environment.NewLine}Podes usar a password temporaria acordada pela equipa, ou definir outra.",
             new PromptDialogOptions
             {
                 Accept = "Guardar",
                 Cancel = "Cancelar",
-                InitialValue = UtilizadorDefaults.CreateSuggestedPassword(),
-                Placeholder = "Introduz uma password forte.",
+                Placeholder = UtilizadorDefaults.PasswordSuggestionHint,
                 MaxLength = 255,
                 Keyboard = Keyboard.Text
             });

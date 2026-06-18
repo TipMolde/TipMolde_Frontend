@@ -110,13 +110,13 @@ public partial class ClientesViewModel : SearchableViewModel
     }
 
     [RelayCommand]
-    private async Task AbrirAdicionarClienteAsync()
+    private static async Task AbrirAdicionarClienteAsync()
     {
         await Shell.Current.GoToAsync("AdicionarClientePage");
     }
 
     [RelayCommand]
-    private async Task EditarClienteAsync(ClienteDto? cliente)
+    private static async Task EditarClienteAsync(ClienteDto? cliente)
     {
         if (cliente is null)
             return;

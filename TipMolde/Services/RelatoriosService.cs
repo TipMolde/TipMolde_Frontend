@@ -1,4 +1,3 @@
-using Microsoft.Maui.Storage;
 using System.Net.Http.Headers;
 using TipMolde.Models;
 
@@ -28,10 +27,13 @@ public sealed class RelatoriosService : ApiServiceBase
         return DownloadAsync(request, directory, "preview");
     }
 
-    public Task<RelatorioFileResult> GenerateAsync(RelatorioExportRequest request)
+    public Task<RelatorioFileResult> GenerateAsync(RelatorioExportRequest request, string? directory = null)
     {
-        var directory = Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados");
-        return DownloadAsync(request, directory, "gerado");
+        var targetDirectory = string.IsNullOrWhiteSpace(directory)
+            ? Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados")
+            : directory;
+
+        return DownloadAsync(request, targetDirectory, "gerado");
     }
 
     private async Task<RelatorioFileResult> DownloadAsync(

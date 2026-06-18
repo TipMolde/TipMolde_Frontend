@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Storage;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
@@ -37,7 +36,7 @@ public partial class DesenhoViewModel : PaginatedViewModel
     public int TotalMoldes => _moldesFiltrados.Count;
     public int TotalEncomendasConfirmadas => _moldesFiltrados.Select(item => item.EncomendaId).Distinct().Count();
     public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
-        ? "Nao existem moldes de encomendas confirmadas para desenho."
+        ? "Nao existem moldes com projeto concluido e revisao aprovada para desenho."
         : "Nenhum molde corresponde aos filtros atuais.";
 
     partial void OnSearchTermChanged(string value)
@@ -66,25 +65,15 @@ public partial class DesenhoViewModel : PaginatedViewModel
                     return;
                 }
 
-                var totaisPecasPorMoldeId = await GetTotaisPecasPorMoldeAsync(associacoes.Select(item => item.Molde_id));
+                var candidatos = await Task.WhenAll(associacoes
+                    .Select(async associacao => await BuildDesenhoMoldeItemAsync(associacao)));
 
-                foreach (var associacao in associacoes
+                _todosMoldes.AddRange(candidatos
+                    .Where(item => item is not null)
+                    .Select(item => item!)
                     .OrderBy(item => item.DataEntregaPrevista == default ? DateTime.MaxValue : item.DataEntregaPrevista)
-                    .ThenBy(item => item.NumeroEncomendaClienteDisplay)
-                    .ThenBy(item => item.NumeroMoldeDisplay))
-                {
-                    totaisPecasPorMoldeId.TryGetValue(associacao.Molde_id, out var totalPecas);
-
-                    _todosMoldes.Add(new DesenhoMoldeItem
-                    {
-                        EncomendaId = associacao.Encomenda_id,
-                        MoldeId = associacao.Molde_id,
-                        TotalPecas = totalPecas,
-                        NumeroEncomendaCliente = associacao.NumeroEncomendaCliente,
-                        NumeroMolde = associacao.NumeroMolde,
-                        DataEntregaPrevista = associacao.DataEntregaPrevista == default ? null : associacao.DataEntregaPrevista
-                    });
-                }
+                    .ThenBy(item => item.NumeroEncomendaDisplay)
+                    .ThenBy(item => item.NumeroMoldeDisplay));
 
                 Page = 1;
                 RefreshMoldes();
@@ -112,9 +101,9 @@ public partial class DesenhoViewModel : PaginatedViewModel
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand]
@@ -169,6 +158,51 @@ public partial class DesenhoViewModel : PaginatedViewModel
         }
 
         return associacoes;
+    }
+
+    private async Task<DesenhoMoldeItem?> BuildDesenhoMoldeItemAsync(EncomendaMoldeDto associacao)
+    {
+        if (associacao.Molde_id <= 0)
+            return null;
+
+        var paginaPecas = await _pecasService.GetByMoldeIdAsync(associacao.Molde_id, 1, 100);
+        var pecas = paginaPecas?.Items ?? [];
+
+        return new DesenhoMoldeItem
+        {
+            EncomendaId = associacao.Encomenda_id,
+            MoldeId = associacao.Molde_id,
+            TotalPecas = paginaPecas?.TotalItems ?? 0,
+            NumeroEncomendaCliente = associacao.NumeroEncomendaCliente,
+            NumeroMolde = associacao.NumeroMolde,
+            DataEntregaPrevista = associacao.DataEntregaPrevista == default ? null : associacao.DataEntregaPrevista,
+            PecasResumoDisplay = BuildPecasResumoDisplay(pecas)
+        };
+    }
+
+    private static string BuildPecasResumoDisplay(IEnumerable<PecaDto> pecas)
+    {
+        var resumo = pecas
+            .Take(3)
+            .Select(BuildPecaResumo)
+            .ToList();
+
+        if (resumo.Count == 0)
+            return "Sem detalhes adicionais das pecas.";
+
+        var texto = string.Join(" | ", resumo);
+        var restantes = pecas.Skip(resumo.Count).Any();
+
+        return restantes ? $"{texto} | e mais pecas associadas" : texto;
+    }
+
+    private static string BuildPecaResumo(PecaDto peca)
+    {
+        var numero = string.IsNullOrWhiteSpace(peca.NumeroPeca) ? $"Peca #{peca.PecaId}" : peca.NumeroPeca;
+        var designacao = string.IsNullOrWhiteSpace(peca.Designacao) ? "Sem designacao" : peca.Designacao;
+        var quantidade = Math.Max(0, peca.Quantidade);
+
+        return $"{numero} - {designacao} ({quantidade})";
     }
 
     private void RefreshMoldes()
@@ -260,10 +294,7 @@ public partial class DesenhoViewModel : PaginatedViewModel
         if (!totais.TryGetValue(moldeId, out var totalPecasAtual))
             return;
 
-        var molde = _todosMoldes.FirstOrDefault(item => item.MoldeId == moldeId);
-        if (molde is null)
-            return;
-
+        var molde = _todosMoldes.First(item => item.MoldeId == moldeId);
         molde.TotalPecas = totalPecasAtual;
         RefreshMoldes();
     }

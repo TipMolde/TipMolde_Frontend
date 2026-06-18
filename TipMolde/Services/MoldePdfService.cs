@@ -1,4 +1,3 @@
-using Microsoft.Maui.Storage;
 using System.Text;
 using TipMolde.Models;
 
@@ -6,6 +5,8 @@ namespace TipMolde.Services;
 
 public static class MoldePdfService
 {
+    private const string LineStep = "0 -18 Td";
+
     public static async Task<string> GenerateCicloVidaPdfAsync(
         string numero,
         string nome,
@@ -46,31 +47,31 @@ public static class MoldePdfService
             "/F1 12 Tf",
             "0 -30 Td",
             $"({Escape($"Numero: {numero}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Nome: {nome}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Tipo de pedido: {tipoPedido}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Numero de cavidades: {numeroCavidades}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Descricao: {descricao}")}) Tj",
             "0 -30 Td",
             $"({Escape($"Total de pecas: {dashboard.TotalPecas}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Percentagem de conclusao: {dashboard.PercentagemConclusao:0.##}%")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Maquinacao: {dashboard.Maquinacao} ({FormatPercent(dashboard.Maquinacao, distribuicaoTotal)})")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Erosao: {dashboard.Erosao} ({FormatPercent(dashboard.Erosao, distribuicaoTotal)})")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Montagem: {dashboard.Montagem} ({FormatPercent(dashboard.Montagem, distribuicaoTotal)})")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Material pendente: {dashboard.MaterialPendente} ({FormatPercent(dashboard.MaterialPendente, distribuicaoTotal)})")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Em espera: {dashboard.EmEspera} ({FormatPercent(dashboard.EmEspera, distribuicaoTotal)})")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Em trabalho: {dashboard.EmTrabalho}")}) Tj",
-            "0 -18 Td",
+            LineStep,
             $"({Escape($"Concluidas: {dashboard.Concluidas}")}) Tj",
             "0 -30 Td",
             $"({Escape($"Gerado em: {DateTime.Now:dd/MM/yyyy HH:mm}")}) Tj",

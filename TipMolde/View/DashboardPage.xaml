@@ -415,7 +415,7 @@
                                        FontSize="15"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
-                                <Label Text="Sem moldes em producao disponiveis para registar rececoes."
+                                <Label Text="Sem moldes com pedido de material ativo disponiveis para registar rececoes."
                                        IsVisible="{Binding HasNoMoldesRececaoDisponiveis}"
                                        FontSize="13"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />

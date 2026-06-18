@@ -1,5 +1,3 @@
-using Microsoft.Maui.Storage;
-
 namespace TipMolde.Services;
 
 public sealed class ThemePreferenceService

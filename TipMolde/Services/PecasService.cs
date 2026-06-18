@@ -47,6 +47,26 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
+    public async Task<PagedResult<PecaDto>?> GetByMoldeIdWithoutPedidoMaterialAsync(int moldeId, int page, int pageSize)
+    {
+        using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/sem-pedido-material?page={page}&pageSize={pageSize}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<PecaDto>>(response);
+    }
+
+    public async Task<PagedResult<PecaDto>?> GetByMoldeIdPendingMaterialReceiptAsync(int moldeId, int page, int pageSize)
+    {
+        using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/pendentes-rececao-material?page={page}&pageSize={pageSize}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<PecaDto>>(response);
+    }
+
     public async Task<PecaDto?> GetByIdAsync(int pecaId)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/{pecaId}");

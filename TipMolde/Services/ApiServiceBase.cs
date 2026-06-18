@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace TipMolde.Services;
 
@@ -8,6 +9,11 @@ public abstract class ApiServiceBase
     {
         PropertyNameCaseInsensitive = true
     };
+
+    static ApiServiceBase()
+    {
+        JsonOptions.Converters.Add(new JsonStringEnumConverter());
+    }
 
     protected ApiServiceBase(HttpClient httpClient)
     {

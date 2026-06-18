@@ -83,43 +83,19 @@ public partial class AdicionarPecaViewModel : ObservableObject
                              Quantidade > 0;
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
-    partial void OnCanManagePiecesChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnCanManagePiecesChanged(bool value) => NotifyCanCreateStateChanged();
 
-    partial void OnMoldeIdChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnMoldeIdChanged(int value) => NotifyCanCreateStateChanged();
 
     partial void OnNumeroMoldeChanged(string value) => OnPropertyChanged(nameof(NumeroMoldeDisplay));
 
-    partial void OnDesignacaoChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnDesignacaoChanged(string value) => NotifyCanCreateStateChanged();
 
-    partial void OnPrioridadeChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnPrioridadeChanged(int value) => NotifyCanCreateStateChanged();
 
-    partial void OnQuantidadeChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnQuantidadeChanged(int value) => NotifyCanCreateStateChanged();
 
-    partial void OnIsSavingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingChanged(bool value) => NotifyCanCreateStateChanged();
 
     public async Task LoadAsync(int moldeId, string? numeroMolde)
     {
@@ -138,9 +114,9 @@ public partial class AdicionarPecaViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand(CanExecute = nameof(CanCreate))]
@@ -235,6 +211,12 @@ public partial class AdicionarPecaViewModel : ObservableObject
         foreach (var fase in pagina.Items.OrderBy(item => item.FasesProducao_id))
             FasesProducao.Add(fase);
 
-        SelectedProximaFase = FasesProducao.FirstOrDefault();
+        SelectedProximaFase = FasesProducao.First();
+    }
+
+    private void NotifyCanCreateStateChanged()
+    {
+        OnPropertyChanged(nameof(CanCreate));
+        CreateCommand.NotifyCanExecuteChanged();
     }
 }

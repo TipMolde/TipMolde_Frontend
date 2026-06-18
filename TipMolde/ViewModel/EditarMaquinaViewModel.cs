@@ -207,9 +207,9 @@ public partial class EditarMaquinaViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]

@@ -160,6 +160,33 @@
                     <Border BackgroundColor="Transparent"
                             StrokeThickness="0"
                             Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewPedidosMaterial, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenPedidosMaterialCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="PM"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Pedidos Material"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
                             IsVisible="{Binding ViewModel.CanViewProducao, Source={x:Reference Root}}">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding ViewModel.OpenProducaoCommand, Source={x:Reference Root}}" />
@@ -230,6 +257,33 @@
                                        TextColor="White" />
                             </Border>
                             <Label Text="Desenho"
+                                   IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="18"
+                                   VerticalOptions="Center"
+                                   TextColor="#E2E8F0" />
+                        </HorizontalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="Transparent"
+                            StrokeThickness="0"
+                            Padding="12,12"
+                            IsVisible="{Binding ViewModel.CanViewProjetos, Source={x:Reference Root}}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ViewModel.OpenProjetosCommand, Source={x:Reference Root}}" />
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Border Background="#1E293B"
+                                    StrokeThickness="0"
+                                    Padding="10,6">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+                                <Label Text="Pr"
+                                       FontFamily="OpenSansSemibold"
+                                       TextColor="White" />
+                            </Border>
+                            <Label Text="Projetos"
                                    IsVisible="{Binding ShowLabels, Source={x:Reference Root}}"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="18"

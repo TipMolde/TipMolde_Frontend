@@ -6,6 +6,8 @@ namespace TipMolde.ViewModel;
 
 public partial class TopBarViewModel : ObservableObject
 {
+    private const string DefaultUserName = "Utilizador";
+
     private readonly AuthorizationService _authorizationService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private readonly UtilizadoresService _utilizadoresService;
@@ -22,14 +24,14 @@ public partial class TopBarViewModel : ObservableObject
     }
 
     [ObservableProperty]
-    private string currentUserName = "Utilizador";
+    private string currentUserName = DefaultUserName;
 
     public string DisplayUserName =>
         DeviceInfo.Current.Idiom == DeviceIdiom.Phone
             ? GetFirstName(CurrentUserName)
             : CurrentUserName;
 
-    public bool ShowNavigationMenu => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
+    public static bool ShowNavigationMenu => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
 
     partial void OnCurrentUserNameChanged(string value)
     {
@@ -46,7 +48,7 @@ public partial class TopBarViewModel : ObservableObject
         var currentUserId = _sessaoPersistidaService.TryGetCurrentUserId();
         if (currentUserId is null)
         {
-            CurrentUserName = "Utilizador";
+            CurrentUserName = DefaultUserName;
             return;
         }
 
@@ -54,29 +56,29 @@ public partial class TopBarViewModel : ObservableObject
         {
             var utilizador = await _utilizadoresService.GetUtilizadorByIdAsync(currentUserId.Value);
             CurrentUserName = string.IsNullOrWhiteSpace(utilizador.Nome)
-                ? "Utilizador"
+                ? DefaultUserName
                 : utilizador.Nome;
         }
         catch
         {
-            CurrentUserName = "Utilizador";
+            CurrentUserName = DefaultUserName;
         }
     }
 
     public void Reset()
     {
         _isLoaded = false;
-        CurrentUserName = "Utilizador";
+        CurrentUserName = DefaultUserName;
     }
 
     [RelayCommand]
-    private async Task OpenDefinicoes()
+    private static async Task OpenDefinicoes()
     {
         await Shell.Current.GoToAsync("//Definicoes");
     }
 
     [RelayCommand]
-    private Task OpenNavigationMenuAsync()
+    private static Task OpenNavigationMenuAsync()
     {
         if (Shell.Current is not null)
             Shell.Current.FlyoutIsPresented = true;
@@ -96,7 +98,7 @@ public partial class TopBarViewModel : ObservableObject
     private static string GetFirstName(string? fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
-            return "Utilizador";
+            return DefaultUserName;
 
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length > 0 ? parts[0] : fullName;

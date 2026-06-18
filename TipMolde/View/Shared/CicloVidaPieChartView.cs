@@ -1,6 +1,3 @@
-using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
-
 namespace TipMolde.View.Shared;
 
 public sealed partial class CicloVidaPieChartView : GraphicsView

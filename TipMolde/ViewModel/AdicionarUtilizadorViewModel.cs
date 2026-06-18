@@ -17,11 +17,10 @@ public partial class AdicionarUtilizadorViewModel : ObservableObject
     {
         _utilizadoresService = utilizadoresService;
         _dialogService = dialogService;
-        SelectedRole = UtilizadorDefaults.AvailableRoles.First();
-        Password = UtilizadorDefaults.CreateSuggestedPassword();
+        SelectedRole = UtilizadorDefaults.AvailableRoles[0];
     }
 
-    public IReadOnlyList<string> AvailableRoles => UtilizadorDefaults.AvailableRoles;
+    public static IReadOnlyList<string> AvailableRoles => UtilizadorDefaults.AvailableRoles;
 
     [ObservableProperty]
     private string nome = string.Empty;
@@ -49,9 +48,9 @@ public partial class AdicionarUtilizadorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Voltar()
+    private static async Task Voltar()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand]

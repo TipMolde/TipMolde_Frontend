@@ -1,8 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using TipMolde.Models;
 using TipMolde.Services;
 using TipMolde.View;
@@ -181,9 +179,9 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand]

@@ -10,8 +10,9 @@ env:
   DOTNET_VERSION: "8.0.414"
   SOLUTION_FILE: "TipMolde.sln"
   PROJECT_FILE: "TipMolde/TipMolde.csproj"
-  ANDROID_TFM: "net8.0-android"
-  ANDROID_TARGET_FRAMEWORKS: "net8.0-android"
+  TEST_PROJECT_FILE: "TipMolde.Test/TipMolde.Test.csproj"
+  # ANDROID_TFM: "net8.0-android"
+  # ANDROID_TARGET_FRAMEWORKS: "net8.0-android"
   WINDOWS_TFM: "net8.0-windows10.0.19041.0"
   WINDOWS_TARGET_FRAMEWORKS: "net8.0-windows10.0.19041.0"
   WINDOWS_RUNTIME_ID: "win10-x64"
@@ -307,10 +308,187 @@ jobs:
   #           Remove-Item -LiteralPath $globalJsonPath -Force
   #         }
 
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: self-hosted
+    needs: [ windows-build ]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Diagnose .NET environment
+        shell: powershell
+        run: |
+          dotnet --info
+          dotnet --list-sdks
+          dotnet workload list
+
+      - name: Initialize CI paths
+        shell: powershell
+        run: |
+          $ciRoot = Join-Path $env:RUNNER_TEMP "tipmolde-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:GITHUB_JOB"
+
+          "DOTNET_CLI_HOME=$ciRoot\d" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_PACKAGES=$ciRoot\p" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_HTTP_CACHE_PATH=$ciRoot\h" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_SCRATCH=$ciRoot\s" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Prepare .NET directories
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
+
+      - name: Shutdown .NET build servers before tests
+        shell: powershell
+        run: |
+          dotnet build-server shutdown
+
+      - name: Reset test build outputs
+        shell: powershell
+        run: |
+          $pathsToReset = @(
+            "${{ github.workspace }}\TipMolde.Test\bin",
+            "${{ github.workspace }}\TipMolde.Test\obj",
+            "${{ github.workspace }}\TestResults"
+          )
+
+          foreach ($path in $pathsToReset) {
+            if (Test-Path $path) {
+              try {
+                Remove-Item -LiteralPath $path -Recurse -Force
+              }
+              catch {
+                Write-Warning "Could not fully remove $path. Continuing with build."
+              }
+            }
+          }
+
+      - name: Select .NET 8 SDK for CI
+        id: sdk-selector
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+
+          if (Test-Path $globalJsonPath) {
+            Write-Host "Repository global.json found. Keeping existing file."
+            "created=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          @'
+          {
+            "sdk": {
+              "version": "8.0.414",
+              "rollForward": "latestPatch"
+            }
+          }
+          '@ | Set-Content -LiteralPath $globalJsonPath -Encoding utf8
+
+          "created=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Ensure Windows MAUI workload
+        shell: powershell
+        run: |
+          $installed = dotnet workload list | Out-String
+          if ($installed -match '(?m)^\s*maui-windows\s') {
+            Write-Host "maui-windows workload already installed."
+            exit 0
+          }
+
+          dotnet workload install maui-windows --skip-manifest-update
+
+      - name: Restore test dependencies
+        shell: powershell
+        run: |
+          dotnet restore ${{ env.TEST_PROJECT_FILE }} `
+            --disable-build-servers `
+            --disable-parallel `
+            --force `
+            --force-evaluate `
+            -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} `
+            -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }}
+
+      - name: Run frontend tests with coverage
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path "${{ github.workspace }}\TestResults" | Out-Null
+
+          dotnet test ${{ env.TEST_PROJECT_FILE }} `
+            --configuration Release `
+            --framework ${{ env.WINDOWS_TFM }} `
+            --disable-build-servers `
+            --disable-parallel `
+            --no-restore `
+            --logger "trx;LogFileName=TipMolde.Test.trx" `
+            --results-directory "${{ github.workspace }}\TestResults" `
+            --collect "XPlat Code Coverage"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: ${{ github.workspace }}\TestResults
+          if-no-files-found: error
+
+      - name: Cleanup temporary SDK selector
+        if: always() && steps.sdk-selector.outputs.created == 'true'
+        shell: powershell
+        run: |
+          $globalJsonPath = Join-Path $env:GITHUB_WORKSPACE 'global.json'
+          if (Test-Path $globalJsonPath) {
+            Remove-Item -LiteralPath $globalJsonPath -Force
+          }
+
+  frontend-coverage:
+    name: Frontend Coverage
+    runs-on: self-hosted
+    needs: [ frontend-tests ]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+
+      - name: Install Report Generator
+        run: dotnet tool update --global dotnet-reportgenerator-globaltool
+
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-test-results
+          path: ${{ github.workspace }}\TestResults
+
+      - name: Generate test report
+        shell: powershell
+        run: |
+          $coverageGlob = "${{ github.workspace }}\TestResults\**\coverage.cobertura.xml"
+          $reportDir = "${{ github.workspace }}\CoverageReport"
+
+          New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
+
+          reportgenerator `
+            "-reports:$coverageGlob" `
+            "-targetdir:$reportDir" `
+            "-reporttypes:HtmlInline_AzurePipelines;OpenCover;TextSummary"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: ${{ github.workspace }}\CoverageReport
+          if-no-files-found: error
+
   sonar-analysis:
     name: SonarQube Analysis
     runs-on: self-hosted
-    needs: [ windows-build ]
+    needs: [ frontend-coverage ]
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
@@ -405,6 +583,18 @@ jobs:
       - name: Install Sonar Scanner
         run: dotnet tool update --global dotnet-sonarscanner
 
+      - name: Download test results
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-test-results
+          path: ${{ github.workspace }}\TestResults
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: ${{ github.workspace }}\CoverageReport
+
       - name: Ensure Windows MAUI workload
         shell: powershell
         run: |
@@ -434,7 +624,9 @@ jobs:
             /k:"${{ env.SONAR_PROJECT_KEY }}" `
             /o:"${{ env.SONAR_ORG_KEY }}" `
             "/d:sonar.host.url=$env:SONAR_HOST_URL" `
-            "/d:sonar.token=$env:SONAR_TOKEN"
+            "/d:sonar.token=$env:SONAR_TOKEN" `
+            "/d:sonar.cs.vstest.reportsPaths=${{ github.workspace }}\TestResults\**\*.trx" `
+            "/d:sonar.cs.opencover.reportsPaths=${{ github.workspace }}\CoverageReport\OpenCover.xml"
 
       - name: Restore Windows dependencies for Sonar
         shell: powershell
@@ -448,60 +640,11 @@ jobs:
             -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} `
             -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }}
 
-      # Mobile/Android Sonar steps temporarily suspended together with android-build.
-      # Re-enable the blocks below when mobile development resumes.
-      #
-      # - name: Setup Java
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     java-version: "17"
-      #     distribution: "zulu"
-      #
-      # - name: Reset Android AAR package cache before Sonar
-      #   shell: powershell
-      #   run: |
-      #     & "${{ github.workspace }}\scripts\ci\Clear-AndroidAarPackages.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-      #
-      # - name: Repair Android AAR cache before Sonar build
-      #   id: repair-before-build
-      #   shell: powershell
-      #   run: |
-      #     $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-      #     "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      #
-      # - name: Restore Android dependencies for Sonar
-      #   shell: powershell
-      #   run: |
-      #     dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
-      #
-      # - name: Repair Android AAR cache after Sonar restore
-      #   id: repair-after-restore
-      #   shell: powershell
-      #   run: |
-      #     $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-      #     "removed=$removed" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-      #
-      # - name: Restore Android dependencies for Sonar after cache cleanup
-      #   if: steps.repair-after-restore.outputs.removed == 'true'
-      #   shell: powershell
-      #   run: |
-      #     dotnet restore ${{ env.PROJECT_FILE }} --disable-build-servers --disable-parallel --force --force-evaluate
-      #
-      # - name: Validate Android AAR cache after Sonar retry
-      #   shell: powershell
-      #   run: |
-      #     $removed = & "${{ github.workspace }}\scripts\ci\Repair-AndroidAarCache.ps1" -NugetPackagesPath $env:NUGET_PACKAGES
-      #     if ($removed -eq 'true') {
-      #       throw 'Android AAR cache is still corrupt after Sonar restore retry.'
-      #     }
-      #
-      # - name: Build Android for Sonar
-      #   run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.ANDROID_TFM }} --disable-build-servers --disable-parallel --no-restore
-
       - name: Build Windows for Sonar
         run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None -p:PublishReadyToRun=false
 
       - name: Sonar End
+        if: always()
         shell: powershell
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -521,9 +664,16 @@ jobs:
         if: always()
         shell: powershell
         run: |
-          $sonarPath = Join-Path $env:GITHUB_WORKSPACE ".sonarqube"
-          if (Test-Path $sonarPath) {
-            Remove-Item -LiteralPath $sonarPath -Recurse -Force
+          $pathsToCleanup = @(
+            (Join-Path $env:GITHUB_WORKSPACE ".sonarqube"),
+            (Join-Path $env:GITHUB_WORKSPACE "TestResults"),
+            (Join-Path $env:GITHUB_WORKSPACE "CoverageReport")
+          )
+
+          foreach ($path in $pathsToCleanup) {
+            if (Test-Path $path) {
+              Remove-Item -LiteralPath $path -Recurse -Force
+            }
           }
 
       - name: Cleanup temporary SDK selector

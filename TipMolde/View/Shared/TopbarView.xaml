@@ -22,7 +22,7 @@
                                    VerticalOptions="Center">
                 <Button Text="Menu"
                         Command="{Binding ViewModel.OpenNavigationMenuCommand, Source={x:Reference Self}}"
-                        IsVisible="{Binding ViewModel.ShowNavigationMenu, Source={x:Reference Self}}"
+                        IsVisible="{OnIdiom Phone=True, Desktop=False}"
                         BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                         TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                         HeightRequest="40"

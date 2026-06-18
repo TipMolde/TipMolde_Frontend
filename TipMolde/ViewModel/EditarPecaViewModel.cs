@@ -184,7 +184,7 @@ public partial class EditarPecaViewModel : ObservableObject
     [RelayCommand]
     private async Task VoltarAsync()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]

@@ -25,7 +25,7 @@ public sealed class EncomendasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync(
             $"api/encomendas/em-producao?page={page}&pageSize={pageSize}");
- 
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -89,7 +89,7 @@ public sealed class EncomendasService : ApiServiceBase
     public async Task<PagedResult<EncomendaMoldeDto>?> GetEncomendasConfirmadasParaDesenhoAsync(int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync(
-            $"api/encomenda-moldes/encomendas-confirmadas?page={page}&pageSize={pageSize}");
+            $"api/encomenda-moldes/encomendas-confirmadas-para-desenho?page={page}&pageSize={pageSize}");
 
         if (!response.IsSuccessStatusCode)
             return null;

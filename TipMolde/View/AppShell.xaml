@@ -33,6 +33,11 @@
          Route="Encomendas" />
 
     <ShellContent
+         x:Name="PedidosMaterialShellItem"
+         ContentTemplate="{DataTemplate local:PedidosMaterial}"
+         Route="PedidosMaterial" />
+
+    <ShellContent
          x:Name="ProducaoShellItem"
          ContentTemplate="{DataTemplate local:Producao}"
          Route="Producao" />
@@ -46,6 +51,11 @@
          x:Name="DesenhoShellItem"
          ContentTemplate="{DataTemplate local:DesenhoPage}"
          Route="Desenho" />
+
+    <ShellContent
+         x:Name="ProjetosShellItem"
+         ContentTemplate="{DataTemplate local:ProjetosPage}"
+         Route="Projetos" />
 
     <ShellContent
          x:Name="RelatoriosShellItem"

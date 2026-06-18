@@ -31,6 +31,9 @@ public partial class SidebarViewModel : ObservableObject
     private bool canViewEncomendas;
 
     [ObservableProperty]
+    private bool canViewPedidosMaterial;
+
+    [ObservableProperty]
     private bool canViewProducao;
 
     [ObservableProperty]
@@ -38,6 +41,9 @@ public partial class SidebarViewModel : ObservableObject
 
     [ObservableProperty]
     private bool canViewDesenho;
+
+    [ObservableProperty]
+    private bool canViewProjetos;
 
     [ObservableProperty]
     private bool canViewRelatorios;
@@ -76,6 +82,12 @@ public partial class SidebarViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task OpenPedidosMaterialAsync()
+    {
+        await NavigateToFeatureAsync(AppFeature.PedidosMaterial, "//PedidosMaterial", "Pedidos de material");
+    }
+
+    [RelayCommand]
     private async Task OpenProducaoAsync()
     {
         await NavigateToFeatureAsync(AppFeature.Producao, "//Producao", "Producao");
@@ -91,6 +103,12 @@ public partial class SidebarViewModel : ObservableObject
     private async Task OpenDesenhoAsync()
     {
         await NavigateToFeatureAsync(AppFeature.Desenho, "//Desenho", "Desenho");
+    }
+
+    [RelayCommand]
+    private async Task OpenProjetosAsync()
+    {
+        await NavigateToFeatureAsync(AppFeature.Desenho, "//Projetos", "Projetos");
     }
 
     [RelayCommand]
@@ -111,9 +129,11 @@ public partial class SidebarViewModel : ObservableObject
         CanViewUtilizadores = await _authorizationService.CanAccessAsync(AppFeature.Utilizadores);
         CanViewClientes = await _authorizationService.CanAccessAsync(AppFeature.Clientes);
         CanViewEncomendas = await _authorizationService.CanAccessAsync(AppFeature.Encomendas);
+        CanViewPedidosMaterial = await _authorizationService.CanAccessAsync(AppFeature.PedidosMaterial);
         CanViewProducao = await _authorizationService.CanAccessAsync(AppFeature.Producao);
         CanViewMaquinas = await _authorizationService.CanAccessAsync(AppFeature.Maquinas);
         CanViewDesenho = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
+        CanViewProjetos = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
         CanViewRelatorios = await _authorizationService.CanAccessAsync(AppFeature.Relatorios);
     }
 

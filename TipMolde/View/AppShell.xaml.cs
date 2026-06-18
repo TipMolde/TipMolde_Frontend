@@ -14,6 +14,7 @@ public partial class AppShell : Shell
             ["Producao"] = AppFeature.Producao,
             ["Maquinas"] = AppFeature.Maquinas,
             ["Desenho"] = AppFeature.Desenho,
+            ["Projetos"] = AppFeature.Desenho,
             ["Relatorios"] = AppFeature.Relatorios,
             ["Definicoes"] = AppFeature.Definicoes
         };
@@ -36,6 +37,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(AdicionarClientePage), typeof(AdicionarClientePage));
         Routing.RegisterRoute(nameof(AdicionarEncomendaPage), typeof(AdicionarEncomendaPage));
         Routing.RegisterRoute(nameof(AdicionarMoldePage), typeof(AdicionarMoldePage));
+        Routing.RegisterRoute(nameof(EditarMoldePage), typeof(EditarMoldePage));
         Routing.RegisterRoute(nameof(AdicionarPecaPage), typeof(AdicionarPecaPage));
         Routing.RegisterRoute(nameof(EditarPecaPage), typeof(EditarPecaPage));
         Routing.RegisterRoute(nameof(EditarMaquinaPage), typeof(EditarMaquinaPage));
@@ -46,6 +48,9 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(MoldeDetalhePage), typeof(MoldeDetalhePage));
         Routing.RegisterRoute(nameof(MaquinasPage), typeof(MaquinasPage));
         Routing.RegisterRoute(nameof(DesenhoPage), typeof(DesenhoPage));
+        Routing.RegisterRoute(nameof(ProjetosPage), typeof(ProjetosPage));
+        Routing.RegisterRoute(nameof(AdicionarProjetoPage), typeof(AdicionarProjetoPage));
+        Routing.RegisterRoute(nameof(ProjetoDetalhePage), typeof(ProjetoDetalhePage));
         Routing.RegisterRoute(nameof(RelatoriosPage), typeof(RelatoriosPage));
         Routing.RegisterRoute(nameof(RegistoProducaoPage), typeof(RegistoProducaoPage));
     }

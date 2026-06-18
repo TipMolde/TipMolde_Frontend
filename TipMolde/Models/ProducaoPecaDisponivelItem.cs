@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace TipMolde.Models;
 
 public sealed class ProducaoPecaDisponivelItem
@@ -23,8 +21,8 @@ public sealed class ProducaoPecaDisponivelItem
     public string FaseTrabalho { get; init; } = string.Empty;
     public string ProximoPasso { get; init; } = string.Empty;
     public string ResumoFases { get; init; } = string.Empty;
-    public IReadOnlyDictionary<int, RegistoProducaoDto?> UltimosRegistosPorFase { get; init; } =
-        new Dictionary<int, RegistoProducaoDto?>();
+    public Dictionary<int, RegistoProducaoDto?> UltimosRegistosPorFase { get; init; } =
+        new();
 
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? $"Molde #{MoldeId}" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;

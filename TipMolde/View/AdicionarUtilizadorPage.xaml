@@ -76,11 +76,11 @@
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding Password}"
-                                   Placeholder="Password inicial"
+                                   Placeholder="Password temporaria"
                                    IsPassword="True"
                                    ClearButtonVisibility="WhileEditing"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"/>
-                            <Label Text="Minimo 8 caracteres, com maiuscula, minuscula, numero e simbolo."
+                            <Label Text="Usa a password temporaria acordada pela equipa, ou define outra."
                                    FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                         </VerticalStackLayout>

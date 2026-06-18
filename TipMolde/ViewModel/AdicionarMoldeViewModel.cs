@@ -1,10 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.Maui.Storage;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Globalization;
+using TipMolde.Domain.Enums;
 using TipMolde.Helper;
-using TipMolde.Models;
 using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
@@ -16,6 +15,7 @@ public partial class AdicionarMoldeViewModel : ObservableObject
 {
     private readonly MoldesService _moldesService;
     private readonly IDialogService _dialogService;
+    private FileResult? _imagemCapaSelecionada;
     private bool _loaded;
 
     /// <summary>
@@ -30,6 +30,7 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     }
 
     public ObservableCollection<TipoPedidoOption> TipoPedidoOptions { get; } = new();
+    public ObservableCollection<CorMoldeOption> CorOptions { get; } = new();
 
     [ObservableProperty]
     private string numero = string.Empty;
@@ -50,7 +51,46 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     private int numeroCavidades = 1;
 
     [ObservableProperty]
+    private string largura = string.Empty;
+
+    [ObservableProperty]
+    private string comprimento = string.Empty;
+
+    [ObservableProperty]
+    private string altura = string.Empty;
+
+    [ObservableProperty]
+    private string pesoEstimado = string.Empty;
+
+    [ObservableProperty]
+    private string tipoInjecao = string.Empty;
+
+    [ObservableProperty]
+    private string sistemaInjecao = string.Empty;
+
+    [ObservableProperty]
+    private string contracao = string.Empty;
+
+    [ObservableProperty]
+    private string acabamentoPeca = string.Empty;
+
+    [ObservableProperty]
+    private string materialMacho = string.Empty;
+
+    [ObservableProperty]
+    private string materialCavidade = string.Empty;
+
+    [ObservableProperty]
+    private string materialMovimentos = string.Empty;
+
+    [ObservableProperty]
+    private string materialInjecao = string.Empty;
+
+    [ObservableProperty]
     private TipoPedidoOption? selectedTipoPedidoOption;
+
+    [ObservableProperty]
+    private CorMoldeOption? selectedCorOption;
 
     [ObservableProperty]
     private bool isLoadingData;
@@ -65,7 +105,7 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     public bool HasImagemCapaSelecionada => !string.IsNullOrWhiteSpace(ImagemCapaPath);
     public string ImagemCapaPreviewSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
     public string ImagemCapaFileName => string.IsNullOrWhiteSpace(ImagemCapaPath)
-        ? "Sem imagem selecionada."
+        ? "Imagem default da TipMolde"
         : Path.GetFileName(ImagemCapaPath.Trim());
     public bool CanCreate => !IsSaving
                              && !IsLoadingData
@@ -75,17 +115,9 @@ public partial class AdicionarMoldeViewModel : ObservableObject
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
 
-    partial void OnNumeroChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNumeroChanged(string value) => NotifyCanCreateStateChanged();
 
-    partial void OnNomeChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNomeChanged(string value) => NotifyCanCreateStateChanged();
 
     partial void OnImagemCapaPathChanged(string value)
     {
@@ -94,23 +126,13 @@ public partial class AdicionarMoldeViewModel : ObservableObject
         OnPropertyChanged(nameof(ImagemCapaFileName));
     }
 
-    partial void OnSelectedTipoPedidoOptionChanged(TipoPedidoOption? value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedTipoPedidoOptionChanged(TipoPedidoOption? value) => NotifyCanCreateStateChanged();
 
-    partial void OnIsSavingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedCorOptionChanged(CorMoldeOption? value) => NotifyCanCreateStateChanged();
 
-    partial void OnIsLoadingDataChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanCreate));
-        CreateCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingChanged(bool value) => NotifyCanCreateStateChanged();
+
+    partial void OnIsLoadingDataChanged(bool value) => NotifyCanCreateStateChanged();
 
     /// <summary>
     /// Carrega as opcoes de tipo de pedido disponiveis.
@@ -129,8 +151,15 @@ public partial class AdicionarMoldeViewModel : ObservableObject
             foreach (var option in GetTipoPedidoOptions())
                 TipoPedidoOptions.Add(option);
 
+            CorOptions.Clear();
+            foreach (var option in GetCorOptions())
+                CorOptions.Add(option);
+
             if (SelectedTipoPedidoOption is null)
-                SelectedTipoPedidoOption = TipoPedidoOptions.FirstOrDefault();
+                SelectedTipoPedidoOption = TipoPedidoOptions.First();
+
+            if (SelectedCorOption is null)
+                SelectedCorOption = CorOptions.First();
 
             _loaded = true;
         }
@@ -147,9 +176,9 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Voltar()
+    private static async Task Voltar()
     {
-        await Shell.Current.GoToAsync("..");
+        await ShellNavigationService.GoBackAsync();
     }
 
     [RelayCommand]
@@ -166,6 +195,7 @@ public partial class AdicionarMoldeViewModel : ObservableObject
             if (file is null || string.IsNullOrWhiteSpace(file.FullPath))
                 return;
 
+            _imagemCapaSelecionada = file;
             ImagemCapaPath = file.FullPath;
             ErrorMessage = string.Empty;
         }
@@ -178,6 +208,7 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     [RelayCommand]
     private void RemoverImagemCapa()
     {
+        _imagemCapaSelecionada = null;
         ImagemCapaPath = string.Empty;
     }
 
@@ -205,10 +236,23 @@ public partial class AdicionarMoldeViewModel : ObservableObject
                 numeroNormalizado,
                 NormalizeOptional(NumeroMoldeCliente),
                 Nome.Trim(),
-                NormalizeOptional(ImagemCapaPath),
                 NormalizeOptional(Descricao),
                 NumeroCavidades,
-                SelectedTipoPedidoOption!.Value);
+                SelectedTipoPedidoOption!.Value,
+                ParseOptionalDecimal(Largura),
+                ParseOptionalDecimal(Comprimento),
+                ParseOptionalDecimal(Altura),
+                ParseOptionalDecimal(PesoEstimado),
+                NormalizeOptional(TipoInjecao),
+                NormalizeOptional(SistemaInjecao),
+                ParseOptionalDecimal(Contracao),
+                NormalizeOptional(AcabamentoPeca),
+                SelectedCorOption?.Value,
+                NormalizeOptional(MaterialMacho),
+                NormalizeOptional(MaterialCavidade),
+                NormalizeOptional(MaterialMovimentos),
+                NormalizeOptional(MaterialInjecao),
+                ImagemCapaPath);
 
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
@@ -240,6 +284,21 @@ public partial class AdicionarMoldeViewModel : ObservableObject
         if (SelectedTipoPedidoOption is null)
             return "Selecione o tipo de pedido.";
 
+        if (!IsValidOptionalDecimal(Largura))
+            return "A largura nao e valida.";
+
+        if (!IsValidOptionalDecimal(Comprimento))
+            return "O comprimento nao e valido.";
+
+        if (!IsValidOptionalDecimal(Altura))
+            return "A altura nao e valida.";
+
+        if (!IsValidOptionalDecimal(PesoEstimado))
+            return "O peso estimado nao e valido.";
+
+        if (!IsValidOptionalDecimal(Contracao))
+            return "A contracao nao e valida.";
+
         return string.Empty;
     }
 
@@ -253,9 +312,41 @@ public partial class AdicionarMoldeViewModel : ObservableObject
         ];
     }
 
+    private static IReadOnlyList<CorMoldeOption> GetCorOptions()
+    {
+        return
+        [
+            new CorMoldeOption(CorMolde.MONOCOLOR, "Monocolor"),
+            new CorMoldeOption(CorMolde.BICOLOR, "Bicolor"),
+            new CorMoldeOption(CorMolde.OUTRO, "Outro")
+        ];
+    }
+
     private static string? NormalizeOptional(string? value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static decimal? ParseOptionalDecimal(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return decimal.Parse(value.Trim(), NumberStyles.Number, CultureInfo.CurrentCulture);
+    }
+
+    private static bool IsValidOptionalDecimal(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return true;
+
+        return decimal.TryParse(value.Trim(), NumberStyles.Number, CultureInfo.CurrentCulture, out _);
+    }
+
+    private void NotifyCanCreateStateChanged()
+    {
+        OnPropertyChanged(nameof(CanCreate));
+        CreateCommand.NotifyCanExecuteChanged();
     }
 }
 
@@ -263,3 +354,8 @@ public partial class AdicionarMoldeViewModel : ObservableObject
 /// Opcao de tipo de pedido apresentada no picker.
 /// </summary>
 public sealed record TipoPedidoOption(string Value, string DisplayName);
+
+/// <summary>
+/// Opcao de cor apresentada no picker.
+/// </summary>
+public sealed record CorMoldeOption(CorMolde Value, string DisplayName);

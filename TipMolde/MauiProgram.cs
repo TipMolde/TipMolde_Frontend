@@ -61,13 +61,20 @@ namespace TipMolde
             builder.Services.AddTransient<Clientes>();
 
             builder.Services.AddTransient<EncomendasService>();
+            builder.Services.AddTransient<FornecedoresService>();
+            builder.Services.AddTransient<PedidosMaterialService>();
             builder.Services.AddTransient<MoldesService>();
+            builder.Services.AddTransient<ProjetosService>();
+            builder.Services.AddTransient<RevisoesService>();
+            builder.Services.AddTransient<RegistosTempoProjetoService>();
             builder.Services.AddTransient<PecasService>();
             builder.Services.AddTransient<MaquinasService>();
             builder.Services.AddTransient<FasesProducaoService>();
             builder.Services.AddTransient<RegistosProducaoService>();
             builder.Services.AddTransient<GlobalMoldePriorityService>();
             builder.Services.AddTransient<RelatoriosService>();
+            builder.Services.AddTransient<ProducaoViewModelDependencies>();
+            builder.Services.AddTransient<RegistoProducaoViewModelDependencies>();
 
             builder.Services.AddTransient<AdicionarClienteViewModel>();
             builder.Services.AddTransient<AdicionarClientePage>();
@@ -77,6 +84,8 @@ namespace TipMolde
 
             builder.Services.AddTransient<AdicionarMoldeViewModel>();
             builder.Services.AddTransient<AdicionarMoldePage>();
+            builder.Services.AddTransient<EditarMoldeViewModel>();
+            builder.Services.AddTransient<EditarMoldePage>();
             builder.Services.AddTransient<AdicionarPecaViewModel>();
             builder.Services.AddTransient<AdicionarPecaPage>();
             builder.Services.AddTransient<EditarPecaViewModel>();
@@ -92,6 +101,9 @@ namespace TipMolde
 
             builder.Services.AddTransient<EncomendasViewModel>();
             builder.Services.AddTransient<Encomendas>();
+
+            builder.Services.AddTransient<PedidosMaterialViewModel>();
+            builder.Services.AddTransient<PedidosMaterial>();
 
             builder.Services.AddTransient<EncomendaDetalheViewModel>();
             builder.Services.AddTransient<EncomendaDetalhePage>();
@@ -109,6 +121,12 @@ namespace TipMolde
             builder.Services.AddTransient<MaquinasPage>();
             builder.Services.AddTransient<DesenhoViewModel>();
             builder.Services.AddTransient<DesenhoPage>();
+            builder.Services.AddTransient<ProjetosViewModel>();
+            builder.Services.AddTransient<ProjetosPage>();
+            builder.Services.AddTransient<AdicionarProjetoViewModel>();
+            builder.Services.AddTransient<AdicionarProjetoPage>();
+            builder.Services.AddTransient<ProjetoDetalheViewModel>();
+            builder.Services.AddTransient<ProjetoDetalhePage>();
             builder.Services.AddTransient<RelatoriosViewModel>();
             builder.Services.AddTransient<RelatoriosPage>();
 
