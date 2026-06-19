@@ -407,6 +407,7 @@ jobs:
         shell: powershell
         run: |
           dotnet restore ${{ env.TEST_PROJECT_FILE }} `
+            --runtime win-x64 `
             --disable-build-servers `
             --disable-parallel `
             --force `
