@@ -429,7 +429,7 @@ jobs:
             -p:PublishReadyToRun=false `
             --logger "trx;LogFileName=TipMolde.Test.trx" `
             --results-directory "${{ github.workspace }}\TestResults" `
-            --collect "XPlat Code Coverage"
+            --collect:"XPlat Code Coverage;Format=opencover"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -470,7 +470,7 @@ jobs:
       - name: Generate test report
         shell: powershell
         run: |
-          $coverageGlob = "${{ github.workspace }}\TestResults\**\coverage.cobertura.xml"
+          $coverageGlob = "${{ github.workspace }}\TestResults\**\coverage.opencover.xml"
           $reportDir = "${{ github.workspace }}\CoverageReport"
 
           New-Item -ItemType Directory -Force -Path $reportDir | Out-Null
@@ -478,7 +478,7 @@ jobs:
           reportgenerator `
             "-reports:$coverageGlob" `
             "-targetdir:$reportDir" `
-            "-reporttypes:HtmlInline_AzurePipelines;OpenCover;TextSummary"
+            "-reporttypes:Html;TextSummary"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -591,12 +591,6 @@ jobs:
           name: frontend-test-results
           path: ${{ github.workspace }}\TestResults
 
-      - name: Download coverage report
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-coverage-report
-          path: ${{ github.workspace }}\CoverageReport
-
       - name: Ensure Windows MAUI workload
         shell: powershell
         run: |
@@ -627,8 +621,9 @@ jobs:
             /o:"${{ env.SONAR_ORG_KEY }}" `
             "/d:sonar.host.url=$env:SONAR_HOST_URL" `
             "/d:sonar.token=$env:SONAR_TOKEN" `
+            "/d:sonar.exclusions=CoverageReport/**,TestResults/**" `
             "/d:sonar.cs.vstest.reportsPaths=${{ github.workspace }}\TestResults\**\*.trx" `
-            "/d:sonar.cs.opencover.reportsPaths=${{ github.workspace }}\CoverageReport\OpenCover.xml"
+            "/d:sonar.cs.opencover.reportsPaths=${{ github.workspace }}\TestResults\**\coverage.opencover.xml"
 
       - name: Restore Windows dependencies for Sonar
         shell: powershell
