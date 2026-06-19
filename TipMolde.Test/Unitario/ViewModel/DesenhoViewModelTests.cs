@@ -58,6 +58,30 @@ public class DesenhoViewModelTests
         _sut.TotalEncomendasConfirmadas.Should().Be(2);
     }
 
+    [Test(Description = "T1BFR - O ViewModel deve expor erro quando a API de desenho devolve 403.")]
+    public async Task LoadAsync_Should_SurfacePermissionError_When_DrawingEndpointReturnsForbidden()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            request => request.RequestUri?.PathAndQuery == "/api/encomenda-moldes/encomendas-confirmadas-para-desenho?page=1&pageSize=100"
+                ? new HttpResponseMessage(HttpStatusCode.Forbidden)
+                : new HttpResponseMessage(HttpStatusCode.NotFound),
+            out _);
+
+        var sut = new DesenhoViewModel(
+            new EncomendasService(httpClient),
+            new PecasService(httpClient),
+            _dialogService.Object);
+
+        // ACT
+        await sut.LoadAsync();
+
+        // ASSERT
+        sut.Moldes.Should().BeEmpty();
+        sut.HasError.Should().BeTrue();
+        sut.ErrorMessage.Should().Be("Nao tens permissao para consultar os moldes aptos para desenho.");
+    }
+
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch

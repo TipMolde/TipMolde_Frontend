@@ -15,6 +15,10 @@ public sealed class EncomendasService : ApiServiceBase
         using var response = await HttpClient.GetAsync(
             $"api/encomendas?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as encomendas.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -25,6 +29,10 @@ public sealed class EncomendasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync(
             $"api/encomendas/em-producao?page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as encomendas em producao.");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -37,6 +45,10 @@ public sealed class EncomendasService : ApiServiceBase
         using var response = await HttpClient.GetAsync(
             $"api/encomendas/em-producao/search?searchTerm={Uri.EscapeDataString(searchTerm.Trim())}&page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para pesquisar encomendas em producao.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -46,6 +58,10 @@ public sealed class EncomendasService : ApiServiceBase
     public async Task<EncomendaResumoDto?> GetByIdAsync(int encomendaId)
     {
         using var response = await HttpClient.GetAsync($"api/encomendas/{encomendaId}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar a encomenda.");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -58,6 +74,10 @@ public sealed class EncomendasService : ApiServiceBase
         using var response = await HttpClient.GetAsync(
             $"api/encomenda-moldes/por-encomenda/{encomendaId}?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar os moldes da encomenda.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -68,6 +88,10 @@ public sealed class EncomendasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync(
             $"api/encomenda-moldes/por-molde/{moldeId}?page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as encomendas do molde.");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -80,6 +104,10 @@ public sealed class EncomendasService : ApiServiceBase
         using var response = await HttpClient.GetAsync(
             $"api/encomenda-moldes/fila-global?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar a fila global de moldes.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -90,6 +118,10 @@ public sealed class EncomendasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync(
             $"api/encomenda-moldes/encomendas-confirmadas-para-desenho?page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar os moldes aptos para desenho.");
 
         if (!response.IsSuccessStatusCode)
             return null;

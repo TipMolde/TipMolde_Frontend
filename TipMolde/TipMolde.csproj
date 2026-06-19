@@ -128,6 +128,9 @@
 		<MauiXaml Update="View\RelatoriosPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
+		<MauiXaml Update="View\RegistoProducaoPage.xaml">
+			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
 		<MauiXaml Update="View\Producao.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>

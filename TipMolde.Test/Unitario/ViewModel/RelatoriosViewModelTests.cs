@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
@@ -22,6 +23,7 @@ public class RelatoriosViewModelTests
 {
     private Mock<IDialogService> _dialogService = null!;
     private RelatoriosViewModel _sut = null!;
+    private List<HttpRequestMessage> _requests = null!;
 
     [SetUp]
     public void SetUp()
@@ -30,7 +32,7 @@ public class RelatoriosViewModelTests
 
         var httpClient = CreateHttpClient(
             request => HandleRequest(request),
-            out _);
+            out _requests);
 
         _sut = new RelatoriosViewModel(
             new MoldesService(httpClient),
@@ -52,9 +54,81 @@ public class RelatoriosViewModelTests
         _sut.Moldes[0].Nome.Should().Be("Molde com contexto");
     }
 
+    [Test(Description = "T2FRT - Quando nao existe ficha FRM, o frontend deve cria-la no backend antes de exportar.")]
+    public async Task GenerateAsync_Should_CreateMissingFrmFicha_BeforeExporting()
+    {
+        // ARRANGE
+        await _sut.LoadAsync();
+        _sut.SelectedDestinationFolder = Path.Combine(Path.GetTempPath(), "tipmolde-relatorios-tests", Guid.NewGuid().ToString("N"));
+        _sut.SelectedTipoRelatorio = "FRM";
+
+        await _sut.SelecionarMoldeCommand.ExecuteAsync(_sut.Moldes[0]);
+
+        // ACT
+        await _sut.GenerateCommand.ExecuteAsync(null);
+
+        // ASSERT
+        _requests.Any(request =>
+                request.Method == HttpMethod.Post &&
+                request.RequestUri?.PathAndQuery == "/api/fichas-producao/ensure")
+            .Should()
+            .BeTrue();
+
+        _requests.Any(request =>
+                request.Method == HttpMethod.Get &&
+                request.RequestUri?.PathAndQuery == "/api/fichas-producao/42/export/frm")
+            .Should()
+            .BeTrue();
+
+        _sut.IsReportAvailable.Should().BeTrue();
+        Directory.Exists(_sut.SelectedDestinationFolder).Should().BeTrue();
+        Directory.GetFiles(_sut.SelectedDestinationFolder).Should().NotBeEmpty();
+        _dialogService.Verify(
+            dialog => dialog.ShowSuccessAsync(
+                "Relatorio gerado",
+                It.Is<string>(message => message.Contains("FRM"))),
+            Times.Once);
+    }
+
     private HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
-        return request.RequestUri?.PathAndQuery switch
+        var path = request.RequestUri?.PathAndQuery ?? string.Empty;
+
+        if (request.Method == HttpMethod.Post && path == "/api/fichas-producao/ensure")
+        {
+            return CreateJsonResponse(
+                HttpStatusCode.OK,
+                new
+                {
+                    fichaProducao_id = 42,
+                    tipo = "FRM",
+                    dataCriacao = new DateTime(2026, 6, 19, 10, 30, 0, DateTimeKind.Utc),
+                    encomendaMolde_id = 10
+                });
+        }
+
+        if (request.Method == HttpMethod.Get && path == "/api/fichas-producao/by-molde?moldeId=1&page=1&pageSize=200")
+        {
+            return CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<FichaProducaoResumoDto>
+                {
+                    Items = [],
+                    Page = 1,
+                    PageSize = 200,
+                    TotalItems = 0
+                });
+        }
+
+        if (request.Method == HttpMethod.Get && path == "/api/fichas-producao/42/export/frm")
+        {
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(new byte[] { 1, 2, 3, 4 })
+            };
+        }
+
+        return path switch
         {
             "/api/moldes?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,
@@ -118,6 +192,29 @@ public class RelatoriosViewModelTests
                     Page = 1,
                     PageSize = 1,
                     TotalItems = 0
+                }),
+            "/api/encomenda-moldes/por-molde/1?page=1&pageSize=100" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<EncomendaMoldeDto>
+                {
+                    Items =
+                    [
+                        new EncomendaMoldeDto
+                        {
+                            EncomendaMolde_id = 10,
+                            Encomenda_id = 20,
+                            Molde_id = 1,
+                            Quantidade = 120,
+                            Prioridade = 1,
+                            DataEntregaPrevista = new DateTime(2026, 6, 18),
+                            Estado = "ABERTO",
+                            NumeroEncomendaCliente = "ENC-001",
+                            NumeroMolde = "M-001"
+                        }
+                    ],
+                    Page = 1,
+                    PageSize = 100,
+                    TotalItems = 1
                 }),
             _ => new HttpResponseMessage(HttpStatusCode.NotFound)
         };

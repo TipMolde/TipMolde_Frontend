@@ -16,6 +16,10 @@ public sealed class MoldesService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync($"api/moldes/{moldeId}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar o molde.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -25,6 +29,10 @@ public sealed class MoldesService : ApiServiceBase
     public async Task<PagedResult<MoldeDto>?> GetAllAsync(int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync($"api/moldes?page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar os moldes.");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -37,6 +45,10 @@ public sealed class MoldesService : ApiServiceBase
         using var response = await HttpClient.GetAsync(
             $"api/moldes/por-encomenda/{encomendaId}?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar os moldes da encomenda.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -46,6 +58,10 @@ public sealed class MoldesService : ApiServiceBase
     public async Task<MoldeCicloVidaDashboardDto?> GetDashboardCicloVidaAsync(int moldeId)
     {
         using var response = await HttpClient.GetAsync($"api/moldes/{moldeId}/dashboard-ciclo-vida");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar o dashboard do molde.");
 
         if (!response.IsSuccessStatusCode)
             return null;

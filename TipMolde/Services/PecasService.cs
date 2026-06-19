@@ -41,6 +41,10 @@ public sealed class PecasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as pecas do molde.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
@@ -50,6 +54,10 @@ public sealed class PecasService : ApiServiceBase
     public async Task<PagedResult<PecaDto>?> GetByMoldeIdWithoutPedidoMaterialAsync(int moldeId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/sem-pedido-material?page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as pecas do molde.");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -61,15 +69,46 @@ public sealed class PecasService : ApiServiceBase
     {
         using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/pendentes-rececao-material?page={page}&pageSize={pageSize}");
 
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar as pecas pendentes de rececao.");
+
         if (!response.IsSuccessStatusCode)
             return null;
 
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
+    public async Task<PagedResult<ProducaoPecaDisponivelItem>?> GetFilaTrabalhoAsync(
+        int page,
+        int pageSize,
+        string? searchTerm,
+        string searchMode)
+    {
+        var query = $"api/pecas/fila-trabalho?page={page}&pageSize={pageSize}&searchMode={Uri.EscapeDataString(searchMode)}";
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            query += $"&searchTerm={Uri.EscapeDataString(searchTerm.Trim())}";
+
+        using var response = await HttpClient.GetAsync(query);
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar a fila de trabalho de pecas.");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<ProducaoPecaDisponivelItem>>(response);
+    }
+
     public async Task<PecaDto?> GetByIdAsync(int pecaId)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/{pecaId}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar a peca.");
 
         if (!response.IsSuccessStatusCode)
             return null;

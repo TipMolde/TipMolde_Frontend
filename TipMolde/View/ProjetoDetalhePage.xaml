@@ -364,11 +364,6 @@
                                                     <Label Text="{Binding DataHoraDisplay, StringFormat='Registado em: {0}'}"
                                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                 </VerticalStackLayout>
-
-                                                <Label Grid.Column="1"
-                                                       Text="{Binding Registo_Tempo_Projeto_id, StringFormat='# {0}'}"
-                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
-                                                       VerticalOptions="Center" />
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

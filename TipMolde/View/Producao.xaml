@@ -43,7 +43,7 @@
                                     HeightRequest="44"
                                     HorizontalOptions="End" />
 
-                            <Button Text="Fila de Trabalho"
+                            <Button Text="Fila de Moldes"
                                     Command="{Binding AbrirFilaTrabalhoCommand}"
                                     BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                     TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"

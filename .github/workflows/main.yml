@@ -423,7 +423,6 @@ jobs:
             --configuration Release `
             --framework ${{ env.WINDOWS_TFM }} `
             --disable-build-servers `
-            --disable-parallel `
             --no-restore `
             --logger "trx;LogFileName=TipMolde.Test.trx" `
             --results-directory "${{ github.workspace }}\TestResults" `

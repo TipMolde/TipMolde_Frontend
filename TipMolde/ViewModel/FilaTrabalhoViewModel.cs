@@ -23,7 +23,7 @@ public partial class FilaTrabalhoViewModel : PaginatedViewModel
     public ObservableCollection<FilaGlobalMoldeItemDto> Moldes { get; } = new();
 
     public bool HasItems => Moldes.Count > 0;
-    public static string EmptyMessage => "Nao existem moldes na fila global de trabalho.";
+    public string EmptyMessage => "Nao existem moldes na fila global de trabalho.";
 
     public async Task LoadFilaAsync()
     {

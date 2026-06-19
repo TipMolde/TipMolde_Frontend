@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Moq;
 using NUnit.Framework;
 using TipMolde.Services;
 using TipMolde.ViewModel;
@@ -26,18 +25,12 @@ public class ProducaoViewModelTests
             BaseAddress = new Uri("https://localhost/")
         };
 
-        var dependencies = new ProducaoViewModelDependencies(
-            new EncomendasService(httpClient),
-            new PecasService(httpClient),
-            new FasesProducaoService(httpClient),
-            new MaquinasService(httpClient),
-            new RegistosProducaoService(httpClient));
-
         _sut = new ProducaoViewModel(
-            dependencies,
+            new PecasService(httpClient),
             new SessaoPersistidaService(httpClient),
             new UtilizadoresService(httpClient),
-            new Mock<IDialogService>().Object);
+            new RegistosProducaoService(httpClient),
+            new DialogServiceStub());
     }
 
     [Test(Description = "T1FRT - A pagina de producao deve permitir pesquisa apenas por molde e peca.")]
@@ -45,5 +38,17 @@ public class ProducaoViewModelTests
     {
         // ASSERT
         _sut.SearchModes.Should().Equal("Molde", "Peca");
+    }
+
+    private sealed class DialogServiceStub : IDialogService
+    {
+        public Page GetCurrentPage() => new ContentPage();
+        public Task<string> ShowOptionsAsync(string message, string action) => Task.FromResult(string.Empty);
+        public Task<string?> ShowSelectionAsync(string title, string cancel, params string[] options) => Task.FromResult<string?>(null);
+        public Task<string?> PromptAsync(string title, string message, PromptDialogOptions? options = null) => Task.FromResult<string?>(null);
+        public Task<bool> ConfirmDeleteAsync(string message) => Task.FromResult(false);
+        public Task ShowInfoAsync(string title, string message) => Task.CompletedTask;
+        public Task ShowSuccessAsync(string title, string message) => Task.CompletedTask;
+        public Task ShowErrorAsync(string title, string message) => Task.CompletedTask;
     }
 }

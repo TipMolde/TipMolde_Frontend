@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using TipMolde.Models;
 
 namespace TipMolde.Services;
@@ -34,6 +35,20 @@ public sealed class RelatoriosService : ApiServiceBase
             : directory;
 
         return DownloadAsync(request, targetDirectory, "gerado");
+    }
+
+    public async Task<FichaProducaoResumoDto?> EnsureFichaAsync(string tipoRelatorio, int encomendaMoldeId)
+    {
+        var payload = new
+        {
+            Tipo = tipoRelatorio.ToUpperInvariant(),
+            EncomendaMolde_id = encomendaMoldeId
+        };
+
+        using var response = await HttpClient.PostAsJsonAsync("api/fichas-producao/ensure", payload);
+        await EnsureSuccessAsync(response, $"Nao foi possivel garantir a ficha {tipoRelatorio}.");
+
+        return await DeserializeAsync<FichaProducaoResumoDto>(response);
     }
 
     private async Task<RelatorioFileResult> DownloadAsync(

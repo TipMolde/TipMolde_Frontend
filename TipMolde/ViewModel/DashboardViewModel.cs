@@ -108,7 +108,7 @@ public partial class DashboardViewModel : ObservableObject
         : ValorNaoDefinido;
     public string EncomendasConcluidasUltimosTresMesesDisplay => EncomendasConcluidasUltimosTresMeses?.ToString() ?? ValorNaoDefinido;
     public string MoldesComAtrasoDisplay => MoldesComAtraso?.ToString() ?? ValorNaoDefinido;
-    public static string IntervaloUltimosTresMesesDisplay => $"{DateTime.Today.AddMonths(-3):dd/MM/yyyy} - {DateTime.Today:dd/MM/yyyy}";
+    public string IntervaloUltimosTresMesesDisplay => $"{DateTime.Today.AddMonths(-3):dd/MM/yyyy} - {DateTime.Today:dd/MM/yyyy}";
     public bool HasRececaoMaterialError => !string.IsNullOrWhiteSpace(RececaoMaterialErrorMessage);
     public bool HasMoldesRececaoDisponiveis => MoldesRececaoDisponiveis.Count > 0;
     public bool HasNoMoldesRececaoDisponiveis => CanUseRececaoMaterial && !IsLoadingHero && MoldesRececaoDisponiveis.Count == 0;

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -38,6 +39,12 @@ public abstract class ApiServiceBase
             return;
 
         throw await CreateApiExceptionAsync(response, fallbackMessage);
+    }
+
+    protected static async Task ThrowIfAuthorizationFailureAsync(HttpResponseMessage response, string fallbackMessage)
+    {
+        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            throw await CreateApiExceptionAsync(response, fallbackMessage);
     }
 
     protected static async Task<InvalidOperationException> CreateApiExceptionAsync(HttpResponseMessage response, string fallbackMessage)

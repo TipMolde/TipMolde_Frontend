@@ -28,28 +28,26 @@ public class ProducaoViewModelLoadTests
     {
         var httpClient = CreateHttpClient(HandleRequest, out _requests);
 
-        var dependencies = new ProducaoViewModelDependencies(
-            new EncomendasService(httpClient),
-            new PecasService(httpClient),
-            new FasesProducaoService(httpClient),
-            new MaquinasService(httpClient),
-            new RegistosProducaoService(httpClient));
-
         _sut = new ProducaoViewModel(
-            dependencies,
+            new PecasService(httpClient),
             new SessaoPersistidaService(httpClient),
             new UtilizadoresService(httpClient),
+            new RegistosProducaoService(httpClient),
             new DialogServiceStub());
     }
 
-    [Test(Description = "T1FRT - O carregamento inicial da pagina de producao nao deve pedir maquinas.")]
-    public async Task LoadAsync_Should_NotRequestMachines_When_OpeningProductionPage()
+    [Test(Description = "T1FRT - O carregamento inicial da pagina de producao deve pedir apenas a fila de pecas.")]
+    public async Task LoadAsync_Should_LoadPecasQueue_WithoutRequestingMachines()
     {
         // ACT
         await _sut.LoadAsync();
 
         // ASSERT
         _sut.PecasDisponiveis.Should().NotBeEmpty();
+        _requests.Should().Contain(request => request.Path.StartsWith("/api/pecas/fila-trabalho", StringComparison.OrdinalIgnoreCase));
+        _requests.Should().NotContain(request => request.Path.StartsWith("/api/encomenda-moldes/fila-global", StringComparison.OrdinalIgnoreCase));
+        _requests.Should().NotContain(request => request.Path.StartsWith("/api/fases-producao", StringComparison.OrdinalIgnoreCase));
+        _requests.Should().NotContain(request => request.Path.StartsWith("/api/RegistosProducao/ultimo", StringComparison.OrdinalIgnoreCase));
         _requests.Should().NotContain(request => request.Path.StartsWith("/api/Maquina", StringComparison.OrdinalIgnoreCase));
     }
 
@@ -57,7 +55,7 @@ public class ProducaoViewModelLoadTests
     {
         return request.RequestUri?.PathAndQuery switch
         {
-            "/api/encomenda-moldes/fila-global?page=1&pageSize=100" => CreateJsonResponse(
+            "/api/encomenda-moldes/fila-global?page=1&pageSize=10" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<FilaGlobalMoldeItemDto>
                 {
@@ -79,10 +77,10 @@ public class ProducaoViewModelLoadTests
                         }
                     ],
                     Page = 1,
-                    PageSize = 100,
+                    PageSize = 10,
                     TotalItems = 1
                 }),
-            "/api/fases-producao?page=1&pageSize=100" => CreateJsonResponse(
+            "/api/fases-producao?page=1&pageSize=10" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<FaseProducaoItem>
                 {
@@ -96,7 +94,7 @@ public class ProducaoViewModelLoadTests
                         }
                     ],
                     Page = 1,
-                    PageSize = 100,
+                    PageSize = 10,
                     TotalItems = 1
                 }),
             "/api/users/7" => CreateJsonResponse(
@@ -107,28 +105,38 @@ public class ProducaoViewModelLoadTests
                     Nome = "Gestor Teste",
                     Role = "ADMIN"
                 }),
-            "/api/pecas/por-molde/1?page=1&pageSize=100" => CreateJsonResponse(
+            "/api/pecas/fila-trabalho?page=1&pageSize=8&searchMode=Molde" => CreateJsonResponse(
                 HttpStatusCode.OK,
-                new PagedResult<PecaDto>
+                new PagedResult<ProducaoPecaDisponivelItem>
                 {
                     Items =
                     [
-                        new PecaDto
+                        new ProducaoPecaDisponivelItem
                         {
+                            MoldeId = 1,
                             PecaId = 11,
-                            NumeroPeca = "P-011",
-                            Designacao = "Peca Teste",
+                            PrioridadeMolde = 1,
+                            PrioridadePeca = 2,
                             Quantidade = 4,
-                            Molde_id = 1,
-                            MaterialRecebido = true,
-                            ProximaFase_id = 1
+                            NumeroMolde = "M-001",
+                            NomeMolde = "Molde Teste",
+                            NumeroEncomendaCliente = "ENC-001",
+                            NomeCliente = "Cliente Teste",
+                            Designacao = "Peca Teste",
+                            NumeroPeca = "P-011",
+                            DataEntregaPrevista = new DateTime(2026, 6, 18),
+                            UltimoEstadoGlobal = "EM_PRODUCAO",
+                            UltimaFaseGlobal = "MONTAGEM",
+                            ProximaFaseId = 1,
+                            ProximaFaseNome = "MONTAGEM",
+                            FaseTrabalho = "MONTAGEM",
+                            ProximoPasso = "Continuar montagem"
                         }
                     ],
                     Page = 1,
-                    PageSize = 100,
+                    PageSize = 8,
                     TotalItems = 1
                 }),
-            "/api/RegistosProducao/ultimo?faseId=1&pecaId=11" => new HttpResponseMessage(HttpStatusCode.NotFound),
             _ => new HttpResponseMessage(HttpStatusCode.NotFound)
         };
     }

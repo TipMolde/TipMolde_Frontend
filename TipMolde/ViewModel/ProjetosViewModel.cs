@@ -109,7 +109,7 @@ public partial class ProjetosViewModel : PaginatedViewModel
     {
         await EnsurePermissionsLoadedAsync();
 
-        var primeiraPagina = await _projetosService.GetAllAsync(1, 100);
+        var primeiraPagina = await _projetosService.GetAllAsync(1, 10);
         if (primeiraPagina is null)
             return [];
 

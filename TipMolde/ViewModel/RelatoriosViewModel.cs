@@ -505,34 +505,23 @@ public partial class RelatoriosViewModel : ObservableObject
             };
         }
 
-        var fichas = await ObterFichasDoMoldeSelecionadoAsync();
-        var ficha = fichas
-            .Where(item => item.EncomendaMoldeId == SelectedContexto.EncomendaMolde_id &&
-                           string.Equals(item.TipoDisplay, tipo, StringComparison.OrdinalIgnoreCase))
-            .OrderByDescending(item => item.DataCriacao)
-            .FirstOrDefault();
-
-        if (ficha is null)
-        {
-            IsReportAvailable = false;
-            HasPreview = true;
-            PreviewTitulo = $"Sem ficha {tipo}";
-            PreviewResumo = $"Nao existe nenhuma ficha {tipo} associada ao molde {SelectedMolde.Numero} no contexto comercial selecionado.";
-            PreviewDetalhes = BuildPreviewDetails(null);
-            PreviewOrigem = $"Contexto comercial: {SelectedContexto.ContextoDisplay}";
-
-            await _dialogService.ShowInfoAsync(
-                "Relatorio indisponivel",
-                $"Nao existe nenhuma ficha {tipo} para o molde {SelectedMolde.Numero} neste contexto.");
-
+        var resultadoFicha = await ObterOuCriarFichaDoContextoAsync(tipo, SelectedContexto.EncomendaMolde_id);
+        if (resultadoFicha is null)
             return null;
-        }
+
+        var (ficha, criadaAgora) = resultadoFicha.Value;
 
         IsReportAvailable = true;
-        PreviewTitulo = $"{tipo} pronta a exportar";
-        PreviewResumo = $"Foi localizada a ficha {tipo} mais recente para este contexto.";
+        PreviewTitulo = criadaAgora
+            ? $"{tipo} criada e pronta a exportar"
+            : $"{tipo} pronta a exportar";
+        PreviewResumo = criadaAgora
+            ? $"Nao existia nenhuma ficha {tipo} para este contexto. O backend criou uma nova e ela ficou pronta para exportacao."
+            : $"Foi localizada a ficha {tipo} mais recente para este contexto.";
         PreviewDetalhes = BuildPreviewDetails(ficha);
-        PreviewOrigem = $"Ficha encontrada: #{ficha.FichaProducaoId} em {ficha.DataCriacao:dd/MM/yyyy HH:mm}";
+        PreviewOrigem = criadaAgora
+            ? $"Ficha criada: #{ficha.FichaProducaoId} em {ficha.DataCriacao:dd/MM/yyyy HH:mm}"
+            : $"Ficha encontrada: #{ficha.FichaProducaoId} em {ficha.DataCriacao:dd/MM/yyyy HH:mm}";
 
         return new RelatorioExportRequest
         {
@@ -572,6 +561,31 @@ public partial class RelatoriosViewModel : ObservableObject
         _fichasMoldeIdEmCache = SelectedMolde.MoldeId;
 
         return _fichasDoMoldeSelecionado;
+    }
+
+    private async Task<(FichaProducaoResumoDto Ficha, bool CriadaAgora)?> ObterOuCriarFichaDoContextoAsync(string tipoRelatorio, int encomendaMoldeId)
+    {
+        var fichas = await ObterFichasDoMoldeSelecionadoAsync();
+        var fichaExistente = fichas
+            .Where(item => item.EncomendaMoldeId == encomendaMoldeId &&
+                           string.Equals(item.TipoDisplay, tipoRelatorio, StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(item => item.DataCriacao)
+            .FirstOrDefault();
+
+        if (fichaExistente is not null)
+            return (fichaExistente, false);
+
+        var fichaCriada = await _relatoriosService.EnsureFichaAsync(tipoRelatorio, encomendaMoldeId);
+        if (fichaCriada is null)
+            return null;
+
+        if (_fichasMoldeIdEmCache == SelectedMolde?.MoldeId)
+        {
+            _fichasDoMoldeSelecionado.RemoveAll(item => item.FichaProducaoId == fichaCriada.FichaProducaoId);
+            _fichasDoMoldeSelecionado.Add(fichaCriada);
+        }
+
+        return (fichaCriada, true);
     }
 
     private string BuildPreviewDetails(FichaProducaoResumoDto? ficha)
