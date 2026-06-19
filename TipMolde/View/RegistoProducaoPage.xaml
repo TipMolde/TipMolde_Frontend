@@ -198,9 +198,11 @@
                                     <Label Text="Molde"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Label Text="{Binding NumeroMoldeDisplay}" />
+                                    <Label Text="{Binding NumeroMoldeDisplay}"
+                                           LineBreakMode="WordWrap" />
                                     <Label Text="{Binding NomeMoldeDisplay}"
                                            FontSize="12"
+                                           LineBreakMode="WordWrap"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
@@ -209,9 +211,11 @@
                                     <Label Text="Peca"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Label Text="{Binding DesignacaoPecaDisplay}" />
+                                    <Label Text="{Binding DesignacaoPecaDisplay}"
+                                           LineBreakMode="WordWrap" />
                                     <Label Text="{Binding NumeroPecaDisplay}"
                                            FontSize="12"
+                                           LineBreakMode="WordWrap"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
@@ -220,7 +224,8 @@
                                     <Label Text="Estado atual"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Label Text="{Binding EstadoAtualDisplay}" />
+                                    <Label Text="{Binding EstadoAtualDisplay}"
+                                           LineBreakMode="WordWrap" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Row="1"
@@ -229,7 +234,8 @@
                                     <Label Text="Entrega"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Label Text="{Binding DataEntregaPrevistaDisplay}" />
+                                    <Label Text="{Binding DataEntregaPrevistaDisplay}"
+                                           LineBreakMode="WordWrap" />
                                 </VerticalStackLayout>
                             </Grid>
                         </VerticalStackLayout>
@@ -254,6 +260,7 @@
                             </VerticalStackLayout>
 
                             <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto"
                                   ColumnSpacing="16"
                                   RowSpacing="14">
                                 <VerticalStackLayout Spacing="8">
@@ -307,10 +314,12 @@
 
                             <Label Text="{Binding ProximaFaseHint}"
                                    FontSize="12"
+                                   LineBreakMode="WordWrap"
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
                             <Label Text="{Binding MachineHint}"
                                    FontSize="12"
+                                   LineBreakMode="WordWrap"
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
                             <Button Text="{Binding SaveButtonText}"
@@ -330,18 +339,21 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="16">
-                            <Grid ColumnDefinitions="*,Auto"
-                                  ColumnSpacing="12">
+                            <Grid RowDefinitions="Auto,Auto"
+                                  RowSpacing="12">
                                 <VerticalStackLayout Spacing="4">
                                     <Label Text="{Binding HistoricoTituloDisplay}"
                                            FontFamily="OpenSansSemibold"
-                                           FontSize="20" />
+                                           FontSize="20"
+                                           LineBreakMode="WordWrap" />
                                     <Label Text="Segue aqui os ultimos registos desta peca, num formato mais facil de ler."
                                            FontSize="13"
+                                           LineBreakMode="WordWrap"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
 
-                                <Border BackgroundColor="{AppThemeBinding Light=#E0F2FE, Dark=#082F49}"
+                                <Border Grid.Row="1"
+                                        BackgroundColor="{AppThemeBinding Light=#E0F2FE, Dark=#082F49}"
                                         StrokeThickness="0"
                                         Padding="12,8">
                                     <Border.StrokeShape>

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
@@ -278,6 +279,37 @@ public partial class RegistoProducaoViewModel : ObservableObject
         await ShellNavigationService.GoBackAsync();
     }
 
+    [RelayCommand]
+    private async Task AbrirRegistoAtivoAsync()
+    {
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            if (!GestorProducaoId.HasValue)
+            {
+                await _dialogService.ShowInfoAsync("Registo ativo", "Nao foi possivel identificar o gestor de producao autenticado.");
+                return;
+            }
+
+            var registoAtivo = GetRegistoAtivoDoGestorProducao(GestorProducaoId.Value, _todosRegistos);
+            if (registoAtivo is null)
+            {
+                await _dialogService.ShowInfoAsync("Registo ativo", "Nao tens nenhum registo ativo neste momento.");
+                return;
+            }
+
+            await Shell.Current.GoToAsync(nameof(RegistoProducaoPage), new Dictionary<string, object>
+            {
+                ["abrir_ativo"] = true
+            });
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
     [RelayCommand(CanExecute = nameof(CanGuardar))]
     private async Task GuardarAsync()
     {
@@ -474,9 +506,6 @@ public partial class RegistoProducaoViewModel : ObservableObject
 
     private async Task<ProducaoPecaDisponivelItem> BuildContextFromPecaIdAsync(int pecaId, ProducaoPecaDisponivelItem? fallback)
     {
-        if (fallback is not null && fallback.PecaId == pecaId)
-            return fallback;
-
         var peca = await _pecasService.GetByIdAsync(pecaId)
             ?? throw new InvalidOperationException($"Nao foi possivel carregar a peca {pecaId}.");
 
@@ -821,10 +850,17 @@ public partial class RegistoProducaoViewModel : ObservableObject
                 return;
             }
 
-            _proximaFaseOriginalId = novaFase.FasesProducao_id;
+            await _pecasService.UpdateProximaFaseAsync(PecaContexto.PecaId, novaFase.FasesProducao_id);
+
+            await _dialogService.ShowSuccessAsync(
+                "Proxima fase atualizada",
+                $"A proxima fase da peca {DesignacaoPecaDisplay} foi atualizada para {novoDisplay}.");
+
+            await RecarregarContextoAtualAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            await _dialogService.ShowErrorAsync("Proxima fase", ex.Message);
             RestaurarProximaFaseOriginal();
         }
     }
@@ -866,6 +902,18 @@ public partial class RegistoProducaoViewModel : ObservableObject
         OnPropertyChanged(nameof(HasHistorico));
         OnPropertyChanged(nameof(HistoricoTituloDisplay));
         OnPropertyChanged(nameof(HistoricoCountDisplay));
+    }
+
+    private async Task RecarregarContextoAtualAsync()
+    {
+        if (PecaContexto is null)
+            return;
+
+        var pecaAtualizada = await BuildContextFromPecaIdAsync(PecaContexto.PecaId, PecaContexto);
+        PecaContexto = pecaAtualizada;
+
+        AtualizarFases();
+        AtualizarHistorico();
     }
 
     private RegistoProducaoHistoricoItem CreateHistoricoItem(RegistoProducaoDto registo)

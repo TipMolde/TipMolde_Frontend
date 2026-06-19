@@ -425,6 +425,8 @@ jobs:
             --framework ${{ env.WINDOWS_TFM }} `
             --disable-build-servers `
             --no-restore `
+            -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} `
+            -p:PublishReadyToRun=false `
             --logger "trx;LogFileName=TipMolde.Test.trx" `
             --results-directory "${{ github.workspace }}\TestResults" `
             --collect "XPlat Code Coverage"
@@ -640,8 +642,8 @@ jobs:
             -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} `
             -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }}
 
-      - name: Build Windows for Sonar
-        run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None -p:PublishReadyToRun=false
+      - name: Publish Windows for Sonar
+        run: dotnet publish ${{ env.PROJECT_FILE }} --configuration Release --framework ${{ env.WINDOWS_TFM }} --disable-build-servers --disable-parallel --no-restore -p:TargetFrameworks=${{ env.WINDOWS_TARGET_FRAMEWORKS }} -p:RuntimeIdentifierOverride=${{ env.WINDOWS_RUNTIME_ID }} -p:WindowsPackageType=None -p:PublishReadyToRun=false
 
       - name: Sonar End
         if: always()
