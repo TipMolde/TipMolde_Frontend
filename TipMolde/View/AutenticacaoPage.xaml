@@ -42,13 +42,13 @@
 
                             <VerticalStackLayout Spacing="18">
                                 <HorizontalStackLayout Spacing="12">
-                                    <Grid WidthRequest="100"
-                                        HeightRequest="75">
+                                    <Grid WidthRequest="220"
+                                        HeightRequest="70">
                                         <Grid.Clip>
                                             <RoundRectangleGeometry CornerRadius="13"
-                                                Rect="0,0,100,75" />
+                                                Rect="0,0,220,70" />
                                         </Grid.Clip>
-                                        <Image Source="image.png"
+                                        <Image Source="tipmolde_header.jpg"
                                             Aspect="AspectFit" />
                                     </Grid>
                                 </HorizontalStackLayout>

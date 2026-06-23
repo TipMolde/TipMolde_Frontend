@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
@@ -15,24 +16,27 @@ public partial class RelatoriosViewModel : ObservableObject
     private readonly MoldesService _moldesService;
     private readonly EncomendasService _encomendasService;
     private readonly RelatoriosService _relatoriosService;
+    private readonly IDestinationFolderPickerService _destinationFolderPickerService;
     private readonly IDialogService _dialogService;
 
-    private readonly List<MoldeDto> _catalogoCompleto = [];
     private List<FichaProducaoResumoDto> _fichasDoMoldeSelecionado = [];
     private int? _fichasMoldeIdEmCache;
     private bool _catalogoCarregado;
+    private string _ultimoTermoCatalogo = string.Empty;
+    private CancellationTokenSource? _catalogoReloadCts;
 
     public RelatoriosViewModel(
         MoldesService moldesService,
         EncomendasService encomendasService,
         RelatoriosService relatoriosService,
+        IDestinationFolderPickerService destinationFolderPickerService,
         IDialogService dialogService)
     {
         _moldesService = moldesService;
         _encomendasService = encomendasService;
         _relatoriosService = relatoriosService;
+        _destinationFolderPickerService = destinationFolderPickerService;
         _dialogService = dialogService;
-        SelectedDestinationFolder = ResolveDefaultDestinationFolder();
     }
 
     public ObservableCollection<MoldeDto> Moldes { get; } = new();
@@ -52,9 +56,6 @@ public partial class RelatoriosViewModel : ObservableObject
     private bool isGenerating;
 
     [ObservableProperty]
-    private bool isSelectingDestination;
-
-    [ObservableProperty]
     private string searchTerm = string.Empty;
 
     [ObservableProperty]
@@ -68,9 +69,6 @@ public partial class RelatoriosViewModel : ObservableObject
 
     [ObservableProperty]
     private string selectedTipoRelatorio = "FLT";
-
-    [ObservableProperty]
-    private string selectedDestinationFolder = string.Empty;
 
     [ObservableProperty]
     private bool hasPreview;
@@ -93,18 +91,13 @@ public partial class RelatoriosViewModel : ObservableObject
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public bool HasSearch => !string.IsNullOrWhiteSpace(SearchTerm);
     public bool HasSelectedMolde => SelectedMolde is not null;
-    public bool HasSelectedDestination => !string.IsNullOrWhiteSpace(SelectedDestinationFolder);
     public bool HasContextos => ContextosEncomenda.Count > 0;
     public bool HasMultipleContextos => ContextosEncomenda.Count > 1;
-    public bool IsBusy => IsLoadingCatalogo || IsLoadingContextos || IsPreviewing || IsGenerating || IsSelectingDestination;
+    public bool IsBusy => IsLoadingCatalogo || IsLoadingContextos || IsPreviewing || IsGenerating;
     public bool CanPreview => SelectedMolde is not null && SelectedContexto is not null && !IsBusy;
     public bool CanGenerate => SelectedMolde is not null && SelectedContexto is not null && !IsBusy;
     public string PreviewButtonText => IsPreviewing ? "A abrir pre-visualizacao..." : "Pre-visualizar";
     public string GenerateButtonText => IsGenerating ? "A gerar e descarregar..." : "Gerar e descarregar";
-    public string DestinationButtonText => IsSelectingDestination ? "A escolher pasta..." : "Escolher destino";
-    public string SelectedDestinationFolderDisplay => string.IsNullOrWhiteSpace(SelectedDestinationFolder)
-        ? "Nenhuma pasta selecionada"
-        : SelectedDestinationFolder;
     public string SelectedMoldeDisplay => SelectedMolde is null
         ? "Nenhum molde selecionado"
         : $"{SelectedMolde.Numero} - {SelectedMolde.Nome}";
@@ -115,8 +108,8 @@ public partial class RelatoriosViewModel : ObservableObject
 
     partial void OnSearchTermChanged(string value)
     {
-        AplicarFiltro();
         OnPropertyChanged(nameof(HasSearch));
+        _ = AgendarRecargaCatalogoAsync(value);
     }
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
@@ -146,12 +139,6 @@ public partial class RelatoriosViewModel : ObservableObject
         ResetPreviewState();
     }
 
-    partial void OnSelectedDestinationFolderChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasSelectedDestination));
-        OnPropertyChanged(nameof(SelectedDestinationFolderDisplay));
-    }
-
     partial void OnIsLoadingCatalogoChanged(bool value) => NotifyBusyStateChanged();
     partial void OnIsLoadingContextosChanged(bool value) => NotifyBusyStateChanged();
     partial void OnIsPreviewingChanged(bool value)
@@ -166,24 +153,34 @@ public partial class RelatoriosViewModel : ObservableObject
         NotifyBusyStateChanged();
     }
 
-    partial void OnIsSelectingDestinationChanged(bool value)
-    {
-        OnPropertyChanged(nameof(DestinationButtonText));
-        NotifyBusyStateChanged();
-    }
-
     public async Task LoadAsync()
     {
-        if (_catalogoCarregado)
+        if (_catalogoCarregado && string.Equals(_ultimoTermoCatalogo, SearchTerm.Trim(), StringComparison.Ordinal))
             return;
 
-        await CarregarCatalogoAsync();
+        await CarregarCatalogoAsync(forceRefresh: true, searchTerm: SearchTerm);
     }
 
     [RelayCommand]
     private async Task RecarregarAsync()
     {
-        await CarregarCatalogoAsync(forceRefresh: true);
+        await CarregarCatalogoAsync(forceRefresh: true, searchTerm: SearchTerm);
+    }
+
+    [RelayCommand]
+    private async Task AbrirFopGeralAsync()
+    {
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            await Shell.Current.GoToAsync(nameof(FopGeralPage));
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            await _dialogService.ShowErrorAsync("Relatorios", ex.Message);
+        }
     }
 
     [RelayCommand]
@@ -243,24 +240,20 @@ public partial class RelatoriosViewModel : ObservableObject
         if (SelectedMolde is null || SelectedContexto is null)
             return;
 
-        if (string.IsNullOrWhiteSpace(SelectedDestinationFolder))
-        {
-            await EscolherDestinoAsync();
-
-            if (string.IsNullOrWhiteSpace(SelectedDestinationFolder))
-                return;
-        }
-
         ErrorMessage = string.Empty;
-        IsGenerating = true;
 
         try
         {
+            var destinationFolder = await _destinationFolderPickerService.PickFolderAsync("Escolher destino do relatorio");
+            if (string.IsNullOrWhiteSpace(destinationFolder))
+                return;
+
             var request = await ResolverPedidoAsync();
             if (request is null)
                 return;
 
-            var generated = await _relatoriosService.GenerateAsync(request, SelectedDestinationFolder);
+            IsGenerating = true;
+            var generated = await _relatoriosService.GenerateAsync(request, destinationFolder);
 
             HasPreview = true;
             IsReportAvailable = true;
@@ -283,30 +276,7 @@ public partial class RelatoriosViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private async Task EscolherDestinoAsync()
-    {
-        ErrorMessage = string.Empty;
-        IsSelectingDestination = true;
-
-        try
-        {
-            var pastaSelecionada = await SelecionarPastaDestinoAsync();
-            if (!string.IsNullOrWhiteSpace(pastaSelecionada))
-                SelectedDestinationFolder = pastaSelecionada;
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-            await _dialogService.ShowErrorAsync("Erro", ex.Message);
-        }
-        finally
-        {
-            IsSelectingDestination = false;
-        }
-    }
-
-    private async Task CarregarCatalogoAsync(bool forceRefresh = false)
+    private async Task CarregarCatalogoAsync(bool forceRefresh = false, string? searchTerm = null)
     {
         if (IsLoadingCatalogo)
             return;
@@ -316,23 +286,11 @@ public partial class RelatoriosViewModel : ObservableObject
 
         try
         {
-            if (forceRefresh)
-            {
-                _catalogoCompleto.Clear();
-                Moldes.Clear();
-                ContextosEncomenda.Clear();
-                OnPropertyChanged(nameof(HasContextos));
-                OnPropertyChanged(nameof(HasMultipleContextos));
-                OnPropertyChanged(nameof(ContextosHint));
-                SelectedMolde = null;
-                SelectedContexto = null;
-                _fichasDoMoldeSelecionado.Clear();
-                _fichasMoldeIdEmCache = null;
-                _catalogoCarregado = false;
-                ResetPreviewState();
-            }
+            var termoPesquisa = string.IsNullOrWhiteSpace(searchTerm)
+                ? string.Empty
+                : searchTerm.Trim();
 
-            if (_catalogoCarregado)
+            if (!forceRefresh && _catalogoCarregado && string.Equals(_ultimoTermoCatalogo, termoPesquisa, StringComparison.Ordinal))
                 return;
 
             var paginaAtual = 1;
@@ -341,10 +299,10 @@ public partial class RelatoriosViewModel : ObservableObject
 
             do
             {
-                var pagina = await _moldesService.GetAllAsync(paginaAtual, MoldesPageSize);
+                var pagina = await _moldesService.GetComEncomendaAsync(termoPesquisa, paginaAtual, MoldesPageSize);
                 if (pagina is null)
                 {
-                    ErrorMessage = "Nao foi possivel carregar a lista de moldes.";
+                    ErrorMessage = "Nao foi possivel carregar a lista de moldes com encomenda.";
                     return;
                 }
 
@@ -354,15 +312,12 @@ public partial class RelatoriosViewModel : ObservableObject
             }
             while (paginaAtual <= totalPaginas);
 
-            moldes = await FiltrarMoldesComContextoAsync(moldes);
+            Moldes.Clear();
+            foreach (var molde in moldes)
+                Moldes.Add(molde);
 
-            _catalogoCompleto.Clear();
-            _catalogoCompleto.AddRange(moldes
-                .OrderBy(item => item.Numero)
-                .ThenBy(item => item.Nome));
-
+            _ultimoTermoCatalogo = termoPesquisa;
             _catalogoCarregado = true;
-            AplicarFiltro();
         }
         catch (Exception ex)
         {
@@ -372,25 +327,6 @@ public partial class RelatoriosViewModel : ObservableObject
         {
             IsLoadingCatalogo = false;
         }
-    }
-
-    private async Task<List<MoldeDto>> FiltrarMoldesComContextoAsync(IEnumerable<MoldeDto> moldes)
-    {
-        var filtrados = new List<MoldeDto>();
-
-        foreach (var molde in moldes)
-        {
-            if (await TemEncomendaMoldeAsync(molde.MoldeId))
-                filtrados.Add(molde);
-        }
-
-        return filtrados;
-    }
-
-    private async Task<bool> TemEncomendaMoldeAsync(int moldeId)
-    {
-        var pagina = await _encomendasService.GetEncomendaMoldesByMoldeIdAsync(moldeId, 1, 1);
-        return pagina is not null && (pagina.TotalItems > 0 || pagina.Items.Count > 0);
     }
 
     private async Task CarregarContextosAsync(int moldeId)
@@ -455,30 +391,31 @@ public partial class RelatoriosViewModel : ObservableObject
         }
     }
 
-    private void AplicarFiltro()
+    private async Task AgendarRecargaCatalogoAsync(string searchTerm)
     {
-        var termo = SearchTerm.Trim();
-        IEnumerable<MoldeDto> resultado = _catalogoCompleto;
+        _catalogoReloadCts?.Cancel();
+        _catalogoReloadCts?.Dispose();
+        var cts = new CancellationTokenSource();
+        _catalogoReloadCts = cts;
 
-        if (!string.IsNullOrWhiteSpace(termo))
+        try
         {
-            resultado = resultado.Where(item =>
-                ContainsIgnoreCase(item.Numero, termo) ||
-                ContainsIgnoreCase(item.Nome, termo) ||
-                ContainsIgnoreCase(item.NumeroMoldeCliente, termo));
+            await Task.Delay(300, cts.Token);
+            while (IsLoadingCatalogo)
+                await Task.Delay(100, cts.Token);
+
+            await CarregarCatalogoAsync(forceRefresh: true, searchTerm: searchTerm);
         }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_catalogoReloadCts, cts))
+                _catalogoReloadCts = null;
 
-        Moldes.Clear();
-        foreach (var molde in resultado)
-            Moldes.Add(molde);
-    }
-
-    private static bool ContainsIgnoreCase(string? value, string term)
-    {
-        if (string.IsNullOrWhiteSpace(value) || string.IsNullOrWhiteSpace(term))
-            return false;
-
-        return value.Contains(term, StringComparison.OrdinalIgnoreCase);
+            cts.Dispose();
+        }
     }
 
     private async Task<RelatorioExportRequest?> ResolverPedidoAsync()
@@ -492,7 +429,7 @@ public partial class RelatoriosViewModel : ObservableObject
         {
             IsReportAvailable = true;
             PreviewTitulo = "FLT pronta a exportar";
-            PreviewResumo = $"Vai ser usada a associacao Encomenda-Molde {SelectedContexto.EncomendaMolde_id} para gerar a FLT.";
+            PreviewResumo = $"Vai ser usada a associacao comercial {SelectedContexto.ContextoDisplay} para gerar a FLT.";
             PreviewDetalhes = BuildPreviewDetails(null);
             PreviewOrigem = $"Contexto comercial: {SelectedContexto.ContextoDisplay}";
 
@@ -520,8 +457,8 @@ public partial class RelatoriosViewModel : ObservableObject
             : $"Foi localizada a ficha {tipo} mais recente para este contexto.";
         PreviewDetalhes = BuildPreviewDetails(ficha);
         PreviewOrigem = criadaAgora
-            ? $"Ficha criada: #{ficha.FichaProducaoId} em {ficha.DataCriacao:dd/MM/yyyy HH:mm}"
-            : $"Ficha encontrada: #{ficha.FichaProducaoId} em {ficha.DataCriacao:dd/MM/yyyy HH:mm}";
+            ? $"Ficha criada em {ficha.DataCriacao:dd/MM/yyyy HH:mm}"
+            : $"Ficha encontrada em {ficha.DataCriacao:dd/MM/yyyy HH:mm}";
 
         return new RelatorioExportRequest
         {
@@ -597,23 +534,16 @@ public partial class RelatoriosViewModel : ObservableObject
         {
             $"Molde: {SelectedMolde.Numero} - {SelectedMolde.Nome}",
             $"Tipo: {SelectedTipoRelatorio}",
-            $"Encomenda-Molde: #{SelectedContexto.EncomendaMolde_id}",
+            $"Contexto comercial: {SelectedContexto.ContextoDisplay}",
             $"Encomenda cliente: {SelectedContexto.NumeroEncomendaClienteDisplay}",
             $"Entrega prevista: {SelectedContexto.DataEntregaPrevistaDisplay}",
             $"Prioridade: {SelectedContexto.Prioridade}"
         };
 
         if (ficha is not null)
-            linhas.Add($"Ficha usada: #{ficha.FichaProducaoId} ({ficha.DataCriacao:dd/MM/yyyy HH:mm})");
+            linhas.Add($"Ficha usada em {ficha.DataCriacao:dd/MM/yyyy HH:mm}");
 
         return string.Join(Environment.NewLine, linhas);
-    }
-
-    private static async Task OpenFileAsync(RelatorioFileResult file, string title)
-    {
-        await Launcher.Default.OpenAsync(new OpenFileRequest(
-            title,
-            new ReadOnlyFile(file.FilePath)));
     }
 
     private string GetSelectedMoldeDescricao()
@@ -637,30 +567,6 @@ public partial class RelatoriosViewModel : ObservableObject
         PreviewOrigem = string.Empty;
     }
 
-    private async Task<string?> SelecionarPastaDestinoAsync()
-    {
-#if WINDOWS
-        var picker = new Windows.Storage.Pickers.FolderPicker();
-        picker.FileTypeFilter.Add("*");
-
-        var window = Application.Current?.Windows.FirstOrDefault();
-        if (window?.Handler?.PlatformView is not Microsoft.UI.Xaml.Window nativeWindow)
-            throw new InvalidOperationException("Nao foi possivel abrir o seletor de pasta.");
-
-        WinRT.Interop.InitializeWithWindow.Initialize(
-            picker,
-            WinRT.Interop.WindowNative.GetWindowHandle(nativeWindow));
-
-        var pasta = await picker.PickSingleFolderAsync();
-        return pasta?.Path;
-#else
-        await _dialogService.ShowInfoAsync(
-            "Destino de ficheiro",
-            "A selecao de pasta de destino esta disponivel no Windows.");
-        return null;
-#endif
-    }
-
     private void NotifyBusyStateChanged()
     {
         OnPropertyChanged(nameof(IsBusy));
@@ -672,15 +578,4 @@ public partial class RelatoriosViewModel : ObservableObject
         GenerateCommand.NotifyCanExecuteChanged();
     }
 
-    private static string ResolveDefaultDestinationFolder()
-    {
-        try
-        {
-            return Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados");
-        }
-        catch
-        {
-            return Path.Combine(Path.GetTempPath(), "relatorios-gerados");
-        }
-    }
 }

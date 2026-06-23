@@ -51,9 +51,14 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
-    public async Task<PagedResult<PecaDto>?> GetByMoldeIdWithoutPedidoMaterialAsync(int moldeId, int page, int pageSize)
+    public async Task<PagedResult<PecaDto>?> GetByMoldeIdWithoutPedidoMaterialAsync(int moldeId, int page, int pageSize, string? searchTerm = null)
     {
-        using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/sem-pedido-material?page={page}&pageSize={pageSize}");
+        var query = $"api/pecas/por-molde/{moldeId}/sem-pedido-material?page={page}&pageSize={pageSize}";
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            query += $"&searchTerm={Uri.EscapeDataString(searchTerm.Trim())}";
+
+        using var response = await HttpClient.GetAsync(query);
 
         await ThrowIfAuthorizationFailureAsync(
             response,

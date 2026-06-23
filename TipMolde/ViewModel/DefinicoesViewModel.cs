@@ -79,7 +79,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
     public string UserIdDisplay =>
         _currentUserId.HasValue
-            ? $"ID {_currentUserId.Value}"
+            ? "Conta autenticada"
             : "Sessao indisponivel";
 
     public string SelectedThemeDescription => SelectedThemeOption switch

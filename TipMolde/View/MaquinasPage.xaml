@@ -180,9 +180,29 @@
                                    FontFamily="OpenSansSemibold"
                                    FontSize="18" />
 
-                            <SearchBar Placeholder="Pesquisar por numero, modelo, fase, estado ou conexao"
-                                       Text="{Binding SearchTerm}"
-                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Grid ColumnDefinitions="*,Auto,Auto"
+                                  ColumnSpacing="12">
+                                <SearchBar Grid.Column="0"
+                                           Placeholder="Pesquisar por numero, modelo, fase, estado ou conexao"
+                                           Text="{Binding SearchTerm}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                           SearchCommand="{Binding PesquisarCommand}" />
+
+                                <Button Grid.Column="1"
+                                        Text="Pesquisar"
+                                        Command="{Binding PesquisarCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                        HeightRequest="44" />
+
+                                <Button Grid.Column="2"
+                                        Text="Limpar"
+                                        Command="{Binding LimparPesquisaCommand}"
+                                        IsEnabled="{Binding HasSearch}"
+                                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        HeightRequest="44" />
+                            </Grid>
                         </VerticalStackLayout>
                     </Border>
 

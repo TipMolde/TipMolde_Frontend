@@ -58,7 +58,7 @@ public class PedidosMaterialViewModelTests
         _sut.MoldesDisponiveis.Count(item => item.MoldeId == 1).Should().Be(1);
     }
 
-    [Test(Description = "T1.1FRT - A pesquisa de pecas deve filtrar a lista visivel sem perder o contexto do molde.")]
+    [Test(Description = "T1.1FRT - A pesquisa de pecas deve recarregar a lista com filtro do backend sem perder o contexto do molde.")]
     public async Task PecaSearchTerm_Should_FilterVisiblePieces_When_UserSearches()
     {
         // ARRANGE
@@ -71,6 +71,8 @@ public class PedidosMaterialViewModelTests
 
         // ACT
         _sut.PecaSearchTerm = "Base";
+
+        await WaitUntilAsync(() => !_sut.IsLoadingPecas && _sut.PecasDisponiveis.Count == 1);
 
         // ASSERT
         _sut.PecasDisponiveis.Should().HaveCount(1);
@@ -270,6 +272,18 @@ public class PedidosMaterialViewModelTests
                     PageSize = 20,
                     TotalItems = 2
                 }),
+            "/api/pecas/por-molde/1/sem-pedido-material?page=1&pageSize=20&searchTerm=Base" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<PecaDto>
+                {
+                    Items =
+                    [
+                        new PecaDto { PecaId = 11, NumeroPeca = "P-011", Designacao = "Base", Quantidade = 2, Molde_id = 1 }
+                    ],
+                    Page = 1,
+                    PageSize = 20,
+                    TotalItems = 1
+                }),
             "/api/pecas/por-molde/2/sem-pedido-material?page=1&pageSize=20" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<PecaDto>
@@ -290,6 +304,15 @@ public class PedidosMaterialViewModelTests
                     Page = 1,
                     PageSize = 20,
                     TotalItems = 1
+                }),
+            "/api/pecas/por-molde/3/sem-pedido-material?page=1&pageSize=20&searchTerm=Base" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<PecaDto>
+                {
+                    Items = [],
+                    Page = 1,
+                    PageSize = 20,
+                    TotalItems = 0
                 }),
             "/api/pecas/por-molde/4/sem-pedido-material?page=1&pageSize=20" => CreateJsonResponse(
                 HttpStatusCode.OK,

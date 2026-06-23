@@ -12,20 +12,25 @@ public partial class ProducaoViewModel : SearchableViewModel
 {
     private const string SearchModeMolde = "Molde";
     private const string SearchModePeca = "Peca";
+    private const string SearchModeProximaFase = "Próxima fase";
 
+    private readonly FasesProducaoService _fasesProducaoService;
     private readonly PecasService _pecasService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private readonly UtilizadoresService _utilizadoresService;
     private readonly RegistosProducaoService _registosProducaoService;
     private readonly IDialogService _dialogService;
+    private List<FaseProducaoItem> _todasFases = [];
 
     public ProducaoViewModel(
+        FasesProducaoService fasesProducaoService,
         PecasService pecasService,
         SessaoPersistidaService sessaoPersistidaService,
         UtilizadoresService utilizadoresService,
         RegistosProducaoService registosProducaoService,
         IDialogService dialogService)
     {
+        _fasesProducaoService = fasesProducaoService;
         _pecasService = pecasService;
         _sessaoPersistidaService = sessaoPersistidaService;
         _utilizadoresService = utilizadoresService;
@@ -37,7 +42,7 @@ public partial class ProducaoViewModel : SearchableViewModel
     }
 
     public ObservableCollection<ProducaoPecaDisponivelItem> PecasDisponiveis { get; } = new();
-    public IReadOnlyList<string> SearchModes { get; } = [SearchModeMolde, SearchModePeca];
+    public IReadOnlyList<string> SearchModes { get; } = [SearchModeMolde, SearchModePeca, SearchModeProximaFase];
 
     [ObservableProperty]
     private int selectedSearchModeIndex;
@@ -48,9 +53,14 @@ public partial class ProducaoViewModel : SearchableViewModel
     [ObservableProperty]
     private string gestorProducaoNome = string.Empty;
 
+    [ObservableProperty]
+    private bool isUpdatingPlaneamento;
+
     public bool HasPecasDisponiveis => PecasDisponiveis.Count > 0;
     public static string EmptyPecasMessage => "Nao existem pecas disponiveis para trabalhar neste momento.";
     public string GestorProducaoDisplay => GetGestorProducaoDisplay();
+    public string AlterarFasePlaneadaButtonText => IsUpdatingPlaneamento ? "A alterar..." : "Alterar fase planeada";
+    public bool CanAlterarFasePlaneadaGlobal => !IsUpdatingPlaneamento;
 
     partial void OnSelectedSearchModeIndexChanged(int value)
     {
@@ -68,6 +78,13 @@ public partial class ProducaoViewModel : SearchableViewModel
     partial void OnGestorProducaoNomeChanged(string value)
     {
         OnPropertyChanged(nameof(GestorProducaoDisplay));
+    }
+
+    partial void OnIsUpdatingPlaneamentoChanged(bool value)
+    {
+        OnPropertyChanged(nameof(AlterarFasePlaneadaButtonText));
+        OnPropertyChanged(nameof(CanAlterarFasePlaneadaGlobal));
+        AlterarFasePlaneadaCommand.NotifyCanExecuteChanged();
     }
 
     public async Task LoadAsync()
@@ -176,16 +193,71 @@ public partial class ProducaoViewModel : SearchableViewModel
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanAlterarFasePlaneada))]
+    private async Task AlterarFasePlaneadaAsync(ProducaoPecaDisponivelItem? item)
+    {
+        if (item is null)
+            return;
+
+        ErrorMessage = string.Empty;
+        IsUpdatingPlaneamento = true;
+
+        try
+        {
+            await EnsureFasesLoadedAsync();
+
+            if (_todasFases.Count == 0)
+            {
+                await _dialogService.ShowInfoAsync("Fase planeada", "Nao foi possivel carregar as fases de producao.");
+                return;
+            }
+
+            var selecionada = await SelecionarFaseAsync(item);
+            if (selecionada is null)
+                return;
+
+            if (item.ProximaFaseId.HasValue && item.ProximaFaseId.Value == selecionada.FasesProducao_id)
+            {
+                await _dialogService.ShowInfoAsync(
+                    "Fase planeada",
+                    $"A peca {item.DesignacaoDisplay} ja esta planeada para {selecionada.NomeDisplay}.");
+                return;
+            }
+
+            await _pecasService.UpdateProximaFaseAsync(item.PecaId, selecionada.FasesProducao_id);
+
+            await _dialogService.ShowSuccessAsync(
+                "Fase planeada atualizada",
+                $"A peca {item.DesignacaoDisplay} passou a apontar para {selecionada.NomeDisplay}.");
+
+            await ReloadCurrentPageAsync();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsUpdatingPlaneamento = false;
+            AlterarFasePlaneadaCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    private bool CanAlterarFasePlaneada(ProducaoPecaDisponivelItem? item)
+    {
+        return item is not null && CanAlterarFasePlaneadaGlobal;
+    }
+
     private string GetGestorProducaoDisplay()
     {
         if (!GestorProducaoId.HasValue)
             return "Sessao sem gestor de producao identificado";
 
         var gestorNome = string.IsNullOrWhiteSpace(GestorProducaoNome)
-            ? $"Gestor de producao #{GestorProducaoId}"
+            ? "Gestor de producao autenticado"
             : GestorProducaoNome;
 
-        return $"{gestorNome} (#{GestorProducaoId})";
+        return gestorNome;
     }
 
     private async Task<UtilizadorDto?> GetGestorProducaoAtualAsync()
@@ -238,6 +310,57 @@ public partial class ProducaoViewModel : SearchableViewModel
         }
 
         return registos;
+    }
+
+    private async Task EnsureFasesLoadedAsync()
+    {
+        if (_todasFases.Count > 0)
+            return;
+
+        var primeiraPagina = await _fasesProducaoService.GetAllAsync(1, 100);
+        if (primeiraPagina?.Items is null)
+            return;
+
+        _todasFases = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _fasesProducaoService.GetAllAsync(page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            _todasFases.AddRange(pagina.Items);
+        }
+
+        _todasFases = _todasFases
+            .OrderBy(item => GetPhaseSortOrder(item.Nome))
+            .ThenBy(item => item.FasesProducao_id)
+            .ToList();
+    }
+
+    private async Task<FaseProducaoItem?> SelecionarFaseAsync(ProducaoPecaDisponivelItem item)
+    {
+        var opcoes = _todasFases.Select(fase => fase.NomeDisplay).ToArray();
+        var selecionada = await _dialogService.ShowSelectionAsync(
+            $"Alterar fase planeada de {item.DesignacaoDisplay}",
+            "Cancelar",
+            opcoes);
+
+        if (string.IsNullOrWhiteSpace(selecionada))
+            return null;
+
+        return _todasFases.FirstOrDefault(fase => fase.NomeDisplay == selecionada);
+    }
+
+    private static int GetPhaseSortOrder(string? nome)
+    {
+        return string.Equals(nome?.Trim(), "MAQUINACAO", StringComparison.OrdinalIgnoreCase)
+            ? 0
+            : string.Equals(nome?.Trim(), "EROSAO", StringComparison.OrdinalIgnoreCase)
+                ? 1
+                : string.Equals(nome?.Trim(), "MONTAGEM", StringComparison.OrdinalIgnoreCase)
+                    ? 2
+                    : 99;
     }
 
     private static bool EstadoContaComoAtivo(string? estado)

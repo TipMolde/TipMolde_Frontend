@@ -8,13 +8,16 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
-public partial class DesenhoViewModel : PaginatedViewModel
+public partial class DesenhoViewModel : SearchableViewModel
 {
     private readonly EncomendasService _encomendasService;
     private readonly PecasService _pecasService;
     private readonly IDialogService _dialogService;
     private readonly List<DesenhoMoldeItem> _todosMoldes = [];
     private readonly List<DesenhoMoldeItem> _moldesFiltrados = [];
+    private string _loadedSearchTerm = string.Empty;
+    private readonly AsyncRelayCommand _pesquisarCommand;
+    private readonly AsyncRelayCommand _limparPesquisaCommand;
 
     public DesenhoViewModel(
         EncomendasService encomendasService,
@@ -24,29 +27,28 @@ public partial class DesenhoViewModel : PaginatedViewModel
         _encomendasService = encomendasService;
         _pecasService = pecasService;
         _dialogService = dialogService;
+        _pesquisarCommand = new AsyncRelayCommand(PesquisarAsync);
+        _limparPesquisaCommand = new AsyncRelayCommand(LimparPesquisaAsync, () => HasSearch);
         PageSize = 8;
+
+        PropertyChanged += (_, e) =>
+        {
+            if (string.Equals(e.PropertyName, nameof(SearchTerm), StringComparison.Ordinal))
+                _limparPesquisaCommand.NotifyCanExecuteChanged();
+        };
     }
 
     public ObservableCollection<DesenhoMoldeItem> Moldes { get; } = new();
 
-    [ObservableProperty]
-    private string searchTerm = string.Empty;
+    public new IAsyncRelayCommand PesquisarCommand => _pesquisarCommand;
+    public new IAsyncRelayCommand LimparPesquisaCommand => _limparPesquisaCommand;
 
     public bool HasMoldes => Moldes.Count > 0;
     public int TotalMoldes => _moldesFiltrados.Count;
     public int TotalEncomendasConfirmadas => _moldesFiltrados.Select(item => item.EncomendaId).Distinct().Count();
-    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
+    public string EmptyMessage => string.IsNullOrWhiteSpace(_loadedSearchTerm)
         ? "Nao existem moldes com projeto concluido e revisao aprovada para desenho."
         : "Nenhum molde corresponde aos filtros atuais.";
-
-    partial void OnSearchTermChanged(string value)
-    {
-        if (Page != 1)
-            Page = 1;
-
-        RefreshMoldes();
-        OnPropertyChanged(nameof(EmptyMessage));
-    }
 
     public async Task LoadAsync()
     {
@@ -61,12 +63,13 @@ public partial class DesenhoViewModel : PaginatedViewModel
                 var associacoes = await GetAllEncomendasConfirmadasParaDesenhoAsync();
                 if (associacoes.Count == 0)
                 {
-                    RefreshMoldes();
+                    await RefreshMoldesAsync();
                     return;
                 }
 
-                var candidatos = await Task.WhenAll(associacoes
-                    .Select(async associacao => await BuildDesenhoMoldeItemAsync(associacao)));
+                var candidatos = associacoes
+                    .Select(BuildDesenhoMoldeItemAsync)
+                    .ToList();
 
                 _todosMoldes.AddRange(candidatos
                     .Where(item => item is not null)
@@ -76,7 +79,7 @@ public partial class DesenhoViewModel : PaginatedViewModel
                     .ThenBy(item => item.NumeroMoldeDisplay));
 
                 Page = 1;
-                RefreshMoldes();
+                await RefreshMoldesAsync();
             });
         }
         catch (Exception ex)
@@ -90,8 +93,27 @@ public partial class DesenhoViewModel : PaginatedViewModel
 
     protected override Task LoadPageAsync()
     {
-        RefreshMoldes();
-        return Task.CompletedTask;
+        return RefreshMoldesAsync();
+    }
+
+    private async Task PesquisarAsync()
+    {
+        ErrorMessage = string.Empty;
+        _loadedSearchTerm = SearchTerm.Trim();
+        Page = 1;
+        await RefreshMoldesAsync();
+    }
+
+    private async Task LimparPesquisaAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm) && string.IsNullOrWhiteSpace(_loadedSearchTerm))
+            return;
+
+        ErrorMessage = string.Empty;
+        _loadedSearchTerm = string.Empty;
+        SearchTerm = string.Empty;
+        Page = 1;
+        await RefreshMoldesAsync();
     }
 
     [RelayCommand]
@@ -160,23 +182,20 @@ public partial class DesenhoViewModel : PaginatedViewModel
         return associacoes;
     }
 
-    private async Task<DesenhoMoldeItem?> BuildDesenhoMoldeItemAsync(EncomendaMoldeDto associacao)
+    private static DesenhoMoldeItem? BuildDesenhoMoldeItemAsync(EncomendaMoldeDto associacao)
     {
         if (associacao.Molde_id <= 0)
             return null;
-
-        var paginaPecas = await _pecasService.GetByMoldeIdAsync(associacao.Molde_id, 1, 100);
-        var pecas = paginaPecas?.Items ?? [];
 
         return new DesenhoMoldeItem
         {
             EncomendaId = associacao.Encomenda_id,
             MoldeId = associacao.Molde_id,
-            TotalPecas = paginaPecas?.TotalItems ?? 0,
+            TotalPecas = 0,
             NumeroEncomendaCliente = associacao.NumeroEncomendaCliente,
             NumeroMolde = associacao.NumeroMolde,
             DataEntregaPrevista = associacao.DataEntregaPrevista == default ? null : associacao.DataEntregaPrevista,
-            PecasResumoDisplay = BuildPecasResumoDisplay(pecas)
+            PecasResumoDisplay = "A carregar..."
         };
     }
 
@@ -198,20 +217,21 @@ public partial class DesenhoViewModel : PaginatedViewModel
 
     private static string BuildPecaResumo(PecaDto peca)
     {
-        var numero = string.IsNullOrWhiteSpace(peca.NumeroPeca) ? $"Peca #{peca.PecaId}" : peca.NumeroPeca;
+        var numero = string.IsNullOrWhiteSpace(peca.NumeroPeca) ? "Peca sem numero" : peca.NumeroPeca;
         var designacao = string.IsNullOrWhiteSpace(peca.Designacao) ? "Sem designacao" : peca.Designacao;
         var quantidade = Math.Max(0, peca.Quantidade);
 
         return $"{numero} - {designacao} ({quantidade})";
     }
 
-    private void RefreshMoldes()
+    private async Task RefreshMoldesAsync()
     {
+        var activeSearchTerm = _loadedSearchTerm;
         IEnumerable<DesenhoMoldeItem> query = _todosMoldes;
 
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        if (!string.IsNullOrWhiteSpace(activeSearchTerm))
         {
-            var term = SearchTerm.Trim();
+            var term = activeSearchTerm.Trim();
             query = query.Where(item =>
                 item.NumeroMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
                 item.NomeMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
@@ -231,6 +251,7 @@ public partial class DesenhoViewModel : PaginatedViewModel
         var paginaAtual = _moldesFiltrados
             .Skip((Page - 1) * PageSize)
             .Take(PageSize)
+            .Select(molde => CloneDesenhoMoldeItem(molde))
             .ToList();
 
         Moldes.Clear();
@@ -241,6 +262,51 @@ public partial class DesenhoViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(TotalMoldes));
         OnPropertyChanged(nameof(TotalEncomendasConfirmadas));
         OnPropertyChanged(nameof(EmptyMessage));
+
+        await AtualizarPecasVisiveisAsync(paginaAtual);
+    }
+
+    private async Task AtualizarPecasVisiveisAsync(IReadOnlyList<DesenhoMoldeItem> paginaAtual)
+    {
+        if (paginaAtual.Count == 0)
+            return;
+
+        var pageSnapshot = Page;
+        var searchSnapshot = _loadedSearchTerm.Trim();
+
+        var atualizados = await Task.WhenAll(paginaAtual.Select(async molde =>
+        {
+            var paginaPecas = await _pecasService.GetByMoldeIdAsync(molde.MoldeId, 1, 100);
+            var pecas = paginaPecas?.Items ?? [];
+
+            return CloneDesenhoMoldeItem(molde, paginaPecas?.TotalItems ?? 0, BuildPecasResumoDisplay(pecas));
+        }));
+
+        if (Page != pageSnapshot || !string.Equals(_loadedSearchTerm.Trim(), searchSnapshot, StringComparison.Ordinal))
+            return;
+
+        for (var i = 0; i < atualizados.Length && i < Moldes.Count; i++)
+            Moldes[i] = atualizados[i];
+    }
+
+    private static DesenhoMoldeItem CloneDesenhoMoldeItem(DesenhoMoldeItem molde, int? totalPecas = null, string? resumo = null)
+    {
+        return new DesenhoMoldeItem
+        {
+            EncomendaId = molde.EncomendaId,
+            MoldeId = molde.MoldeId,
+            TotalPecas = totalPecas ?? molde.TotalPecas,
+            NumeroEncomendaCliente = molde.NumeroEncomendaCliente,
+            NomeCliente = molde.NomeCliente,
+            NomeServicoCliente = molde.NomeServicoCliente,
+            NumeroMolde = molde.NumeroMolde,
+            NomeMolde = molde.NomeMolde,
+            DescricaoMolde = molde.DescricaoMolde,
+            ImagemCapaPath = molde.ImagemCapaPath,
+            PecasResumoDisplay = resumo ?? molde.PecasResumoDisplay,
+            DataRegistoEncomenda = molde.DataRegistoEncomenda,
+            DataEntregaPrevista = molde.DataEntregaPrevista
+        };
     }
 
     private async Task ImportarPecasCsvAsync(DesenhoMoldeItem molde)
@@ -296,7 +362,7 @@ public partial class DesenhoViewModel : PaginatedViewModel
 
         var molde = _todosMoldes.First(item => item.MoldeId == moldeId);
         molde.TotalPecas = totalPecasAtual;
-        RefreshMoldes();
+        await RefreshMoldesAsync();
     }
 
     private async Task<Dictionary<int, int>> GetTotaisPecasPorMoldeAsync(IEnumerable<int> moldeIds)

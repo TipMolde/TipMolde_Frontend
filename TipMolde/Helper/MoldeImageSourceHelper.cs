@@ -4,8 +4,8 @@ namespace TipMolde.Helper;
 
 public static class MoldeImageSourceHelper
 {
-    public const string FallbackSource = "image.png";
-    private const string BackendDefaultTemplateSource = "Templates/image.png";
+    public const string FallbackSource = "tipmolde_default.jpg";
+    private const string BackendDefaultTemplateSource = "Templates/tipmolde_default.jpg";
 
     public static string Resolve(string? imagePath)
     {

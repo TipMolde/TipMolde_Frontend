@@ -20,6 +20,21 @@ public sealed class MaquinasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<MaquinaItem>>(response);
     }
 
+    public async Task<PagedResult<MaquinaItem>?> SearchAsync(string searchTerm, int page, int pageSize)
+    {
+        using var response = await HttpClient.GetAsync(
+            $"api/Maquina/search?searchTerm={Uri.EscapeDataString(searchTerm.Trim())}&page={page}&pageSize={pageSize}");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para pesquisar maquinas.");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<MaquinaItem>>(response);
+    }
+
     public async Task<MaquinaItem?> CreateAsync(
         int maquinaId,
         int numero,

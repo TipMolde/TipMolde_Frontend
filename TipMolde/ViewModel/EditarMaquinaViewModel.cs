@@ -77,7 +77,7 @@ public partial class EditarMaquinaViewModel : ObservableObject
     public string NomeModeloDisplay => string.IsNullOrWhiteSpace(NomeModelo) ? "Maquina sem nome" : NomeModelo.Trim();
     public string FaseDedicadaDisplay => string.IsNullOrWhiteSpace(FaseDedicada) ? "Sem fase dedicada" : FaseDedicada;
     public string EstadoAtualDisplay => string.IsNullOrWhiteSpace(EstadoAtualOriginal) ? "Sem estado" : EstadoAtualOriginal.Replace('_', ' ');
-    public string MaquinaDisplay => $"{NumeroDisplay} - {NomeModeloDisplay}";
+    public string MaquinaDisplay => NomeModeloDisplay;
     public string TransicoesPermitidasDisplay => BuildTransicoesPermitidasDisplay();
     public bool IsStateOnlyEditMode => CanEditMachineState && !CanEditMachineAdministrativeFields;
     public bool CanSave => MaquinaId > 0
@@ -254,7 +254,7 @@ public partial class EditarMaquinaViewModel : ObservableObject
 
             await _dialogService.ShowSuccessAsync(
                 "Sucesso",
-                $"A maquina {NumeroDisplay} foi atualizada com sucesso.");
+                $"A maquina {NomeModeloDisplay} foi atualizada com sucesso.");
 
             await Shell.Current.GoToAsync("..");
         }

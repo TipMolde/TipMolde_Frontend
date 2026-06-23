@@ -38,7 +38,8 @@ public sealed class RegistosProducaoService : ApiServiceBase
         int gestorProducaoId,
         string estadoProducao,
         int? maquinaId = null,
-        int? proximaFaseId = null)
+        int? proximaFaseId = null,
+        int? encomendaMoldeId = null)
     {
         var payload = new
         {
@@ -47,11 +48,18 @@ public sealed class RegistosProducaoService : ApiServiceBase
             Maquina_id = maquinaId,
             Operador_id = gestorProducaoId,
             Estado_producao = estadoProducao,
-            ProximaFase_id = proximaFaseId
+            ProximaFase_id = proximaFaseId,
+            EncomendaMolde_id = encomendaMoldeId
         };
 
         using var response = await HttpClient.PostAsJsonAsync("api/RegistosProducao", payload);
         await EnsureSuccessAsync(response, $"Nao foi possivel registar a producao da peca {pecaId}.");
         return await DeserializeAsync<RegistoProducaoDto>(response);
+    }
+
+    public async Task CreateOcorrenciaAsync(CreateOcorrenciaRequest request)
+    {
+        using var response = await HttpClient.PostAsJsonAsync("api/ocorrencias", request);
+        await EnsureSuccessAsync(response, $"Nao foi possivel registar a ocorrencia da peca {request.PecaId}.");
     }
 }

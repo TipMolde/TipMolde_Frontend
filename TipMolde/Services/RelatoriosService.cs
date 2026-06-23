@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Globalization;
 using TipMolde.Models;
 
 namespace TipMolde.Services;
@@ -49,6 +50,54 @@ public sealed class RelatoriosService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel garantir a ficha {tipoRelatorio}.");
 
         return await DeserializeAsync<FichaProducaoResumoDto>(response);
+    }
+
+    public async Task<PagedResult<FopGeralLinhaDto>?> GetFopGeralAsync(DateTime dataInicio, DateTime dataFim, int page, int pageSize)
+    {
+        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        var fim = Uri.EscapeDataString(dataFim.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+
+        using var response = await HttpClient.GetAsync(
+            $"api/fichas-producao/fop-geral?dataInicio={inicio}&dataFim={fim}&page={page}&pageSize={pageSize}");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<FopGeralLinhaDto>>(response);
+    }
+
+    public async Task<RelatorioFileResult> GenerateFopGeralAsync(DateTime dataInicio, DateTime dataFim, string? directory = null)
+    {
+        var targetDirectory = string.IsNullOrWhiteSpace(directory)
+            ? Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados")
+            : directory;
+
+        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        var fim = Uri.EscapeDataString(dataFim.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        var endpoint = $"api/fichas-producao/fop-geral/export?dataInicio={inicio}&dataFim={fim}";
+
+        Directory.CreateDirectory(targetDirectory);
+
+        using var response = await HttpClient.GetAsync(endpoint);
+        await EnsureSuccessAsync(response, "Nao foi possivel gerar o relatorio FOP geral.");
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        var fallbackRequest = new RelatorioExportRequest
+        {
+            TipoRelatorio = "FOP",
+            NumeroMolde = "geral"
+        };
+
+        var fileName = ResolveFileName(response.Content.Headers.ContentDisposition, fallbackRequest, "gerado");
+        var filePath = Path.Combine(targetDirectory, fileName);
+
+        await File.WriteAllBytesAsync(filePath, bytes);
+
+        return new RelatorioFileResult
+        {
+            FileName = fileName,
+            FilePath = filePath
+        };
     }
 
     private async Task<RelatorioFileResult> DownloadAsync(

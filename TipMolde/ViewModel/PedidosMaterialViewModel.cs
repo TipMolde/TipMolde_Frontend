@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
@@ -25,6 +26,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
     private readonly Dictionary<int, PecaPagingState> _pecaPagingStates = [];
     private int _pecasLoadVersion;
     private bool _loaded;
+    private bool _fornecedoresLoaded;
     private bool _suppressMoldesReload;
 
     private const int PecaPageSize = 20;
@@ -79,9 +81,50 @@ public partial class PedidosMaterialViewModel : ObservableObject
     [ObservableProperty]
     private string pecaSearchTerm = string.Empty;
 
+    [ObservableProperty]
+    private bool isFornecedoresVisible;
+
+    [ObservableProperty]
+    private FornecedorDto? fornecedorEmEdicao;
+
+    [ObservableProperty]
+    private string fornecedorNome = string.Empty;
+
+    [ObservableProperty]
+    private string fornecedorNif = string.Empty;
+
+    [ObservableProperty]
+    private string fornecedorMorada = string.Empty;
+
+    [ObservableProperty]
+    private string fornecedorEmail = string.Empty;
+
+    [ObservableProperty]
+    private string fornecedorTelefone = string.Empty;
+
+    [ObservableProperty]
+    private bool isSavingFornecedor;
+
+    [ObservableProperty]
+    private string fornecedoresErrorMessage = string.Empty;
+
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public bool HasMoldes => MoldesDisponiveis.Count > 0;
     public bool HasPecas => PecasDisponiveis.Count > 0;
+    public bool HasFornecedores => FornecedoresDisponiveis.Count > 0;
+    public bool IsEditingFornecedor => FornecedorEmEdicao is not null;
+    public string FornecedoresFormTitle => IsEditingFornecedor
+        ? $"Editar fornecedor {FornecedorEmEdicao?.DisplayName}"
+        : "Adicionar fornecedor";
+    public string FornecedoresActionText => IsEditingFornecedor ? "Atualizar fornecedor" : "Adicionar fornecedor";
+    public string FornecedoresToggleText => IsFornecedoresVisible ? "Fechar fornecedores" : "Gerir fornecedores";
+    public bool HasFornecedorError => !string.IsNullOrWhiteSpace(FornecedoresErrorMessage);
+    public bool CanSalvarFornecedor => !IsLoading &&
+                                       !IsSaving &&
+                                       !IsSavingFornecedor &&
+                                       !HasError &&
+                                       !string.IsNullOrWhiteSpace(FornecedorNome) &&
+                                       !string.IsNullOrWhiteSpace(FornecedorNif);
     public bool HasNoPecas => SelectedMoldesCount > 0 && !IsLoadingPecas && !HasError && _todosPecas.Count == 0;
     public bool HasMorePecas => _pecaPagingStates.Values.Any(state => state.HasMore);
     public int SelectedMoldesCount => _todosMoldes.Count(item => item.IsSelected);
@@ -134,10 +177,69 @@ public partial class PedidosMaterialViewModel : ObservableObject
         CriarPedidoCommand.NotifyCanExecuteChanged();
     }
 
+    partial void OnIsFornecedoresVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(FornecedoresToggleText));
+    }
+
+    partial void OnFornecedorEmEdicaoChanged(FornecedorDto? value)
+    {
+        OnPropertyChanged(nameof(IsEditingFornecedor));
+        OnPropertyChanged(nameof(FornecedoresFormTitle));
+        OnPropertyChanged(nameof(FornecedoresActionText));
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnFornecedorNomeChanged(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnFornecedorNifChanged(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnFornecedorMoradaChanged(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnFornecedorEmailChanged(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnFornecedorTelefoneChanged(string value)
+    {
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
+    partial void OnIsSavingFornecedorChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
+    }
+
     partial void OnIsLoadingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCreatePedido));
         OnPropertyChanged(nameof(CanLoadMorePecas));
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
         CriarPedidoCommand.NotifyCanExecuteChanged();
         CarregarMaisPecasCommand.NotifyCanExecuteChanged();
     }
@@ -155,6 +257,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanCreatePedido));
         OnPropertyChanged(nameof(CanLoadMorePecas));
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
         CriarPedidoCommand.NotifyCanExecuteChanged();
         CarregarMaisPecasCommand.NotifyCanExecuteChanged();
     }
@@ -163,11 +266,17 @@ public partial class PedidosMaterialViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasError));
         OnPropertyChanged(nameof(CanCreatePedido));
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
         OnPropertyChanged(nameof(CanConfirmarResumoPedido));
         OnPropertyChanged(nameof(CanLoadMorePecas));
         CriarPedidoCommand.NotifyCanExecuteChanged();
         ConfirmarResumoPedidoCommand.NotifyCanExecuteChanged();
         CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnFornecedoresErrorMessageChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasFornecedorError));
     }
 
     partial void OnIsPedidoResumoVisibleChanged(bool value)
@@ -182,13 +291,154 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
     partial void OnPecaSearchTermChanged(string value)
     {
-        ApplyPecaFilter();
+        _ = LoadPecasAsync(resetPaging: true);
     }
 
     [RelayCommand]
     private async Task AtualizarDadosAsync()
     {
         await LoadAsync(forceRefresh: true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleFornecedoresAsync()
+    {
+        IsFornecedoresVisible = !IsFornecedoresVisible;
+
+        if (!IsFornecedoresVisible)
+            return;
+
+        FornecedoresErrorMessage = string.Empty;
+
+        try
+        {
+            if (!_fornecedoresLoaded)
+                await RefreshFornecedoresAsync();
+        }
+        catch (Exception ex)
+        {
+            FornecedoresErrorMessage = ex.Message;
+        }
+    }
+
+    [RelayCommand]
+    private void LimparFornecedor()
+    {
+        ResetFornecedorForm();
+    }
+
+    [RelayCommand]
+    private async Task SalvarFornecedorAsync()
+    {
+        if (!CanSalvarFornecedor)
+            return;
+
+        var nome = FornecedorNome.Trim();
+        var nif = FornecedorNif.Trim();
+        var morada = FornecedorFormDefaults.NormalizeOptional(FornecedorMorada);
+        var email = FornecedorFormDefaults.NormalizeOptional(FornecedorEmail);
+        var telefone = FornecedorFormDefaults.NormalizeOptional(FornecedorTelefone);
+
+        FornecedoresErrorMessage =
+            FornecedorFormDefaults.ValidateNome(nome) ??
+            FornecedorFormDefaults.ValidateNif(nif) ??
+            FornecedorFormDefaults.ValidateMorada(morada) ??
+            FornecedorFormDefaults.ValidateEmail(email) ??
+            FornecedorFormDefaults.ValidateTelefone(telefone) ??
+            string.Empty;
+
+        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            return;
+
+        IsSavingFornecedor = true;
+        FornecedoresErrorMessage = string.Empty;
+
+        try
+        {
+            var fornecedorEmEdicaoId = FornecedorEmEdicao?.FornecedorId;
+
+            if (FornecedorEmEdicao is null)
+            {
+                var criado = await _fornecedoresService.CreateAsync(nome, nif, morada, email, telefone);
+                fornecedorEmEdicaoId = criado?.FornecedorId;
+
+                await _dialogService.ShowSuccessAsync(
+                    "Sucesso",
+                    $"O fornecedor {nome} foi criado com sucesso.");
+            }
+            else
+            {
+                await _fornecedoresService.UpdateAsync(
+                    FornecedorEmEdicao.FornecedorId,
+                    nome,
+                    nif,
+                    morada,
+                    email,
+                    telefone);
+
+                await _dialogService.ShowSuccessAsync(
+                    "Sucesso",
+                    $"O fornecedor {nome} foi atualizado com sucesso.");
+            }
+
+            ResetFornecedorForm();
+            await RefreshFornecedoresAsync(fornecedorEmEdicaoId);
+        }
+        catch (Exception ex)
+        {
+            FornecedoresErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSavingFornecedor = false;
+        }
+    }
+
+    [RelayCommand]
+    private void EditarFornecedor(FornecedorDto? fornecedor)
+    {
+        if (fornecedor is null)
+            return;
+
+        FornecedorEmEdicao = fornecedor;
+        FornecedorNome = fornecedor.Nome;
+        FornecedorNif = fornecedor.NIF;
+        FornecedorMorada = fornecedor.Morada ?? string.Empty;
+        FornecedorEmail = fornecedor.Email ?? string.Empty;
+        FornecedorTelefone = fornecedor.Telefone ?? string.Empty;
+        FornecedoresErrorMessage = string.Empty;
+        IsFornecedoresVisible = true;
+    }
+
+    [RelayCommand]
+    private async Task EliminarFornecedorAsync(FornecedorDto? fornecedor)
+    {
+        if (fornecedor is null)
+            return;
+
+        var confirmar = await _dialogService.ConfirmDeleteAsync($"o fornecedor {fornecedor.DisplayName}");
+        if (!confirmar)
+            return;
+
+        FornecedoresErrorMessage = string.Empty;
+
+        try
+        {
+            await _fornecedoresService.DeleteAsync(fornecedor.FornecedorId);
+
+            if (FornecedorEmEdicao?.FornecedorId == fornecedor.FornecedorId)
+                ResetFornecedorForm();
+
+            await RefreshFornecedoresAsync();
+
+            await _dialogService.ShowSuccessAsync(
+                "Sucesso",
+                $"O fornecedor {fornecedor.DisplayName} foi eliminado com sucesso.");
+        }
+        catch (Exception ex)
+        {
+            FornecedoresErrorMessage = ex.Message;
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanCreatePedido))]
@@ -282,6 +532,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
         IsLoading = true;
         ErrorMessage = string.Empty;
+        FornecedoresErrorMessage = string.Empty;
         var mainLoadSucceeded = true;
 
         var selectedFornecedorId = SelectedFornecedor?.FornecedorId;
@@ -292,12 +543,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
             var moldesTask = GetAllMoldesAsync();
             await Task.WhenAll(fornecedoresTask, moldesTask);
 
-            _todosFornecedores.Clear();
-            _todosFornecedores.AddRange(fornecedoresTask.Result.OrderBy(fornecedor => fornecedor.Nome));
-
-            FornecedoresDisponiveis.Clear();
-            foreach (var fornecedor in _todosFornecedores)
-                FornecedoresDisponiveis.Add(fornecedor);
+            ApplyFornecedores(fornecedoresTask.Result, selectedFornecedorId);
 
             _todosMoldes.Clear();
             _todosMoldes.AddRange(moldesTask.Result.OrderBy(molde => molde.DisplayName));
@@ -315,8 +561,6 @@ public partial class PedidosMaterialViewModel : ObservableObject
             OnPropertyChanged(nameof(SelectedMoldesCount));
             OnPropertyChanged(nameof(SelectedMoldesSummary));
             OnPropertyChanged(nameof(CanCreatePedido));
-
-            SelectedFornecedor = ResolveFornecedor(selectedFornecedorId);
             _loaded = true;
         }
         catch (Exception ex)
@@ -336,6 +580,27 @@ public partial class PedidosMaterialViewModel : ObservableObject
             ClearPecasDisponiveis();
     }
 
+    private async Task RefreshFornecedoresAsync(int? selectedFornecedorId = null)
+    {
+        var fornecedores = await GetAllFornecedoresAsync();
+        ApplyFornecedores(fornecedores, selectedFornecedorId ?? SelectedFornecedor?.FornecedorId);
+    }
+
+    private void ApplyFornecedores(IEnumerable<FornecedorDto> fornecedores, int? selectedFornecedorId)
+    {
+        _todosFornecedores.Clear();
+        _todosFornecedores.AddRange(fornecedores.OrderBy(fornecedor => fornecedor.Nome));
+
+        FornecedoresDisponiveis.Clear();
+        foreach (var fornecedor in _todosFornecedores)
+            FornecedoresDisponiveis.Add(fornecedor);
+
+        _fornecedoresLoaded = true;
+        OnPropertyChanged(nameof(HasFornecedores));
+
+        SelectedFornecedor = ResolveFornecedor(selectedFornecedorId);
+    }
+
     private async Task LoadPecasAsync(bool resetPaging)
     {
         var moldesSelecionados = _todosMoldes
@@ -353,6 +618,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
             .Where(item => item.IsSelected)
             .Select(item => item.PecaId)
             .ToHashSet();
+        var searchSnapshot = PecaSearchTerm?.Trim();
 
         IsLoadingPecas = true;
         ErrorMessage = string.Empty;
@@ -375,7 +641,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
                     if (!_pecaPagingStates.TryGetValue(molde.MoldeId, out var state))
                         return Array.Empty<SelectablePecaPedidoMaterialItem>();
 
-                    var pagina = await GetPecasPageAsync(molde.MoldeId, state.NextPage, PecaPageSize);
+                    var pagina = await GetPecasPageAsync(molde.MoldeId, state.NextPage, PecaPageSize, searchSnapshot);
                     if (pagina is null)
                         throw new InvalidOperationException($"Nao foi possivel carregar as pecas do molde {molde.MoldeId}.");
 
@@ -395,7 +661,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
             var novasPecas = carregamentos.SelectMany(item => item).ToList();
             AppendPecasDisponiveis(novasPecas);
-            ApplyPecaFilter();
+            RefreshPecasDisponiveis(searchSnapshot);
         }
         catch (Exception ex)
         {
@@ -473,9 +739,9 @@ public partial class PedidosMaterialViewModel : ObservableObject
             .ToList();
     }
 
-    private async Task<PagedResult<PecaDto>?> GetPecasPageAsync(int moldeId, int page, int pageSize)
+    private async Task<PagedResult<PecaDto>?> GetPecasPageAsync(int moldeId, int page, int pageSize, string? searchTerm = null)
     {
-        return await _pecasService.GetByMoldeIdWithoutPedidoMaterialAsync(moldeId, page, pageSize);
+        return await _pecasService.GetByMoldeIdWithoutPedidoMaterialAsync(moldeId, page, pageSize, searchTerm);
     }
 
     private FornecedorDto? ResolveFornecedor(int? fornecedorId)
@@ -485,6 +751,17 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
         return FornecedoresDisponiveis.FirstOrDefault(item => item.FornecedorId == fornecedorId)
             ?? FornecedoresDisponiveis.FirstOrDefault();
+    }
+
+    private void ResetFornecedorForm()
+    {
+        FornecedorEmEdicao = null;
+        FornecedorNome = string.Empty;
+        FornecedorNif = string.Empty;
+        FornecedorMorada = string.Empty;
+        FornecedorEmail = string.Empty;
+        FornecedorTelefone = string.Empty;
+        FornecedoresErrorMessage = string.Empty;
     }
 
     private void ResetPecaPagingState(IEnumerable<SelectableMoldePedidoMaterialItem> moldesSelecionados)
@@ -533,35 +810,28 @@ public partial class PedidosMaterialViewModel : ObservableObject
         CarregarMaisPecasCommand.NotifyCanExecuteChanged();
     }
 
-    private void ApplyPecaFilter()
+    private void RefreshPecasDisponiveis(string? searchTerm = null)
     {
-        var search = PecaSearchTerm?.Trim();
-
         PecasDisponiveis.Clear();
 
-        var filtradas = _todosPecas
-            .Where(item => string.IsNullOrWhiteSpace(search) ||
-                           Contains(item.NumeroPeca, search) ||
-                           Contains(item.Designacao, search) ||
-                           Contains(item.MoldeDisplay, search) ||
-                           Contains(item.MaterialDesignacao, search) ||
-                           Contains(item.TratamentoTermico, search) ||
-                           Contains(item.Observacao, search))
+        var ordenadas = _todosPecas
             .OrderBy(item => item.MoldeNumero)
             .ThenBy(item => item.Prioridade)
             .ThenBy(item => item.NumeroPeca)
             .ThenBy(item => item.Designacao);
 
-        foreach (var peca in filtradas)
+        foreach (var peca in ordenadas)
             PecasDisponiveis.Add(peca);
 
         if (_todosPecas.Count == 0)
         {
             PecaInfoMessage = SelectedMoldesCount == 0
                 ? "Seleciona um ou mais moldes para ver as pecas sem pedido de material."
-                : "Nao existem pecas sem pedido de material nos moldes selecionados.";
+                : !string.IsNullOrWhiteSpace(searchTerm)
+                    ? "Nenhuma peca corresponde a pesquisa."
+                    : "Nao existem pecas sem pedido de material nos moldes selecionados.";
         }
-        else if (!string.IsNullOrWhiteSpace(search))
+        else if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             PecaInfoMessage = PecasDisponiveis.Count == 0
                 ? "Nenhuma peca corresponde a pesquisa."
@@ -584,12 +854,6 @@ public partial class PedidosMaterialViewModel : ObservableObject
         CriarPedidoCommand.NotifyCanExecuteChanged();
         ConfirmarResumoPedidoCommand.NotifyCanExecuteChanged();
         CarregarMaisPecasCommand.NotifyCanExecuteChanged();
-    }
-
-    private static bool Contains(string? source, string search)
-    {
-        return !string.IsNullOrWhiteSpace(source) &&
-               source.Contains(search, StringComparison.OrdinalIgnoreCase);
     }
 
     private void OnSelectablePecaPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -738,7 +1002,7 @@ public sealed partial class SelectablePecaPedidoMaterialItem : ObservableObject
     public string MoldeNumero => MoldeDisplay;
 
     public string NumeroPeca => string.IsNullOrWhiteSpace(_peca.NumeroPeca)
-        ? $"Peca #{_peca.PecaId}"
+        ? "Peca sem numero"
         : _peca.NumeroPeca;
 
     public string Designacao => _peca.Designacao;

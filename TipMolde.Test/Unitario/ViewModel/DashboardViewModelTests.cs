@@ -53,6 +53,20 @@ public class DashboardViewModelTests
             request.Path == "/api/pecas/por-molde/2/pendentes-rececao-material?page=1&pageSize=1");
     }
 
+    [Test(Description = "T1FRT - A planificacao deve respeitar o intervalo de datas previsto.")]
+    public async Task LoadAsync_Should_FilterPlanificacaoByDataEntrega_When_DateRangeChanges()
+    {
+        // ACT
+        await _sut.LoadAsync();
+        _sut.DataInicioPlanificacao = new DateTime(2026, 6, 15);
+        _sut.DataFimPlanificacao = new DateTime(2026, 6, 30);
+
+        // ASSERT
+        _sut.MoldesPlanificacao.Should().ContainSingle();
+        _sut.MoldesPlanificacao.Single().MoldeId.Should().Be(2);
+        _sut.PlanificacaoResumoDisplay.Should().Be("1 molde(s) no intervalo");
+    }
+
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch
@@ -109,7 +123,7 @@ public class DashboardViewModelTests
                             EncomendaId = 1,
                             MoldeId = 1,
                             Prioridade = 1,
-                            DataEntregaPrevista = new DateTime(2026, 6, 20, 0, 0, 0, DateTimeKind.Utc),
+                            DataEntregaPrevista = new DateTime(2026, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             Quantidade = 10,
                             NumeroEncomendaCliente = "ENC-001",
                             NomeCliente = "Cliente Exemplo",
@@ -130,11 +144,25 @@ public class DashboardViewModelTests
                             NumeroMolde = "M-002",
                             NomeMolde = "Molde Sem Pedido",
                             EstadoEncomenda = "EM_PRODUCAO"
+                        },
+                        new FilaGlobalMoldeItemDto
+                        {
+                            EncomendaMoldeId = 102,
+                            EncomendaId = 1,
+                            MoldeId = 3,
+                            Prioridade = 3,
+                            DataEntregaPrevista = new DateTime(2026, 7, 5, 0, 0, 0, DateTimeKind.Utc),
+                            Quantidade = 8,
+                            NumeroEncomendaCliente = "ENC-001",
+                            NomeCliente = "Cliente Exemplo",
+                            NumeroMolde = "M-003",
+                            NomeMolde = "Molde Futuro",
+                            EstadoEncomenda = "EM_PRODUCAO"
                         }
                     ],
                     Page = 1,
                     PageSize = 100,
-                    TotalItems = 2
+                    TotalItems = 3
                 }),
             "/api/moldes/1" => CreateJsonResponse(
                 HttpStatusCode.OK,
@@ -197,6 +225,15 @@ public class DashboardViewModelTests
                     TotalItems = 1
                 }),
             "/api/pecas/por-molde/2/pendentes-rececao-material?page=1&pageSize=1" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<PecaDto>
+                {
+                    Items = [],
+                    Page = 1,
+                    PageSize = 1,
+                    TotalItems = 0
+                }),
+            "/api/pecas/por-molde/3/pendentes-rececao-material?page=1&pageSize=1" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<PecaDto>
                 {

@@ -4,6 +4,7 @@ public sealed class ProducaoPecaDisponivelItem
 {
     public int MoldeId { get; init; }
     public int PecaId { get; init; }
+    public int EncomendaMolde_id { get; init; }
     public int PrioridadeMolde { get; init; }
     public int PrioridadePeca { get; init; }
     public int Quantidade { get; init; }
@@ -24,11 +25,11 @@ public sealed class ProducaoPecaDisponivelItem
     public Dictionary<int, RegistoProducaoDto?> UltimosRegistosPorFase { get; init; } =
         new();
 
-    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? $"Molde #{MoldeId}" : NumeroMolde;
+    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string NumeroEncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem numero" : NumeroEncomendaCliente;
     public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente nao definido" : NomeCliente;
-    public string DesignacaoDisplay => string.IsNullOrWhiteSpace(Designacao) ? $"Peca #{PecaId}" : Designacao;
+    public string DesignacaoDisplay => string.IsNullOrWhiteSpace(Designacao) ? "Peca sem designacao" : Designacao;
     public string NumeroPecaDisplay => string.IsNullOrWhiteSpace(NumeroPeca) ? "Sem numero" : NumeroPeca;
     public string EntregaDisplay => DataEntregaPrevista > DateTime.MinValue
         ? DataEntregaPrevista.ToString("dd/MM/yyyy")

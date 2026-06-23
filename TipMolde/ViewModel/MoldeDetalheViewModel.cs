@@ -20,9 +20,11 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     private readonly ProjetosService _projetosService;
     private readonly RevisoesService _revisoesService;
     private readonly RegistosTempoProjetoService _registosTempoProjetoService;
+    private readonly RegistosProducaoService _registosProducaoService;
     private readonly PecasService _pecasService;
     private readonly AuthorizationService _authorizationService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
+    private readonly IDestinationFolderPickerService _destinationFolderPickerService;
     private readonly IDialogService _dialogService;
     private readonly List<DesenhoMoldeItem> _todosMoldes = [];
     private readonly List<DesenhoMoldeItem> _moldesFiltrados = [];
@@ -35,18 +37,22 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         ProjetosService projetosService,
         RevisoesService revisoesService,
         RegistosTempoProjetoService registosTempoProjetoService,
+        RegistosProducaoService registosProducaoService,
         PecasService pecasService,
         AuthorizationService authorizationService,
         SessaoPersistidaService sessaoPersistidaService,
+        IDestinationFolderPickerService destinationFolderPickerService,
         IDialogService dialogService)
     {
         _moldesService = moldesService;
         _projetosService = projetosService;
         _revisoesService = revisoesService;
         _registosTempoProjetoService = registosTempoProjetoService;
+        _registosProducaoService = registosProducaoService;
         _pecasService = pecasService;
         _authorizationService = authorizationService;
         _sessaoPersistidaService = sessaoPersistidaService;
+        _destinationFolderPickerService = destinationFolderPickerService;
         _dialogService = dialogService;
         PageSize = 8;
     }
@@ -142,6 +148,9 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     private TimeSpan tempoRegistadoTotal;
 
     [ObservableProperty]
+    private TimeSpan tempoTotalPecas;
+
+    [ObservableProperty]
     private string tempoSessaoAtiva = string.Empty;
 
     [ObservableProperty]
@@ -188,6 +197,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     public string MaterialMovimentosDisplay => NormalizeTexto(MaterialMovimentos);
     public string MaterialInjecaoDisplay => NormalizeTexto(MaterialInjecao);
     public string PercentagemConclusaoDisplay => Dashboard is null ? ValorNaoDefinido : $"{Dashboard.PercentagemConclusao:0.##}%";
+    public string TempoTotalPecasDisplay => FormatDuration(TempoTotalPecas);
     public int DistribuicaoTotal => Dashboard is null ? 0 : Dashboard.Maquinacao + Dashboard.Erosao + Dashboard.Montagem + Dashboard.MaterialPendente + Dashboard.EmEspera;
     public string PdfButtonText => IsGeneratingPdf ? "A gerar PDF..." : "Gerar PDF";
     public bool CanGeneratePdf => IsAdmin && HasDashboard && !IsGeneratingPdf;
@@ -278,6 +288,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(HasProjetoContexto));
     }
     partial void OnTempoRegistadoTotalChanged(TimeSpan value) => OnPropertyChanged(nameof(TempoTotalDisplay));
+    partial void OnTempoTotalPecasChanged(TimeSpan value) => OnPropertyChanged(nameof(TempoTotalPecasDisplay));
     partial void OnTempoSessaoAtivaChanged(string value) => OnPropertyChanged(nameof(TempoSessaoAtivaDisplay));
     partial void OnSelectedProjetoChanged(ProjetoDto? value)
     {
@@ -324,6 +335,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                     Projetos.Clear();
                     Revisoes.Clear();
                     RegistosTempo.Clear();
+                    TempoTotalPecas = TimeSpan.Zero;
                     ProjetoAtivo = null;
                     SelectedProjeto = null;
                     ClearFichaTecnica();
@@ -355,6 +367,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 Page = 1;
 
                 await LoadPecasAsync();
+                await AtualizarResumoTempoProducaoAsync();
 
                 _suspendSelectedProjetoLoad = true;
                 try
@@ -393,6 +406,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
             Projetos.Clear();
             Revisoes.Clear();
             RegistosTempo.Clear();
+            TempoTotalPecas = TimeSpan.Zero;
             ProjetoAtivo = null;
             SelectedProjeto = null;
             ClearFichaTecnica();
@@ -410,6 +424,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         try
         {
             await ExecutePagedLoadAsync(LoadPecasAsync);
+            await AtualizarResumoTempoProducaoAsync();
             if (SelectedProjeto is not null)
                 await LoadProjetoContextAsync(SelectedProjeto.Projeto_id);
         }
@@ -453,6 +468,10 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         if (Dashboard is null)
             return;
 
+        var destinationFolder = await _destinationFolderPickerService.PickFolderAsync("Seleciona a pasta para o PDF do molde");
+        if (string.IsNullOrWhiteSpace(destinationFolder))
+            return;
+
         IsGeneratingPdf = true;
 
         try
@@ -463,7 +482,8 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 DescricaoDisplay,
                 TipoPedidoDisplay,
                 Numero_cavidades,
-                Dashboard);
+                Dashboard,
+                destinationFolder);
 
             await Launcher.Default.OpenAsync(new OpenFileRequest(
                 "Relatorio do ciclo de vida",
@@ -523,6 +543,133 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         MaterialCavidade = string.Empty;
         MaterialMovimentos = string.Empty;
         MaterialInjecao = string.Empty;
+    }
+
+    private async Task AtualizarResumoTempoProducaoAsync()
+    {
+        if (MoldeId <= 0)
+        {
+            TempoTotalPecas = TimeSpan.Zero;
+            return;
+        }
+
+        try
+        {
+            var pecasTask = GetAllPecasAsync(MoldeId);
+            var registosTask = GetAllRegistosProducaoAsync();
+
+            await Task.WhenAll(pecasTask, registosTask);
+
+            var pecaIds = pecasTask.Result;
+            var registos = registosTask.Result;
+
+            if (pecaIds.Count == 0 || registos.Count == 0)
+            {
+                TempoTotalPecas = TimeSpan.Zero;
+                return;
+            }
+
+            TempoTotalPecas = CalcularTempoTotalPecas(pecaIds, registos);
+        }
+        catch
+        {
+            TempoTotalPecas = TimeSpan.Zero;
+        }
+    }
+
+    private async Task<List<int>> GetAllPecasAsync(int moldeId)
+    {
+        var primeiraPagina = await _pecasService.GetByMoldeIdAsync(moldeId, 1, 100);
+        if (primeiraPagina is null)
+            return [];
+
+        var pecas = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _pecasService.GetByMoldeIdAsync(moldeId, page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            pecas.AddRange(pagina.Items);
+        }
+
+        return pecas
+            .Select(item => item.PecaId)
+            .Distinct()
+            .ToList();
+    }
+
+    private async Task<List<RegistoProducaoDto>> GetAllRegistosProducaoAsync()
+    {
+        var primeiraPagina = await _registosProducaoService.GetAllAsync(1, 100);
+        if (primeiraPagina is null)
+            return [];
+
+        var registos = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _registosProducaoService.GetAllAsync(page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            registos.AddRange(pagina.Items);
+        }
+
+        return registos;
+    }
+
+    private static TimeSpan CalcularTempoPeca(IEnumerable<RegistoProducaoDto> registosOrdenados)
+    {
+        var total = TimeSpan.Zero;
+        DateTime? inicioSessao = null;
+
+        foreach (var registo in registosOrdenados)
+        {
+            var estado = NormalizeEstado(registo.EstadoProducao);
+
+            if (estado is "PREPARACAO" or "EM_CURSO")
+            {
+                inicioSessao ??= registo.DataHora;
+                continue;
+            }
+
+            if (estado is "PAUSADO" or "CONCLUIDO")
+            {
+                if (inicioSessao.HasValue && registo.DataHora > inicioSessao.Value)
+                    total += registo.DataHora - inicioSessao.Value;
+
+                inicioSessao = null;
+            }
+        }
+
+        if (inicioSessao.HasValue)
+            total += DateTime.UtcNow - inicioSessao.Value;
+
+        return total;
+    }
+
+    private static TimeSpan CalcularTempoTotalPecas(IEnumerable<int> pecaIds, IEnumerable<RegistoProducaoDto> registos)
+    {
+        var pecaIdsSet = pecaIds.ToHashSet();
+        var total = TimeSpan.Zero;
+
+        foreach (var grupo in registos
+                     .Where(item => pecaIdsSet.Contains(item.PecaId))
+                     .GroupBy(item => item.PecaId))
+        {
+            total += CalcularTempoPeca(grupo.OrderBy(item => item.DataHora));
+        }
+
+        return total;
+    }
+
+    private static string NormalizeEstado(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? string.Empty
+            : value.Trim().ToUpperInvariant();
     }
 
     private void NotifyFichaTecnicaChanged()
@@ -997,9 +1144,6 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(HasRegistosTempo));
         OnPropertyChanged(nameof(HasProjetoAtivo));
         OnPropertyChanged(nameof(CanAddPeca));
-        OnPropertyChanged(nameof(TotalMoldes));
-        OnPropertyChanged(nameof(TotalEncomendasConfirmadas));
-        OnPropertyChanged(nameof(EmptyMessage));
         OnPropertyChanged(nameof(EmptyProjetosMessage));
         OnPropertyChanged(nameof(EmptyProjetosMessageDisplay));
         OnPropertyChanged(nameof(EmptyRevisoesMessage));
@@ -1010,6 +1154,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(RevisoesResumoDisplay));
         OnPropertyChanged(nameof(TempoResumoDisplay));
         OnPropertyChanged(nameof(TempoTotalDisplay));
+        OnPropertyChanged(nameof(TempoTotalPecasDisplay));
         OnPropertyChanged(nameof(TempoSessaoAtivaDisplay));
     }
 
@@ -1021,9 +1166,6 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(HasRevisoes));
         OnPropertyChanged(nameof(HasRegistosTempo));
         OnPropertyChanged(nameof(CanAddPeca));
-        OnPropertyChanged(nameof(TotalMoldes));
-        OnPropertyChanged(nameof(TotalEncomendasConfirmadas));
-        OnPropertyChanged(nameof(EmptyMessage));
         OnPropertyChanged(nameof(EmptyProjetosMessage));
         OnPropertyChanged(nameof(EmptyProjetosMessageDisplay));
         OnPropertyChanged(nameof(EmptyRevisoesMessage));
@@ -1034,6 +1176,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(ProjetoAtivoCaminhoDisplay));
         OnPropertyChanged(nameof(RevisoesResumoDisplay));
         OnPropertyChanged(nameof(TempoTotalDisplay));
+        OnPropertyChanged(nameof(TempoTotalPecasDisplay));
         OnPropertyChanged(nameof(TempoSessaoAtivaDisplay));
     }
 
@@ -1111,7 +1254,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 "Importacao concluida",
                 $"Foram lidas {result.TotalLinhasPecaLidas} linhas e consolidadas {result.TotalPecasConsolidadas} pecas para o molde {molde.NumeroMoldeDisplay}.");
 
-            await AtualizarTotalPecasMoldeAsync(molde.MoldeId);
+            await RefreshPecasAsync();
         }
         catch (Exception ex)
         {
@@ -1119,94 +1262,6 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 "Importacao de pecas",
                 ex.Message);
         }
-    }
-
-    private async Task AtualizarTotalPecasMoldeAsync(int moldeId)
-    {
-        var totais = await GetTotaisPecasPorMoldeAsync([moldeId]);
-        if (!totais.TryGetValue(moldeId, out var totalPecasAtual))
-            return;
-
-        var molde = _todosMoldes.FirstOrDefault(item => item.MoldeId == moldeId);
-        if (molde is null)
-            return;
-
-        molde.TotalPecas = totalPecasAtual;
-        RefreshMoldes();
-    }
-
-    private async Task<Dictionary<int, int>> GetTotaisPecasPorMoldeAsync(IEnumerable<int> moldeIds)
-    {
-        var moldesValidos = moldeIds
-            .Where(item => item > 0)
-            .Distinct()
-            .ToList();
-
-        var totais = await Task.WhenAll(moldesValidos.Select(async moldeId =>
-        {
-            var pagina = await _pecasService.GetByMoldeIdAsync(moldeId, 1, 1);
-            return new
-            {
-                MoldeId = moldeId,
-                Total = pagina?.TotalItems ?? 0
-            };
-        }));
-
-        return totais.ToDictionary(item => item.MoldeId, item => item.Total);
-    }
-
-    private void RefreshMoldes()
-    {
-        IEnumerable<DesenhoMoldeItem> query = _todosMoldes;
-
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
-        {
-            var term = SearchTerm.Trim();
-            query = query.Where(item =>
-                item.NumeroMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.NomeMoldeDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.NumeroEncomendaDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.NomeClienteDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.TotalPecasDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.DataEntregaPrevistaDisplay.Contains(term, StringComparison.OrdinalIgnoreCase));
-        }
-
-        _moldesFiltrados.Clear();
-        _moldesFiltrados.AddRange(query.OrderBy(item => item.DataEntregaPrevista ?? DateTime.MaxValue).ThenBy(item => item.NumeroMoldeDisplay));
-
-        var totalFiltrado = _moldesFiltrados.Count;
-        var totalPaginas = totalFiltrado <= 0 ? 1 : (int)Math.Ceiling((double)totalFiltrado / PageSize);
-        UpdatePagination(totalFiltrado, totalPaginas);
-
-        var paginaAtual = _moldesFiltrados
-            .Skip((Page - 1) * PageSize)
-            .Take(PageSize)
-            .ToList();
-
-        Moldes.Clear();
-        foreach (var molde in paginaAtual)
-            Moldes.Add(molde);
-
-        OnPropertyChanged(nameof(HasMoldes));
-        OnPropertyChanged(nameof(TotalMoldes));
-        OnPropertyChanged(nameof(TotalEncomendasConfirmadas));
-        OnPropertyChanged(nameof(EmptyMessage));
-    }
-
-    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
-        ? "Nao existem moldes de encomendas confirmadas para desenho."
-        : "Nenhum molde corresponde aos filtros atuais.";
-
-    public int TotalMoldes => _moldesFiltrados.Count;
-    public int TotalEncomendasConfirmadas => _moldesFiltrados.Select(item => item.EncomendaId).Distinct().Count();
-
-    partial void OnSearchTermChanged(string value)
-    {
-        if (Page != 1)
-            Page = 1;
-
-        RefreshMoldes();
-        OnPropertyChanged(nameof(EmptyMessage));
     }
 
     private static readonly FilePickerFileType CsvFileTypes = new(new Dictionary<DevicePlatform, IEnumerable<string>>

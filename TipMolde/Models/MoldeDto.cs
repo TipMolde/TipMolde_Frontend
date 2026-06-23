@@ -71,7 +71,7 @@ public sealed class MoldeDto
 
     public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
     public string DisplayName => string.IsNullOrWhiteSpace(Numero)
-        ? $"Molde #{MoldeId}"
+        ? "Molde sem numero"
         : string.IsNullOrWhiteSpace(Nome)
             ? Numero
             : $"{Numero} - {Nome}";

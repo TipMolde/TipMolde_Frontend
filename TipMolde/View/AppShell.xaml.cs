@@ -11,10 +11,12 @@ public partial class AppShell : Shell
             ["Utilizadores"] = AppFeature.Utilizadores,
             ["Clientes"] = AppFeature.Clientes,
             ["Encomendas"] = AppFeature.Encomendas,
+            ["PedidosMaterial"] = AppFeature.PedidosMaterial,
             ["Producao"] = AppFeature.Producao,
             ["Maquinas"] = AppFeature.Maquinas,
             ["Desenho"] = AppFeature.Desenho,
             ["Projetos"] = AppFeature.Desenho,
+            ["FopGeralPage"] = AppFeature.Relatorios,
             ["Relatorios"] = AppFeature.Relatorios,
             ["Definicoes"] = AppFeature.Definicoes
         };
@@ -51,6 +53,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(ProjetosPage), typeof(ProjetosPage));
         Routing.RegisterRoute(nameof(AdicionarProjetoPage), typeof(AdicionarProjetoPage));
         Routing.RegisterRoute(nameof(ProjetoDetalhePage), typeof(ProjetoDetalhePage));
+        Routing.RegisterRoute(nameof(FopGeralPage), typeof(FopGeralPage));
         Routing.RegisterRoute(nameof(RelatoriosPage), typeof(RelatoriosPage));
         Routing.RegisterRoute(nameof(RegistoProducaoPage), typeof(RegistoProducaoPage));
     }
@@ -68,6 +71,7 @@ public partial class AppShell : Shell
             UtilizadoresShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Utilizadores);
             ClientesShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Clientes);
             EncomendasShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Encomendas);
+            PedidosMaterialShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.PedidosMaterial);
             ProducaoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Producao);
             MaquinasShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Maquinas);
             DesenhoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Desenho);

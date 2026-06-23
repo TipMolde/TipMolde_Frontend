@@ -101,7 +101,7 @@
                                             ItemsSource="{Binding SearchModes}"
                                             SelectedIndex="{Binding SelectedSearchModeIndex}" />
 
-                                    <SearchBar Placeholder="Pesquisar por molde ou peca"
+                                    <SearchBar Placeholder="Pesquisar por molde, peça ou fase"
                                                FlexLayout.Grow="1"
                                                Margin="0,0,10,10"
                                                Text="{Binding SearchTerm}"
@@ -179,19 +179,13 @@
                                                         <Label Grid.Column="1"
                                                                Text="{Binding Quantidade, StringFormat='Qtd: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                        <Label Grid.Column="2"
-                                                               Text="{Binding ProximaFaseDisplay, StringFormat='Proxima fase: {0}'}"
-                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                    </Grid>
+                                                        </Grid>
 
                                                     <Grid ColumnDefinitions="*,*"
                                                           ColumnSpacing="12">
                                                         <Label Text="{Binding EntregaDisplay, StringFormat='Entrega: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                        <Label Grid.Column="1"
-                                                               Text="{Binding EstadoAtualDisplay}"
-                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                    </Grid>
+                                                        </Grid>
 
                                                     <Label Text="{Binding ProximoPassoDisplay, StringFormat='Proximo passo: {0}'}"
                                                            FontSize="12"
@@ -199,14 +193,24 @@
                                                            TextColor="{AppThemeBinding Light=#0F172A, Dark=#E5E7EB}" />
                                                 </VerticalStackLayout>
 
-                                                <Button Grid.Column="1"
-                                                        Text="Selecionar"
-                                                        Command="{Binding BindingContext.SelecionarPecaCommand, Source={x:Reference PaginaProducao}}"
-                                                        CommandParameter="{Binding .}"
-                                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
-                                                        HeightRequest="42"
-                                                        VerticalOptions="Center" />
+                                                <VerticalStackLayout Grid.Column="1"
+                                                                     Spacing="10"
+                                                                     VerticalOptions="Center">
+                                                    <Button Text="Selecionar"
+                                                            Command="{Binding BindingContext.SelecionarPecaCommand, Source={x:Reference PaginaProducao}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                            HeightRequest="42" />
+
+                                                    <Button Text="{Binding BindingContext.AlterarFasePlaneadaButtonText, Source={x:Reference PaginaProducao}}"
+                                                            Command="{Binding BindingContext.AlterarFasePlaneadaCommand, Source={x:Reference PaginaProducao}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#EAB308, Dark=#FACC15}"
+                                                            TextColor="{AppThemeBinding Light=#0F172A, Dark=#0F172A}"
+                                                            HeightRequest="42"
+                                                            IsEnabled="{Binding BindingContext.CanAlterarFasePlaneadaGlobal, Source={x:Reference PaginaProducao}}" />
+                                                </VerticalStackLayout>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

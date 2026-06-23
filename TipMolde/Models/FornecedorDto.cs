@@ -23,7 +23,7 @@ public sealed class FornecedorDto
     public string? Telefone { get; set; }
 
     public string DisplayName => string.IsNullOrWhiteSpace(Nome)
-        ? $"Fornecedor #{FornecedorId}"
+        ? "Fornecedor sem nome"
         : string.IsNullOrWhiteSpace(NIF)
             ? Nome
             : $"{Nome} ({NIF})";

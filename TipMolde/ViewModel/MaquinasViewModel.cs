@@ -8,7 +8,7 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
-public partial class MaquinasViewModel : PaginatedViewModel
+public partial class MaquinasViewModel : SearchableViewModel
 {
     private const string SuccessTitle = "Sucesso";
     private const string EstadoDisponivel = "DISPONIVEL";
@@ -22,6 +22,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     private readonly Dictionary<int, string> _fasesPorId = [];
     private readonly List<MaquinaItem> _todasMaquinas = [];
     private readonly List<MaquinaItem> _maquinasFiltradas = [];
+    private string _loadedSearchTerm = string.Empty;
+    private readonly AsyncRelayCommand _pesquisarCommand;
+    private readonly AsyncRelayCommand _limparPesquisaCommand;
     private bool _fasesLoaded;
     private bool _maquinasLoaded;
     private bool _permissionsLoaded;
@@ -36,10 +39,15 @@ public partial class MaquinasViewModel : PaginatedViewModel
         _fasesProducaoService = fasesProducaoService;
         _authorizationService = authorizationService;
         _dialogService = dialogService;
+        _pesquisarCommand = new AsyncRelayCommand(PesquisarAsync);
+        _limparPesquisaCommand = new AsyncRelayCommand(LimparPesquisaAsync, () => HasSearch);
         PageSize = 8;
 
         PropertyChanged += (_, e) =>
         {
+            if (string.Equals(e.PropertyName, nameof(SearchTerm), StringComparison.Ordinal))
+                _limparPesquisaCommand.NotifyCanExecuteChanged();
+
             if (string.Equals(e.PropertyName, nameof(IsLoading), StringComparison.Ordinal))
             {
                 OnPropertyChanged(nameof(CanAdicionarMaquina));
@@ -59,6 +67,9 @@ public partial class MaquinasViewModel : PaginatedViewModel
     public ObservableCollection<FaseProducaoItem> FasesProducao { get; } = new();
     public ObservableCollection<FaseNomeOption> FaseNomeOptions { get; } = new();
 
+    public new IAsyncRelayCommand PesquisarCommand => _pesquisarCommand;
+    public new IAsyncRelayCommand LimparPesquisaCommand => _limparPesquisaCommand;
+
     [ObservableProperty]
     private bool isAddMaquinaVisible;
 
@@ -67,9 +78,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
     [ObservableProperty]
     private bool isEditMaquinaVisible;
-
-    [ObservableProperty]
-    private string searchTerm = string.Empty;
 
     [ObservableProperty]
     private string novoMaquinaId = string.Empty;
@@ -131,7 +139,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
     public bool HasMaquinas => Maquinas.Count > 0;
     public bool HasFasesProducao => FasesProducao.Count > 0;
     public bool HasMachineManagementShortcuts => CanCreateMachine || CanManageProductionPhases;
-    public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
+    public string EmptyMessage => string.IsNullOrWhiteSpace(_loadedSearchTerm)
         ? "Nao existem maquinas registadas para apresentar."
         : "Nenhuma maquina corresponde aos filtros atuais.";
     public string EmptyFasesMessage => "Nao existem fases de producao registadas.";
@@ -162,14 +170,6 @@ public partial class MaquinasViewModel : PaginatedViewModel
         : $"{MaquinaEmEdicao.NumeroDisplay} - {MaquinaEmEdicao.NomeModeloDisplay}";
     public string EstadoAtualEdicaoDisplay => MaquinaEmEdicao?.EstadoDisplay ?? "Sem estado";
     public string TransicoesPermitidasDisplay => BuildTransicoesPermitidasDisplay();
-
-    partial void OnSearchTermChanged(string value)
-    {
-        if (Page != 1)
-            Page = 1;
-
-        ApplyFiltersAndPagination();
-    }
 
     partial void OnNovoMaquinaIdChanged(string value)
     {
@@ -281,7 +281,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
             ErrorMessage = string.Empty;
             await EnsurePermissionsLoadedAsync();
             await EnsureFasesLoadedAsync();
-            await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: false);
+            await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: true);
         }
         catch (Exception ex)
         {
@@ -294,9 +294,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
     protected override async Task LoadPageAsync()
     {
-        ErrorMessage = string.Empty;
-        ApplyFiltersAndPagination();
-        await Task.CompletedTask;
+        await RefreshMaquinasAsync(forceReload: false, resetToFirstPage: false);
     }
 
     [RelayCommand]
@@ -306,7 +304,7 @@ public partial class MaquinasViewModel : PaginatedViewModel
         {
             ErrorMessage = string.Empty;
             await EnsureFasesLoadedAsync(forceReload: true);
-            await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: false);
+            await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: true);
         }
         catch (Exception ex)
         {
@@ -634,13 +632,14 @@ public partial class MaquinasViewModel : PaginatedViewModel
         {
             if (forceReload || !_maquinasLoaded)
             {
-                var maquinas = await GetAllMaquinasAsync();
+                var maquinas = await GetMaquinasAsync(_loadedSearchTerm);
                 if (maquinas is null)
                 {
                     ErrorMessage = "Nao foi possivel carregar as maquinas.";
                     _todasMaquinas.Clear();
                     _maquinasFiltradas.Clear();
                     _maquinasLoaded = false;
+                    _loadedSearchTerm = string.Empty;
                     Maquinas.Clear();
                     UpdatePagination(0, 1);
                     NotifyCollectionStateChanged();
@@ -655,13 +654,36 @@ public partial class MaquinasViewModel : PaginatedViewModel
             if (resetToFirstPage)
                 Page = 1;
 
-            ApplyFiltersAndPagination();
+            ApplyPaginationFromLoadedData();
         });
     }
 
-    private async Task<List<MaquinaItem>?> GetAllMaquinasAsync()
+    private async Task PesquisarAsync()
     {
-        var primeiraPagina = await _maquinasService.GetAllAsync(1, 100);
+        ErrorMessage = string.Empty;
+        _loadedSearchTerm = SearchTerm.Trim();
+        Page = 1;
+        await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: true);
+    }
+
+    private async Task LimparPesquisaAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SearchTerm) && string.IsNullOrWhiteSpace(_loadedSearchTerm))
+            return;
+
+        ErrorMessage = string.Empty;
+        _loadedSearchTerm = string.Empty;
+        SearchTerm = string.Empty;
+        Page = 1;
+        await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: true);
+    }
+
+    private async Task<List<MaquinaItem>?> GetMaquinasAsync(string? searchTerm)
+    {
+        var primeiraPagina = string.IsNullOrWhiteSpace(searchTerm)
+            ? await _maquinasService.GetAllAsync(1, 100)
+            : await _maquinasService.SearchAsync(searchTerm, 1, 100);
+
         if (primeiraPagina is null)
             return null;
 
@@ -669,7 +691,10 @@ public partial class MaquinasViewModel : PaginatedViewModel
 
         for (var page = 2; page <= primeiraPagina.TotalPages; page++)
         {
-            var pagina = await _maquinasService.GetAllAsync(page, 100);
+            var pagina = string.IsNullOrWhiteSpace(searchTerm)
+                ? await _maquinasService.GetAllAsync(page, 100)
+                : await _maquinasService.SearchAsync(searchTerm, page, 100);
+
             if (pagina?.Items is null)
                 continue;
 
@@ -685,23 +710,10 @@ public partial class MaquinasViewModel : PaginatedViewModel
         return maquinas;
     }
 
-    private void ApplyFiltersAndPagination()
+    private void ApplyPaginationFromLoadedData()
     {
-        IEnumerable<MaquinaItem> query = _todasMaquinas;
-
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
-        {
-            var term = SearchTerm.Trim();
-            query = query.Where(item =>
-                item.NomeModeloDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.NumeroDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.EstadoDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.FaseDedicadaDisplay.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                item.IpAddressDisplay.Contains(term, StringComparison.OrdinalIgnoreCase));
-        }
-
         _maquinasFiltradas.Clear();
-        _maquinasFiltradas.AddRange(query.OrderBy(item => item.Numero).ThenBy(item => item.NomeModeloDisplay));
+        _maquinasFiltradas.AddRange(_todasMaquinas.OrderBy(item => item.Numero).ThenBy(item => item.NomeModeloDisplay));
 
         var totalFiltrado = _maquinasFiltradas.Count;
         var totalPaginas = totalFiltrado <= 0 ? 1 : (int)Math.Ceiling((double)totalFiltrado / PageSize);

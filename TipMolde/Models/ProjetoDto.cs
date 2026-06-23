@@ -25,12 +25,12 @@ public sealed class ProjetoDto
     [JsonPropertyName("numeroMolde")]
     public string NumeroMolde { get; set; } = string.Empty;
 
-    public string NomeProjetoDisplay => string.IsNullOrWhiteSpace(NomeProjeto) ? $"Projeto {Projeto_id}" : NomeProjeto;
+    public string NomeProjetoDisplay => string.IsNullOrWhiteSpace(NomeProjeto) ? "Projeto sem nome" : NomeProjeto;
     public string TipoProjetoDisplay => string.IsNullOrWhiteSpace(TipoProjeto) ? "Sem tipo" : TipoProjeto.Replace('_', ' ');
     public string SoftwareUtilizadoDisplay => string.IsNullOrWhiteSpace(SoftwareUtilizado) ? "Software nao definido" : SoftwareUtilizado;
     public string CaminhoPastaServidorDisplay => string.IsNullOrWhiteSpace(CaminhoPastaServidor) ? "Caminho nao definido" : CaminhoPastaServidor;
     public string MoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde)
-        ? Molde_id > 0 ? $"Molde #{Molde_id}" : "Molde nao definido"
+        ? "Molde nao definido"
         : NumeroMolde;
     public string ResumoDisplay => $"{NomeProjetoDisplay} | {TipoProjetoDisplay}";
 }

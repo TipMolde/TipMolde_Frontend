@@ -40,6 +40,27 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<PagedResult<MoldeDto>>(response);
     }
 
+    public async Task<PagedResult<MoldeDto>?> GetComEncomendaAsync(string? searchTerm, int page, int pageSize)
+    {
+        var endpoint = $"api/moldes/com-encomenda?page={page}&pageSize={pageSize}";
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var termoNormalizado = Uri.EscapeDataString(searchTerm.Trim());
+            endpoint = $"api/moldes/com-encomenda?searchTerm={termoNormalizado}&page={page}&pageSize={pageSize}";
+        }
+
+        using var response = await HttpClient.GetAsync(endpoint);
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar os moldes associados a encomendas.");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<PagedResult<MoldeDto>>(response);
+    }
+
     public async Task<PagedResult<MoldeDto>?> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync(

@@ -25,8 +25,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
     private List<FaseProducaoItem> _todasFases = [];
     private List<MaquinaItem> _todasMaquinas = [];
     private List<RegistoProducaoDto> _todosRegistos = [];
-    private int? _proximaFaseOriginalId;
-    private bool _suppressProximaFaseChange;
+    private TimeSpan _tempoTotalProducao;
+    private string _tempoSessaoAtivaProducao = string.Empty;
 
     public RegistoProducaoViewModel(
         RegistoProducaoViewModelDependencies dependencies,
@@ -83,11 +83,23 @@ public partial class RegistoProducaoViewModel : ObservableObject
     [ObservableProperty]
     private FaseProducaoItem? selectedProximaFase;
 
+    [ObservableProperty]
+    private string ocorrencia = string.Empty;
+
+    [ObservableProperty]
+    private string correcao = string.Empty;
+
+    [ObservableProperty]
+    private bool isOcorrenciaFormVisible;
+
+    [ObservableProperty]
+    private bool isSavingOcorrencia;
+
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public bool HasPeca => PecaContexto is not null;
     public bool HasRegistoAtivo => RegistoAtivoAtual is not null && EstadoContaComoAtivo(RegistoAtivoAtual.EstadoProducao);
     public bool CanSelecionarFase => !HasRegistoAtivo;
-    public bool CanEditarProximaFase => !HasRegistoAtivo && PecaContexto is not null && ProximasFasesDisponiveis.Count > 0;
+    public bool CanEditarProximaFase => SelectedEstado is not null && IsEstado(SelectedEstado.Value, "CONCLUIDO") && PecaContexto is not null && ProximasFasesDisponiveis.Count > 0;
     public bool IsMachineSelectionVisible => SelectedEstado is not null && EstadoRequerMaquina(SelectedEstado.Value);
     public bool CanSelecionarMaquina => IsMachineSelectionVisible && !DeveManterMaquinaDaPreparacao();
     public string GestorProducaoDisplay => GetGestorProducaoDisplay();
@@ -102,17 +114,33 @@ public partial class RegistoProducaoViewModel : ObservableObject
     public string ProximaFasePlaneadaDisplay => SelectedProximaFase?.NomeDisplay ?? PecaContexto?.ProximaFaseDisplay ?? "Sem fase planeada";
     public string PageTitle => HasRegistoAtivo ? "Producao em Curso" : "Novo Registo de Producao";
     public string IntroText => HasRegistoAtivo
-        ? "Ha uma producao ativa nesta peca. Podes continuar o registo e consultar o historico abaixo."
-        : "Escolhe a fase, o estado e a proxima fase com seguranca antes de guardar.";
+        ? "Ha uma producao ativa nesta peca. Quando fechares a fase, vamos pedir a proxima fase da peca."
+        : "A fase em trabalho ja vem sugerida pela proxima fase da peca. Quando a concluires, escolhe o passo seguinte.";
     public string SaveButtonText => IsSaving ? "A guardar..." : "Guardar registo";
+    public string OcorrenciaToggleButtonText => IsOcorrenciaFormVisible ? "Ocultar ocorrencia" : "Reportar Ocorrencia";
+    public string SaveOcorrenciaButtonText => IsSavingOcorrencia ? "A enviar..." : "Enviar ocorrencia";
+    public bool CanEnviarOcorrencia =>
+        IsOcorrenciaFormVisible &&
+        !IsLoading &&
+        !IsSavingOcorrencia &&
+        GestorProducaoId.HasValue &&
+        PecaContexto is not null &&
+        PecaContexto.EncomendaMolde_id > 0 &&
+        !string.IsNullOrWhiteSpace(Ocorrencia);
     public string MachineHint => BuildMachineHint();
     public string ProximaFaseHint => BuildProximaFaseHint();
+    public string OcorrenciaHint => "Regista aqui uma ocorrencia independente do registo de producao.";
+    public string CorrecaoHint => "A correcao e opcional e pode ser enviada em conjunto com a ocorrencia.";
     public string HistoricoTituloDisplay => HasHistorico
         ? $"Historico da peca ({HistoricoRegistos.Count})"
         : "Historico da peca";
     public string HistoricoCountDisplay => HasHistorico
         ? $"{HistoricoRegistos.Count} registos"
         : "Sem registos";
+    public string TempoTotalProducaoDisplay => FormatDuration(_tempoTotalProducao);
+    public string TempoSessaoAtivaProducaoDisplay => string.IsNullOrWhiteSpace(_tempoSessaoAtivaProducao)
+        ? "Sem sessao ativa"
+        : _tempoSessaoAtivaProducao;
     public string EmptyHistoricoMessage => "Ainda nao existem registos de producao para esta peca.";
     public bool HasHistorico => HistoricoRegistos.Count > 0;
     public bool CanGuardar =>
@@ -120,6 +148,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
         !IsSaving &&
         GestorProducaoId.HasValue &&
         PecaContexto is not null &&
+        PecaContexto.EncomendaMolde_id > 0 &&
         SelectedFase is not null &&
         SelectedEstado is not null;
 
@@ -136,6 +165,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsMachineSelectionVisible));
         OnPropertyChanged(nameof(CanSelecionarMaquina));
+        OnPropertyChanged(nameof(CanEditarProximaFase));
+        OnPropertyChanged(nameof(ProximaFaseHint));
         AtualizarMaquinas();
         OnPropertyChanged(nameof(MachineHint));
         GuardarCommand.NotifyCanExecuteChanged();
@@ -150,11 +181,45 @@ public partial class RegistoProducaoViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(ProximaFasePlaneadaDisplay));
         OnPropertyChanged(nameof(ProximaFaseHint));
+        GuardarCommand.NotifyCanExecuteChanged();
+    }
 
-        if (_suppressProximaFaseChange)
-            return;
+    partial void OnIsLoadingChanged(bool value)
+    {
+        GuardarCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+    }
 
-        _ = ConfirmarAlteracaoProximaFaseAsync(value);
+    partial void OnIsSavingChanged(bool value)
+    {
+        GuardarCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsOcorrenciaFormVisibleChanged(bool value)
+    {
+        OnPropertyChanged(nameof(OcorrenciaToggleButtonText));
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsSavingOcorrenciaChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SaveOcorrenciaButtonText));
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnOcorrenciaChanged(string value)
+    {
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnCorrecaoChanged(string value)
+    {
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
@@ -163,6 +228,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(GestorProducaoDisplay));
         GuardarCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnGestorProducaoNomeChanged(string value) => OnPropertyChanged(nameof(GestorProducaoDisplay));
@@ -173,14 +240,19 @@ public partial class RegistoProducaoViewModel : ObservableObject
             return "Sessao sem gestor de producao identificado";
 
         var gestorNome = string.IsNullOrWhiteSpace(GestorProducaoNome)
-            ? $"Gestor de producao #{GestorProducaoId}"
+            ? "Gestor de producao autenticado"
             : GestorProducaoNome;
 
-        return $"{gestorNome} (#{GestorProducaoId})";
+        return gestorNome;
     }
 
     partial void OnPecaContextoChanged(ProducaoPecaDisponivelItem? value)
     {
+        _tempoTotalProducao = TimeSpan.Zero;
+        _tempoSessaoAtivaProducao = string.Empty;
+        IsOcorrenciaFormVisible = false;
+        Ocorrencia = string.Empty;
+        Correcao = string.Empty;
         OnPropertyChanged(nameof(HasPeca));
         OnPropertyChanged(nameof(NumeroMoldeDisplay));
         OnPropertyChanged(nameof(NomeMoldeDisplay));
@@ -195,6 +267,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
         OnPropertyChanged(nameof(ProximaFaseHint));
         OnPropertyChanged(nameof(HistoricoTituloDisplay));
         OnPropertyChanged(nameof(HasHistorico));
+        OnPropertyChanged(nameof(TempoTotalProducaoDisplay));
+        OnPropertyChanged(nameof(TempoSessaoAtivaProducaoDisplay));
         GuardarCommand.NotifyCanExecuteChanged();
     }
 
@@ -210,6 +284,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
         OnPropertyChanged(nameof(IntroText));
         OnPropertyChanged(nameof(HistoricoTituloDisplay));
         OnPropertyChanged(nameof(HistoricoCountDisplay));
+        OnPropertyChanged(nameof(TempoTotalProducaoDisplay));
+        OnPropertyChanged(nameof(TempoSessaoAtivaProducaoDisplay));
     }
 
     public async Task LoadAsync(ProducaoPecaDisponivelItem? requestedContext)
@@ -280,6 +356,12 @@ public partial class RegistoProducaoViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ToggleOcorrenciaForm()
+    {
+        IsOcorrenciaFormVisible = !IsOcorrenciaFormVisible;
+    }
+
+    [RelayCommand]
     private async Task AbrirRegistoAtivoAsync()
     {
         ErrorMessage = string.Empty;
@@ -321,19 +403,29 @@ public partial class RegistoProducaoViewModel : ObservableObject
 
         try
         {
+            var proximaFaseId = IsEstado(SelectedEstado.Value, "CONCLUIDO")
+                ? SelectedProximaFase?.FasesProducao_id
+                : null;
+
             await _registosProducaoService.CreateAsync(
                 PecaContexto.PecaId,
                 SelectedFase.FasesProducao_id,
                 GestorProducaoId.Value,
                 SelectedEstado.Value,
                 SelectedMaquina?.MaquinaId,
-                SelectedProximaFase?.FasesProducao_id);
+                proximaFaseId,
+                PecaContexto.EncomendaMolde_id);
+
+            if (proximaFaseId.HasValue)
+                await _pecasService.UpdateProximaFaseAsync(PecaContexto.PecaId, proximaFaseId.Value);
 
             await _dialogService.ShowSuccessAsync(
                 "Registo guardado",
-                $"Foi registado o estado {SelectedEstado.DisplayName} para a peca {PecaContexto.DesignacaoDisplay}.");
+                proximaFaseId.HasValue
+                    ? $"Foi registado o estado {SelectedEstado.DisplayName} para a peca {PecaContexto.DesignacaoDisplay} e a proxima fase foi atualizada."
+                    : $"Foi registado o estado {SelectedEstado.DisplayName} para a peca {PecaContexto.DesignacaoDisplay}.");
 
-            await Shell.Current.GoToAsync("..");
+            await LoadAsync(PecaContexto);
         }
         catch (Exception ex)
         {
@@ -346,55 +438,85 @@ public partial class RegistoProducaoViewModel : ObservableObject
         }
     }
 
-    private void AtualizarFases()
+    [RelayCommand(CanExecute = nameof(CanEnviarOcorrencia))]
+    private async Task EnviarOcorrenciaAsync()
     {
-        _suppressProximaFaseChange = true;
+        if (!CanEnviarOcorrencia || PecaContexto is null || !GestorProducaoId.HasValue)
+            return;
+
+        IsSavingOcorrencia = true;
+        ErrorMessage = string.Empty;
+
         try
         {
-            FasesDisponiveis.Clear();
-            ProximasFasesDisponiveis.Clear();
-            EstadosDisponiveis.Clear();
-            MaquinasDisponiveis.Clear();
-            SelectedFase = null;
-            SelectedEstado = null;
-            SelectedMaquina = null;
-            SelectedProximaFase = null;
-
-            if (PecaContexto is null)
-                return;
-
-            if (HasRegistoAtivo && RegistoAtivoAtual is not null)
+            await _registosProducaoService.CreateOcorrenciaAsync(new CreateOcorrenciaRequest
             {
-                var faseAtiva = _todasFases.First(item => item.FasesProducao_id == RegistoAtivoAtual.FaseId);
-                if (faseAtiva is not null)
-                {
-                    FasesDisponiveis.Add(faseAtiva);
-                    SelectedFase = faseAtiva;
-                }
+                EncomendaMoldeId = PecaContexto.EncomendaMolde_id,
+                PecaId = PecaContexto.PecaId,
+                ResponsavelId = GestorProducaoId.Value,
+                Ocorrencia = Ocorrencia.Trim(),
+                Correcao = string.IsNullOrWhiteSpace(Correcao) ? null : Correcao.Trim()
+            });
 
-                PreencherProximasFasesDisponiveis();
-                _proximaFaseOriginalId = SelectedProximaFase?.FasesProducao_id;
-                return;
-            }
+            await _dialogService.ShowSuccessAsync(
+                "Ocorrencia registada",
+                $"A ocorrencia da peca {PecaContexto.DesignacaoDisplay} foi enviada com sucesso.");
 
-            var fasePlaneada = ResolveFasePlaneada(PecaContexto.UltimosRegistosPorFase, PecaContexto.ProximaFaseId);
-            if (fasePlaneada is null)
-                return;
-
-            if (GetEstadosDisponiveis(PecaContexto, fasePlaneada).Count == 0)
-                return;
-
-            FasesDisponiveis.Add(fasePlaneada);
-            SelectedFase = fasePlaneada;
-            PreencherProximasFasesDisponiveis();
-            _proximaFaseOriginalId = SelectedProximaFase?.FasesProducao_id;
+            Ocorrencia = string.Empty;
+            Correcao = string.Empty;
+            IsOcorrenciaFormVisible = false;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
         }
         finally
         {
-            _suppressProximaFaseChange = false;
+            IsSavingOcorrencia = false;
+        }
+    }
+
+    private void AtualizarFases()
+    {
+        FasesDisponiveis.Clear();
+        ProximasFasesDisponiveis.Clear();
+        EstadosDisponiveis.Clear();
+        MaquinasDisponiveis.Clear();
+        SelectedFase = null;
+        SelectedEstado = null;
+        SelectedMaquina = null;
+        SelectedProximaFase = null;
+
+        if (PecaContexto is null)
+            return;
+
+        if (HasRegistoAtivo && RegistoAtivoAtual is not null)
+        {
+            var faseAtiva = _todasFases.First(item => item.FasesProducao_id == RegistoAtivoAtual.FaseId);
+            if (faseAtiva is not null)
+            {
+                FasesDisponiveis.Add(faseAtiva);
+                SelectedFase = faseAtiva;
+            }
+
+            PreencherProximasFasesDisponiveis();
             OnPropertyChanged(nameof(CanEditarProximaFase));
             OnPropertyChanged(nameof(ProximaFaseHint));
+            return;
         }
+
+        var fasePlaneada = ResolveFasePlaneada(PecaContexto.UltimosRegistosPorFase, PecaContexto.ProximaFaseId);
+        if (fasePlaneada is null)
+            return;
+
+        if (GetEstadosDisponiveis(PecaContexto, fasePlaneada).Count == 0)
+            return;
+
+        FasesDisponiveis.Add(fasePlaneada);
+        SelectedFase = fasePlaneada;
+        PreencherProximasFasesDisponiveis();
+        OnPropertyChanged(nameof(CanEditarProximaFase));
+        OnPropertyChanged(nameof(ProximaFaseHint));
     }
 
     private void AtualizarEstados()
@@ -435,7 +557,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
                 MaquinasDisponiveis.Add(new RegistoProducaoMaquinaOption
                 {
                     MaquinaId = maquinaId,
-                    DisplayName = maquinaAnterior?.DisplayName ?? $"Maquina #{maquinaId}",
+                    DisplayName = maquinaAnterior?.DisplayName ?? "Maquina sem nome",
                     Maquina = maquinaAnterior
                 });
             }
@@ -517,6 +639,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
         {
             MoldeId = peca.Molde_id,
             PecaId = peca.PecaId,
+            EncomendaMolde_id = fallback?.EncomendaMolde_id ?? 0,
             PrioridadeMolde = fallback?.PrioridadeMolde ?? 0,
             PrioridadePeca = peca.Prioridade,
             Quantidade = peca.Quantidade,
@@ -639,6 +762,9 @@ public partial class RegistoProducaoViewModel : ObservableObject
             "PAUSADO" => isMontagem
                 ? [CreateEstadoOption(EstadoEmCurso)]
                 : [CreateEstadoOption(EstadoPreparacao), CreateEstadoOption(EstadoEmCurso)],
+            "CONCLUIDO" => isMontagem
+                ? []
+                : [CreateEstadoOption(EstadoPreparacao)],
             _ => []
         };
     }
@@ -720,7 +846,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
     private string GetNomeFaseDisplay(int faseId)
     {
         var fase = _todasFases.FirstOrDefault(item => item.FasesProducao_id == faseId);
-        return fase?.NomeDisplay ?? $"Fase #{faseId}";
+        return fase?.NomeDisplay ?? "Fase sem nome";
     }
 
     private string BuildMachineHint()
@@ -819,67 +945,6 @@ public partial class RegistoProducaoViewModel : ObservableObject
             ?? ProximasFasesDisponiveis.FirstOrDefault();
     }
 
-    private async Task ConfirmarAlteracaoProximaFaseAsync(FaseProducaoItem? novaFase)
-    {
-        try
-        {
-            if (PecaContexto is null || novaFase is null)
-                return;
-
-            if (HasRegistoAtivo)
-            {
-                RestaurarProximaFaseOriginal();
-                return;
-            }
-
-            if (!_proximaFaseOriginalId.HasValue || novaFase.FasesProducao_id == _proximaFaseOriginalId.Value)
-                return;
-
-            var faseOriginal = _todasFases.FirstOrDefault(item => item.FasesProducao_id == _proximaFaseOriginalId.Value);
-            var originalDisplay = faseOriginal?.NomeDisplay ?? "fase atual";
-            var novoDisplay = novaFase.NomeDisplay;
-
-            var confirmar = await _dialogService.ShowSelectionAsync(
-                $"Alterar a proxima fase de {originalDisplay} para {novoDisplay}?",
-                "Cancelar",
-                "Confirmar");
-
-            if (confirmar is null)
-            {
-                RestaurarProximaFaseOriginal();
-                return;
-            }
-
-            await _pecasService.UpdateProximaFaseAsync(PecaContexto.PecaId, novaFase.FasesProducao_id);
-
-            await _dialogService.ShowSuccessAsync(
-                "Proxima fase atualizada",
-                $"A proxima fase da peca {DesignacaoPecaDisplay} foi atualizada para {novoDisplay}.");
-
-            await RecarregarContextoAtualAsync();
-        }
-        catch (Exception ex)
-        {
-            await _dialogService.ShowErrorAsync("Proxima fase", ex.Message);
-            RestaurarProximaFaseOriginal();
-        }
-    }
-
-    private void RestaurarProximaFaseOriginal()
-    {
-        _suppressProximaFaseChange = true;
-
-        try
-        {
-            SelectedProximaFase = _todasFases.FirstOrDefault(item => item.FasesProducao_id == _proximaFaseOriginalId)
-                ?? ProximasFasesDisponiveis.FirstOrDefault();
-        }
-        finally
-        {
-            _suppressProximaFaseChange = false;
-        }
-    }
-
     private void AtualizarHistorico()
     {
         HistoricoRegistos.Clear();
@@ -899,9 +964,83 @@ public partial class RegistoProducaoViewModel : ObservableObject
             HistoricoRegistos.Add(CreateHistoricoItem(registo));
         }
 
+        AtualizarResumoTempoProducao();
         OnPropertyChanged(nameof(HasHistorico));
         OnPropertyChanged(nameof(HistoricoTituloDisplay));
         OnPropertyChanged(nameof(HistoricoCountDisplay));
+    }
+
+    private void AtualizarResumoTempoProducao()
+    {
+        if (PecaContexto is null)
+        {
+            _tempoTotalProducao = TimeSpan.Zero;
+            _tempoSessaoAtivaProducao = string.Empty;
+            OnPropertyChanged(nameof(TempoTotalProducaoDisplay));
+            OnPropertyChanged(nameof(TempoSessaoAtivaProducaoDisplay));
+            return;
+        }
+
+        var registosOrdenados = _todosRegistos
+            .Where(item => item.PecaId == PecaContexto.PecaId)
+            .OrderBy(item => item.DataHora)
+            .ToList();
+
+        if (registosOrdenados.Count == 0)
+        {
+            _tempoTotalProducao = TimeSpan.Zero;
+            _tempoSessaoAtivaProducao = string.Empty;
+            OnPropertyChanged(nameof(TempoTotalProducaoDisplay));
+            OnPropertyChanged(nameof(TempoSessaoAtivaProducaoDisplay));
+            return;
+        }
+
+        var total = TimeSpan.Zero;
+        DateTime? inicioSessao = null;
+
+        foreach (var registo in registosOrdenados)
+        {
+            var estado = Normalize(registo.EstadoProducao);
+
+            if (estado is EstadoPreparacao or EstadoEmCurso)
+            {
+                inicioSessao ??= registo.DataHora;
+                continue;
+            }
+
+            if (estado is "PAUSADO" or "CONCLUIDO")
+            {
+                if (inicioSessao.HasValue && registo.DataHora > inicioSessao.Value)
+                    total += registo.DataHora - inicioSessao.Value;
+
+                inicioSessao = null;
+            }
+        }
+
+        if (inicioSessao.HasValue)
+            total += DateTime.UtcNow - inicioSessao.Value;
+
+        _tempoTotalProducao = total;
+        _tempoSessaoAtivaProducao = inicioSessao.HasValue
+            ? $"Sessao ativa desde {inicioSessao.Value.ToLocalTime():dd/MM/yyyy HH:mm}"
+            : "Sem sessao ativa";
+
+        OnPropertyChanged(nameof(TempoTotalProducaoDisplay));
+        OnPropertyChanged(nameof(TempoSessaoAtivaProducaoDisplay));
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration <= TimeSpan.Zero)
+            return "0m";
+
+        var totalHours = (int)duration.TotalHours;
+        var minutes = duration.Minutes;
+
+        if (totalHours <= 0)
+            return $"{minutes}m";
+
+        return minutes <= 0 ? $"{totalHours}h" : $"{totalHours}h {minutes:00}m";
     }
 
     private async Task RecarregarContextoAtualAsync()
@@ -919,16 +1058,20 @@ public partial class RegistoProducaoViewModel : ObservableObject
     private RegistoProducaoHistoricoItem CreateHistoricoItem(RegistoProducaoDto registo)
     {
         var fase = _todasFases.FirstOrDefault(item => item.FasesProducao_id == registo.FaseId);
+        var maquinaNome = registo.MaquinaId.HasValue
+            ? _todasMaquinas.FirstOrDefault(item => item.Maquina_id == registo.MaquinaId.Value)?.NomeModeloDisplay ?? string.Empty
+            : string.Empty;
 
         return new RegistoProducaoHistoricoItem
         {
             RegistoProducaoId = registo.RegistoProducaoId,
             FaseId = registo.FaseId,
-            FaseDisplay = fase?.NomeDisplay ?? $"Fase #{registo.FaseId}",
+            FaseDisplay = fase?.NomeDisplay ?? "Fase sem nome",
             EstadoProducao = registo.EstadoProducao,
             DataHora = registo.DataHora,
             GestorProducaoId = registo.GestorProducaoId,
-            MaquinaId = registo.MaquinaId
+            MaquinaId = registo.MaquinaId,
+            MaquinaNome = maquinaNome
         };
     }
 
@@ -937,9 +1080,12 @@ public partial class RegistoProducaoViewModel : ObservableObject
         if (PecaContexto is null || ProximasFasesDisponiveis.Count == 0)
             return "Sem fases disponiveis para planeamento.";
 
-        if (HasRegistoAtivo)
-            return "A proxima fase fica bloqueada enquanto existir uma producao ativa.";
+        if (SelectedEstado is null)
+            return "Escolhe primeiro o estado do registo.";
 
-        return "Podes alterar a proxima fase antes de guardar. Se mudares para outra fase, vamos pedir confirmacao.";
+        if (IsEstado(SelectedEstado.Value, "CONCLUIDO"))
+            return "Escolhe a fase seguinte para onde a peca vai depois de concluida.";
+
+        return "A proxima fase so e pedida quando concluires a fase atual.";
     }
 }

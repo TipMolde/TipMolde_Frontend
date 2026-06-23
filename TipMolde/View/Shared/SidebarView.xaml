@@ -19,27 +19,15 @@
                 </Border.GestureRecognizers>
 
                 <HorizontalStackLayout Spacing="14">
-                    <Grid WidthRequest="84"
-                          HeightRequest="56">
+                    <Grid WidthRequest="232"
+                          HeightRequest="100">
                         <Grid.Clip>
-                            <RoundRectangleGeometry CornerRadius="14"
-                                                    Rect="0,0,84,56" />
+                            <RoundRectangleGeometry CornerRadius="60"
+                                                    Rect="0,0,232,100" />
                         </Grid.Clip>
-                        <Image Source="image.png"
+                        <Image Source="tipmolde_header.jpg"
                                Aspect="AspectFit" />
                     </Grid>
-
-                    <VerticalStackLayout Spacing="2"
-                                         VerticalOptions="Center"
-                                         IsVisible="{Binding ShowLabels, Source={x:Reference Root}}">
-                        <Label Text="TipMolde"
-                               FontFamily="OpenSansSemibold"
-                               FontSize="24"
-                               TextColor="White" />
-                        <Label Text="Sistema de Producao"
-                               FontSize="12"
-                               TextColor="#CBD5E1" />
-                    </VerticalStackLayout>
                 </HorizontalStackLayout>
             </Border>
 

@@ -13,10 +13,14 @@ public static class MoldePdfService
         string descricao,
         string tipoPedido,
         int numeroCavidades,
-        MoldeCicloVidaDashboardDto dashboard)
+        MoldeCicloVidaDashboardDto dashboard,
+        string? directory = null)
     {
         var fileName = $"ciclo-vida-{SanitizeFileName(string.IsNullOrWhiteSpace(numero) ? dashboard.MoldeId.ToString() : numero)}.pdf";
-        var filePath = Path.Combine(FileSystem.Current.AppDataDirectory, fileName);
+        var targetDirectory = string.IsNullOrWhiteSpace(directory)
+            ? FileSystem.Current.AppDataDirectory
+            : directory;
+        var filePath = Path.Combine(targetDirectory, fileName);
         var pdfBytes = BuildPdf(
             numero,
             nome,
@@ -25,6 +29,7 @@ public static class MoldePdfService
             numeroCavidades,
             dashboard);
 
+        Directory.CreateDirectory(targetDirectory);
         await File.WriteAllBytesAsync(filePath, pdfBytes);
         return filePath;
     }

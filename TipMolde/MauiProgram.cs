@@ -38,6 +38,7 @@ namespace TipMolde
             builder.Services.AddSingleton<UtilizadoresService>();
             builder.Services.AddSingleton<AuthorizationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
+            builder.Services.AddSingleton<IDestinationFolderPickerService, DestinationFolderPickerService>();
             builder.Services.AddSingleton<AppShell>();
 
             builder.Services.AddSingleton<TopBarViewModel>();
@@ -113,6 +114,8 @@ namespace TipMolde
 
             builder.Services.AddTransient<ProducaoViewModel>();
             builder.Services.AddTransient<Producao>();
+            builder.Services.AddTransient<FopGeralViewModel>();
+            builder.Services.AddTransient<FopGeralPage>();
             builder.Services.AddTransient<RegistoProducaoViewModel>();
             builder.Services.AddTransient<RegistoProducaoPage>();
             builder.Services.AddTransient<FilaTrabalhoViewModel>();

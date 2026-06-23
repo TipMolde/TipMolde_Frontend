@@ -46,5 +46,17 @@ public sealed class FilaGlobalMoldeItemDto
     public string NumeroEncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Encomenda sem numero" : NumeroEncomendaCliente;
     public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente nao definido" : NomeCliente;
     public string EstadoEncomendaDisplay => string.IsNullOrWhiteSpace(EstadoEncomenda) ? "Sem estado" : EstadoEncomenda.Replace('_', ' ');
+    public string DataEntregaPrevistaDisplay => DataEntregaPrevista == default
+        ? "Data nao definida"
+        : DataEntregaPrevista.ToString("dd/MM/yyyy");
     public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
+    public bool IsEntregaPassada => DataEntregaPrevista.Date < DateTime.Today;
+    public bool IsEntregaConcluida =>
+        string.Equals(EstadoEncomenda?.Trim(), "CONCLUIDA", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(EstadoEncomenda?.Trim(), "CONCLUIDO", StringComparison.OrdinalIgnoreCase);
+    public string EstadoPlanificacaoDisplay => IsEntregaConcluida
+        ? "Entregue"
+        : IsEntregaPassada
+            ? "Entrega ultrapassada"
+            : "Previsto";
 }

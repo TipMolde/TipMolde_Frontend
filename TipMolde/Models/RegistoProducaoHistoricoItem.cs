@@ -9,6 +9,7 @@ public sealed class RegistoProducaoHistoricoItem
     public DateTime DataHora { get; init; }
     public int GestorProducaoId { get; init; }
     public int? MaquinaId { get; init; }
+    public string MaquinaNome { get; init; } = string.Empty;
 
     public string EstadoDisplay => string.IsNullOrWhiteSpace(EstadoProducao)
         ? "Sem estado"
@@ -19,7 +20,7 @@ public sealed class RegistoProducaoHistoricoItem
         : DataHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
 
     public string MaquinaDisplay => MaquinaId.HasValue
-        ? $"Maquina #{MaquinaId}"
+        ? (string.IsNullOrWhiteSpace(MaquinaNome) ? "Maquina atribuida" : MaquinaNome)
         : "Sem maquina";
 
     public bool IsActive => IsEstado("PREPARACAO") || IsEstado("EM_CURSO");

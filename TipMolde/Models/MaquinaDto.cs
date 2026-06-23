@@ -28,7 +28,7 @@ public sealed class MaquinaItem
     public string NumeroDisplay => Numero <= 0 ? "Sem numero" : Numero.ToString();
 
     [JsonIgnore]
-    public string DisplayName => $"{NumeroDisplay} - {NomeModeloDisplay}";
+    public string DisplayName => NomeModeloDisplay;
 
     [JsonIgnore]
     public string NomeModeloDisplay => string.IsNullOrWhiteSpace(NomeModelo) ? "Maquina sem nome" : NomeModelo;
@@ -38,7 +38,7 @@ public sealed class MaquinaItem
 
     [JsonIgnore]
     public string FaseDedicadaDisplay => string.IsNullOrWhiteSpace(FaseDedicadaNome)
-        ? $"Fase #{FaseDedicada_id}"
+        ? "Fase dedicada nao definida"
         : FaseDedicadaNome.Replace('_', ' ');
 
     [JsonIgnore]

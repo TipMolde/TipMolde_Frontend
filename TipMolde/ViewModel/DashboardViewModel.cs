@@ -19,6 +19,7 @@ public partial class DashboardViewModel : ObservableObject
     private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
 
+    private List<FilaGlobalMoldeItemDto> _todosMoldesPlanificacao = [];
     private bool _suppressSelectedMoldeRececaoChanged;
     private int _rececaoMaterialLoadVersion;
 
@@ -60,6 +61,12 @@ public partial class DashboardViewModel : ObservableObject
     private MoldeCicloVidaDashboardDto? dashboardMaisProximo;
 
     [ObservableProperty]
+    private DateTime dataInicioPlanificacao = DateTime.Today;
+
+    [ObservableProperty]
+    private DateTime dataFimPlanificacao = DateTime.Today.AddMonths(1);
+
+    [ObservableProperty]
     private int? totalMoldesPorEntregar;
 
     [ObservableProperty]
@@ -86,6 +93,15 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private MoldeRececaoOption? selectedMoldeRececao;
 
+    [ObservableProperty]
+    private DashboardPlanificacaoDiaItem? selectedPlanificacaoDia;
+
+    [ObservableProperty]
+    private double planificacaoCellSize = 120;
+
+    public ObservableCollection<FilaGlobalMoldeItemDto> MoldesPlanificacao { get; } = new();
+    public ObservableCollection<DashboardPlanificacaoDiaItem> PlanificacaoDias { get; } = new();
+    public ObservableCollection<FilaGlobalMoldeItemDto> MoldesDiaSelecionado { get; } = new();
     public bool HasHeroError => !string.IsNullOrWhiteSpace(HeroErrorMessage);
     public bool HasMoldeEntregaDashboard =>
         MoldeMaisProximo is not null &&
@@ -93,6 +109,10 @@ public partial class DashboardViewModel : ObservableObject
         EntregaMoldeMaisProxima is not null &&
         DashboardMaisProximo is not null;
     public bool HasNoMoldeEntregaDashboard => !IsLoadingHero && !HasHeroError && !HasMoldeEntregaDashboard;
+    public bool HasPlanificacao => PlanificacaoDias.Count > 0;
+    public bool HasMoldesPlanificacao => MoldesPlanificacao.Count > 0;
+    public bool HasNoPlanificacao => !IsLoadingHero && !HasHeroError && !HasMoldesPlanificacao;
+    public bool HasSelectedPlanificacaoDia => SelectedPlanificacaoDia is not null;
     public string NomeMoldeMaisProximoDisplay => FirstNonEmpty(MoldeMaisProximo?.Nome, MoldeMaisProximo?.Numero, EntregaMoldeMaisProxima?.NumeroMolde);
     public string NumeroMoldeMaisProximoDisplay => FirstNonEmpty(MoldeMaisProximo?.Numero, EntregaMoldeMaisProxima?.NumeroMolde);
     public string ClienteMoldeMaisProximoDisplay => FirstNonEmpty(EncomendaMaisProxima?.NomeClienteDisplay);
@@ -102,6 +122,19 @@ public partial class DashboardViewModel : ObservableObject
     public string PercentagemConclusaoMaisProximoDisplay => DashboardMaisProximo is null
         ? ValorNaoDefinido
         : $"{DashboardMaisProximo.PercentagemConclusao:0.##}%";
+    public string IntervaloPlanificacaoDisplay => $"{DataInicioPlanificacao:dd/MM/yyyy} - {DataFimPlanificacao:dd/MM/yyyy}";
+    public string PlanificacaoResumoDisplay => HasMoldesPlanificacao
+        ? $"{MoldesPlanificacao.Count} molde(s) no intervalo"
+        : "Sem moldes neste intervalo.";
+    public string PlanificacaoVaziaDisplay => "Nao existem moldes com EncomendaMolde para o intervalo selecionado.";
+    public string SelectedPlanificacaoDiaDisplay => SelectedPlanificacaoDia is null
+        ? "Seleciona um dia para ver os moldes desse intervalo."
+        : $"{SelectedPlanificacaoDia.DiaSemanaDisplay}, {SelectedPlanificacaoDia.DataDisplay}";
+    public string SelectedPlanificacaoDiaResumoDisplay => SelectedPlanificacaoDia is null
+        ? string.Empty
+        : SelectedPlanificacaoDia.Moldes.Count == 1
+            ? "1 molde planeado para este dia."
+            : $"{SelectedPlanificacaoDia.Moldes.Count} moldes planeados para este dia.";
     public string TotalMoldesPorEntregarDisplay => TotalMoldesPorEntregar?.ToString() ?? ValorNaoDefinido;
     public string TaxaConclusaoDisplay => TaxaConclusao.HasValue
         ? $"{TaxaConclusao.Value:0.##}%"
@@ -143,6 +176,8 @@ public partial class DashboardViewModel : ObservableObject
     partial void OnIsLoadingHeroChanged(bool value)
     {
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
         OnPropertyChanged(nameof(HasNoMoldesRececaoDisponiveis));
     }
 
@@ -150,12 +185,16 @@ public partial class DashboardViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasHeroError));
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
     }
 
     partial void OnMoldeMaisProximoChanged(MoldeDto? value)
     {
         OnPropertyChanged(nameof(HasMoldeEntregaDashboard));
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
         OnPropertyChanged(nameof(NomeMoldeMaisProximoDisplay));
         OnPropertyChanged(nameof(NumeroMoldeMaisProximoDisplay));
         AbrirDashboardMoldeCommand.NotifyCanExecuteChanged();
@@ -165,6 +204,8 @@ public partial class DashboardViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasMoldeEntregaDashboard));
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
         OnPropertyChanged(nameof(ClienteMoldeMaisProximoDisplay));
     }
 
@@ -172,6 +213,8 @@ public partial class DashboardViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasMoldeEntregaDashboard));
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
         OnPropertyChanged(nameof(NumeroMoldeMaisProximoDisplay));
         OnPropertyChanged(nameof(DataEntregaMoldeMaisProximoDisplay));
         AbrirDashboardMoldeCommand.NotifyCanExecuteChanged();
@@ -181,7 +224,48 @@ public partial class DashboardViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasMoldeEntregaDashboard));
         OnPropertyChanged(nameof(HasNoMoldeEntregaDashboard));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
         OnPropertyChanged(nameof(PercentagemConclusaoMaisProximoDisplay));
+    }
+
+    partial void OnSelectedPlanificacaoDiaChanged(DashboardPlanificacaoDiaItem? value)
+    {
+        MoldesDiaSelecionado.Clear();
+
+        if (value is not null)
+        {
+            foreach (var molde in value.Moldes.OrderBy(item => item.Prioridade).ThenBy(item => item.NumeroMoldeDisplay))
+                MoldesDiaSelecionado.Add(molde);
+        }
+
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
+        OnPropertyChanged(nameof(SelectedPlanificacaoDiaDisplay));
+        OnPropertyChanged(nameof(SelectedPlanificacaoDiaResumoDisplay));
+    }
+
+    public void AtualizarPlanificacaoCellSize(double availableWidth)
+    {
+        if (availableWidth <= 0)
+            return;
+
+        var cellSize = Math.Max(1, Math.Floor(availableWidth / 7d));
+        if (Math.Abs(PlanificacaoCellSize - cellSize) < 0.5)
+            return;
+
+        PlanificacaoCellSize = cellSize;
+    }
+
+    partial void OnDataInicioPlanificacaoChanged(DateTime value)
+    {
+        OnPropertyChanged(nameof(IntervaloPlanificacaoDisplay));
+        AtualizarPlanificacao();
+    }
+
+    partial void OnDataFimPlanificacaoChanged(DateTime value)
+    {
+        OnPropertyChanged(nameof(IntervaloPlanificacaoDisplay));
+        AtualizarPlanificacao();
     }
 
     partial void OnTotalMoldesPorEntregarChanged(int? value) => OnPropertyChanged(nameof(TotalMoldesPorEntregarDisplay));
@@ -258,6 +342,9 @@ public partial class DashboardViewModel : ObservableObject
                 encomendasEmProducaoTask.Result,
                 filaGlobalMoldesTask.Result);
 
+            _todosMoldesPlanificacao = filaGlobalMoldesTask.Result?.ToList() ?? [];
+            AtualizarPlanificacao();
+
             await AtualizarMoldesRececaoAsync(
                 filaGlobalMoldesTask.Result,
                 moldeRececaoSelecionadoId);
@@ -267,6 +354,7 @@ public partial class DashboardViewModel : ObservableObject
             HeroErrorMessage = ex.Message;
             LimparDashboard();
             LimparResumoExecutivo();
+            LimparPlanificacao();
             ResetRececaoMaterial();
         }
         finally
@@ -282,6 +370,30 @@ public partial class DashboardViewModel : ObservableObject
             return;
 
         await Shell.Current.GoToAsync($"{nameof(MoldeDetalhePage)}?molde_id={EntregaMoldeMaisProxima.Molde_id}");
+    }
+
+    [RelayCommand]
+    private void SelecionarPlanificacaoDia(DashboardPlanificacaoDiaItem? dia)
+    {
+        if (dia is null)
+            return;
+
+        SelectedPlanificacaoDia = dia;
+    }
+
+    [RelayCommand]
+    private void FecharPlanificacaoDia()
+    {
+        SelectedPlanificacaoDia = null;
+    }
+
+    [RelayCommand]
+    private async Task AbrirMoldePlanificacaoAsync(FilaGlobalMoldeItemDto? item)
+    {
+        if (item is null || item.MoldeId <= 0)
+            return;
+
+        await Shell.Current.GoToAsync($"{nameof(MoldeDetalhePage)}?molde_id={item.MoldeId}");
     }
 
     [RelayCommand(CanExecute = nameof(CanRegistarChegadaMaterial))]
@@ -417,6 +529,90 @@ public partial class DashboardViewModel : ObservableObject
             IsEstado(encomenda.Estado, "CONCLUIDA") &&
             encomenda.DataRegisto.Date >= inicioIntervalo &&
             encomenda.DataRegisto.Date <= hojeIntervalo);
+    }
+
+    private void AtualizarPlanificacao()
+    {
+        MoldesPlanificacao.Clear();
+        PlanificacaoDias.Clear();
+
+        var inicio = DataInicioPlanificacao.Date;
+        var fim = DataFimPlanificacao.Date;
+        if (inicio > fim)
+            (inicio, fim) = (fim, inicio);
+
+        var filtrados = _todosMoldesPlanificacao.Count == 0
+            ? []
+            : _todosMoldesPlanificacao
+                .Where(item => item.DataEntregaPrevista.Date >= inicio && item.DataEntregaPrevista.Date <= fim)
+                .GroupBy(item => item.MoldeId)
+                .Select(group => group
+                    .OrderBy(item => item.DataEntregaPrevista <= DateTime.MinValue ? DateTime.MaxValue : item.DataEntregaPrevista)
+                    .ThenBy(item => item.Prioridade)
+                    .First())
+                .OrderBy(item => item.DataEntregaPrevista <= DateTime.MinValue ? DateTime.MaxValue : item.DataEntregaPrevista)
+                .ThenBy(item => item.Prioridade)
+                .ThenBy(item => item.NumeroMoldeDisplay)
+                .ToList();
+
+        foreach (var item in filtrados)
+            MoldesPlanificacao.Add(item);
+
+        var moldesPorDia = filtrados
+            .GroupBy(item => item.DataEntregaPrevista.Date)
+            .ToDictionary(group => group.Key, group => group.OrderBy(item => item.Prioridade).ThenBy(item => item.NumeroMoldeDisplay).ToList());
+
+        var calendarioInicio = StartOfWeek(inicio, DayOfWeek.Sunday);
+        var calendarioFim = EndOfWeek(fim, DayOfWeek.Saturday);
+
+        for (var data = calendarioInicio; data <= calendarioFim; data = data.AddDays(1))
+        {
+            PlanificacaoDias.Add(BuildDiaPlanificacao(data, inicio, fim, moldesPorDia, calendarioInicio));
+        }
+
+        var selectedDate = SelectedPlanificacaoDia?.Data.Date;
+        SelectedPlanificacaoDia = selectedDate.HasValue
+            ? PlanificacaoDias.FirstOrDefault(item => item.Data.Date == selectedDate.Value)
+            : null;
+
+        if (SelectedPlanificacaoDia is null)
+            SelectedPlanificacaoDia = PlanificacaoDias.FirstOrDefault(item => item.TemMoldes) ?? PlanificacaoDias.FirstOrDefault();
+
+        OnPropertyChanged(nameof(HasPlanificacao));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(PlanificacaoResumoDisplay));
+    }
+
+    private static DashboardPlanificacaoDiaItem BuildDiaPlanificacao(
+        DateTime data,
+        DateTime inicio,
+        DateTime fim,
+        IReadOnlyDictionary<DateTime, List<FilaGlobalMoldeItemDto>> moldesPorDia,
+        DateTime calendarioInicio)
+    {
+        var dia = data.Date;
+        var dentroDoIntervalo = dia >= inicio && dia <= fim;
+        var mostrarDataLonga = dia == calendarioInicio || dia.Day == 1;
+
+        moldesPorDia.TryGetValue(dia, out var moldesDoDia);
+
+        return new DashboardPlanificacaoDiaItem(
+            dia,
+            dentroDoIntervalo,
+            mostrarDataLonga,
+            dentroDoIntervalo && moldesDoDia is not null ? moldesDoDia : []);
+    }
+
+    private static DateTime StartOfWeek(DateTime date, DayOfWeek firstDayOfWeek)
+    {
+        var diff = (7 + (date.DayOfWeek - firstDayOfWeek)) % 7;
+        return date.Date.AddDays(-diff);
+    }
+
+    private static DateTime EndOfWeek(DateTime date, DayOfWeek lastDayOfWeek)
+    {
+        var diff = (7 + (lastDayOfWeek - date.DayOfWeek)) % 7;
+        return date.Date.AddDays(diff);
     }
 
     private async Task RefreshRececaoMaterialAccessAsync()
@@ -721,6 +917,19 @@ public partial class DashboardViewModel : ObservableObject
         MoldesComAtraso = null;
     }
 
+    private void LimparPlanificacao()
+    {
+        _todosMoldesPlanificacao = [];
+        MoldesPlanificacao.Clear();
+        PlanificacaoDias.Clear();
+        MoldesDiaSelecionado.Clear();
+        SelectedPlanificacaoDia = null;
+        OnPropertyChanged(nameof(HasPlanificacao));
+        OnPropertyChanged(nameof(HasNoPlanificacao));
+        OnPropertyChanged(nameof(HasSelectedPlanificacaoDia));
+        OnPropertyChanged(nameof(PlanificacaoResumoDisplay));
+    }
+
     private static string BuildRececaoSuccessMessage(
         MoldeRececaoOption molde,
         IReadOnlyCollection<SelectablePecaRececaoItem> pecasSelecionadas)
@@ -764,7 +973,7 @@ public sealed class MoldeRececaoOption
     public DateTime DataEntregaPrevista { get; init; }
     public int Prioridade { get; init; }
 
-    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? $"Molde #{MoldeId}" : NumeroMolde;
+    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string EncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem numero" : NumeroEncomendaCliente;
     public string DataEntregaDisplay => DataEntregaPrevista > DateTime.MinValue
         ? DataEntregaPrevista.ToString("dd/MM/yyyy")
