@@ -14,7 +14,7 @@ namespace TipMolde.Test.Unitario.ViewModel;
 /// Testes unitarios do carregamento da pagina de producao do frontend.
 /// </summary>
 /// <remarks>
-/// Garante que o carregamento inicial nao requisita maquinas antes de serem necessarias.
+/// Garante que o carregamento inicial carrega os dados base e preserva o contexto pedido.
 /// </remarks>
 [TestFixture]
 [Category("Unit")]
@@ -29,6 +29,7 @@ public class ProducaoViewModelLoadTests
         var httpClient = CreateHttpClient(HandleRequest, out _requests);
 
         _sut = new ProducaoViewModel(
+            new FasesProducaoService(httpClient),
             new PecasService(httpClient),
             new SessaoPersistidaService(httpClient),
             new UtilizadoresService(httpClient),
@@ -36,51 +37,28 @@ public class ProducaoViewModelLoadTests
             new DialogServiceStub());
     }
 
-    [Test(Description = "T1FRT - O carregamento inicial da pagina de producao deve pedir apenas a fila de pecas.")]
-    public async Task LoadAsync_Should_LoadPecasQueue_WithoutRequestingMachines()
+    [Test(Description = "T1FRT - O carregamento inicial da pagina de producao deve carregar dados base e o contexto pedido.")]
+    public async Task LoadAsync_Should_LoadReferenceDataAndPecasQueue()
     {
         // ACT
         await _sut.LoadAsync();
 
         // ASSERT
-        _sut.PecasDisponiveis.Should().NotBeEmpty();
-        _requests.Should().Contain(request => request.Path.StartsWith("/api/pecas/fila-trabalho", StringComparison.OrdinalIgnoreCase));
-        _requests.Should().NotContain(request => request.Path.StartsWith("/api/encomenda-moldes/fila-global", StringComparison.OrdinalIgnoreCase));
-        _requests.Should().NotContain(request => request.Path.StartsWith("/api/fases-producao", StringComparison.OrdinalIgnoreCase));
-        _requests.Should().NotContain(request => request.Path.StartsWith("/api/RegistosProducao/ultimo", StringComparison.OrdinalIgnoreCase));
-        _requests.Should().NotContain(request => request.Path.StartsWith("/api/Maquina", StringComparison.OrdinalIgnoreCase));
+        _sut.GestorProducaoId.Should().Be(7);
+        _sut.GestorProducaoNome.Should().Be("Gestor Teste");
+        _sut.HasPecasDisponiveis.Should().BeTrue();
+        _sut.PecasDisponiveis.Should().ContainSingle();
+        _sut.PecasDisponiveis[0].PecaId.Should().Be(11);
+        _sut.PecasDisponiveis[0].NumeroMolde.Should().Be("M-001");
+        _requests.Should().Contain(request => request.Path == "/api/users/7");
+        _requests.Should().Contain(request => request.Path == "/api/pecas/fila-trabalho?page=1&pageSize=8&searchMode=Molde");
     }
 
     private HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch
         {
-            "/api/encomenda-moldes/fila-global?page=1&pageSize=10" => CreateJsonResponse(
-                HttpStatusCode.OK,
-                new PagedResult<FilaGlobalMoldeItemDto>
-                {
-                    Items =
-                    [
-                        new FilaGlobalMoldeItemDto
-                        {
-                            EncomendaMoldeId = 1,
-                            EncomendaId = 10,
-                            MoldeId = 1,
-                            Prioridade = 1,
-                            DataEntregaPrevista = new DateTime(2026, 6, 18),
-                            Quantidade = 100,
-                            NumeroEncomendaCliente = "ENC-001",
-                            NomeCliente = "Cliente Teste",
-                            NumeroMolde = "M-001",
-                            NomeMolde = "Molde Teste",
-                            EstadoEncomenda = "CONFIRMADA"
-                        }
-                    ],
-                    Page = 1,
-                    PageSize = 10,
-                    TotalItems = 1
-                }),
-            "/api/fases-producao?page=1&pageSize=10" => CreateJsonResponse(
+            "/api/fases-producao?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<FaseProducaoItem>
                 {
@@ -94,8 +72,36 @@ public class ProducaoViewModelLoadTests
                         }
                     ],
                     Page = 1,
-                    PageSize = 10,
+                    PageSize = 100,
                     TotalItems = 1
+                }),
+            "/api/Maquina?page=1&pageSize=100" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<MaquinaItem>
+                {
+                    Items =
+                    [
+                        new MaquinaItem
+                        {
+                            Maquina_id = 1,
+                            Numero = 100,
+                            NomeModelo = "Maq Teste",
+                            Estado = "OPERACIONAL",
+                            FaseDedicada_id = 1
+                        }
+                    ],
+                    Page = 1,
+                    PageSize = 100,
+                    TotalItems = 1
+                }),
+            "/api/RegistosProducao?page=1&pageSize=100" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<RegistoProducaoDto>
+                {
+                    Items = [],
+                    Page = 1,
+                    PageSize = 100,
+                    TotalItems = 0
                 }),
             "/api/users/7" => CreateJsonResponse(
                 HttpStatusCode.OK,

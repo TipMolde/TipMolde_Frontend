@@ -28,6 +28,6 @@ public class ProjetoDisplayTests
             Molde_id = 42
         };
 
-        dto.MoldeDisplay.Should().Be("Molde #42");
+        dto.MoldeDisplay.Should().Be("Molde nao definido");
     }
 }

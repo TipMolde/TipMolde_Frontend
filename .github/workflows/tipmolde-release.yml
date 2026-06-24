@@ -1,0 +1,121 @@
+name: TipMolde Frontend Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  PROJECT_PATH: TipMolde/TipMolde.csproj
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build-windows:
+    name: Build Windows package
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install MAUI Windows workload
+        run: dotnet workload install maui-windows
+
+      - name: Restore
+        run: dotnet restore "$env:PROJECT_PATH"
+
+      - name: Decode PFX certificate
+        shell: pwsh
+        run: |
+          $certPath = Join-Path $env:GITHUB_WORKSPACE 'windows-cert.pfx'
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}"))
+
+      - name: Import signing certificate
+        shell: pwsh
+        run: |
+          certutil -user -q -p "${{ secrets.WINDOWS_PFX_PASSWORD }}" -importpfx windows-cert.pfx NoRoot
+
+      - name: Publish Windows package
+        shell: pwsh
+        run: |
+          $cert = Get-ChildItem Cert:\CurrentUser\My |
+            Where-Object { $_.Subject -eq 'CN=TipMolde' } |
+            Sort-Object NotBefore -Descending |
+            Select-Object -First 1
+
+          if (-not $cert) {
+            throw "Signing certificate CN=TipMolde was not found in Cert:\CurrentUser\My."
+          }
+
+          dotnet publish "$env:PROJECT_PATH" `
+            -c "$env:BUILD_CONFIGURATION" `
+            -f net8.0-windows10.0.19041.0 `
+            -p:GenerateAppxPackageOnBuild=true `
+            -p:AppxPackageSigningEnabled=true `
+            -p:PackageCertificateThumbprint="$($cert.Thumbprint)" `
+            -p:PublishReadyToRun=false `
+            --no-restore
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tipmolde-windows
+          path: |
+            TipMolde/bin/Release/net8.0-windows10.0.19041.0/**/AppPackages/**/*
+
+  build-android:
+    name: Build Android package
+    runs-on: windows-latest
+
+    env:
+      ANDROID_KEY_ALIAS: ghactionskey
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Restore
+        run: dotnet restore "$env:PROJECT_PATH"
+
+      - name: Decode keystore
+        shell: pwsh
+        run: |
+          $keystorePath = Join-Path $env:GITHUB_WORKSPACE 'android.keystore'
+          [IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}"))
+
+      - name: Build Android package
+        shell: pwsh
+        run: |
+          dotnet build "$env:PROJECT_PATH" `
+            -c "$env:BUILD_CONFIGURATION" `
+            -f net8.0-android `
+            -p:AndroidKeyStore=true `
+            -p:AndroidSigningKeyStore="$env:GITHUB_WORKSPACE/android.keystore" `
+            -p:AndroidSigningKeyAlias="$env:ANDROID_KEY_ALIAS" `
+            -p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" `
+            -p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" `
+            -p:AndroidPackageFormats=apk `
+            --no-restore
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tipmolde-android
+          path: |
+            TipMolde/bin/Release/net8.0-android/**/*.apk

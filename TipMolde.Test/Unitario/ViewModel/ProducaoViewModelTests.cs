@@ -26,6 +26,7 @@ public class ProducaoViewModelTests
         };
 
         _sut = new ProducaoViewModel(
+            new FasesProducaoService(httpClient),
             new PecasService(httpClient),
             new SessaoPersistidaService(httpClient),
             new UtilizadoresService(httpClient),
@@ -33,11 +34,14 @@ public class ProducaoViewModelTests
             new DialogServiceStub());
     }
 
-    [Test(Description = "T1FRT - A pagina de producao deve permitir pesquisa apenas por molde e peca.")]
-    public void SearchModes_Should_ExcludePhaseMode_When_PageIsConfigured()
+    [Test(Description = "T1FRT - A pagina de producao deve expor os modos de pesquisa por molde, peca e fase.")]
+    public void SearchModes_Should_IncludePhaseMode_When_PageIsConfigured()
     {
         // ASSERT
-        _sut.SearchModes.Should().Equal("Molde", "Peca");
+        _sut.SearchModes.Should().HaveCount(3);
+        _sut.SearchModes.Should().Contain("Molde");
+        _sut.SearchModes.Should().Contain("Peca");
+        _sut.SearchModes.Should().ContainSingle(mode => mode.Contains("fase", StringComparison.OrdinalIgnoreCase));
     }
 
     private sealed class DialogServiceStub : IDialogService

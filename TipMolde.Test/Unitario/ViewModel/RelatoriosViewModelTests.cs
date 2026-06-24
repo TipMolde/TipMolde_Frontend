@@ -22,13 +22,23 @@ namespace TipMolde.Test.Unitario.ViewModel;
 public class RelatoriosViewModelTests
 {
     private Mock<IDialogService> _dialogService = null!;
+    private Mock<IDestinationFolderPickerService> _destinationFolderPickerService = null!;
     private RelatoriosViewModel _sut = null!;
     private List<HttpRequestMessage> _requests = null!;
+    private string _destinationFolder = string.Empty;
 
     [SetUp]
     public void SetUp()
     {
         _dialogService = new Mock<IDialogService>();
+        _destinationFolderPickerService = new Mock<IDestinationFolderPickerService>();
+        _destinationFolder = Path.Combine(
+            Path.GetTempPath(),
+            "tipmolde-relatorios-tests",
+            Guid.NewGuid().ToString("N"));
+        _destinationFolderPickerService
+            .Setup(service => service.PickFolderAsync(It.IsAny<string>()))
+            .ReturnsAsync(_destinationFolder);
 
         var httpClient = CreateHttpClient(
             request => HandleRequest(request),
@@ -38,6 +48,7 @@ public class RelatoriosViewModelTests
             new MoldesService(httpClient),
             new EncomendasService(httpClient),
             new RelatoriosService(httpClient),
+            _destinationFolderPickerService.Object,
             _dialogService.Object);
     }
 
@@ -59,7 +70,6 @@ public class RelatoriosViewModelTests
     {
         // ARRANGE
         await _sut.LoadAsync();
-        _sut.SelectedDestinationFolder = Path.Combine(Path.GetTempPath(), "tipmolde-relatorios-tests", Guid.NewGuid().ToString("N"));
         _sut.SelectedTipoRelatorio = "FRM";
 
         await _sut.SelecionarMoldeCommand.ExecuteAsync(_sut.Moldes[0]);
@@ -81,8 +91,11 @@ public class RelatoriosViewModelTests
             .BeTrue();
 
         _sut.IsReportAvailable.Should().BeTrue();
-        Directory.Exists(_sut.SelectedDestinationFolder).Should().BeTrue();
-        Directory.GetFiles(_sut.SelectedDestinationFolder).Should().NotBeEmpty();
+        Directory.Exists(_destinationFolder).Should().BeTrue();
+        Directory.GetFiles(_destinationFolder).Should().NotBeEmpty();
+        _destinationFolderPickerService.Verify(
+            service => service.PickFolderAsync("Escolher destino do relatorio"),
+            Times.Once);
         _dialogService.Verify(
             dialog => dialog.ShowSuccessAsync(
                 "Relatorio gerado",
@@ -130,7 +143,7 @@ public class RelatoriosViewModelTests
 
         return path switch
         {
-            "/api/moldes?page=1&pageSize=100" => CreateJsonResponse(
+            "/api/moldes/com-encomenda?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<MoldeDto>
                 {
@@ -145,53 +158,11 @@ public class RelatoriosViewModelTests
                             ImagemCapaPath = "Storage/Uploads/molde-1.png",
                             TipoPedido = "Normal",
                             Numero_cavidades = 2
-                        },
-                        new MoldeDto
-                        {
-                            MoldeId = 2,
-                            Numero = "M-002",
-                            NumeroMoldeCliente = "CL-002",
-                            Nome = "Molde sem contexto",
-                            ImagemCapaPath = "Storage/Uploads/molde-2.png",
-                            TipoPedido = "Normal",
-                            Numero_cavidades = 4
                         }
                     ],
                     Page = 1,
                     PageSize = 100,
-                    TotalItems = 2
-                }),
-            "/api/encomenda-moldes/por-molde/1?page=1&pageSize=1" => CreateJsonResponse(
-                HttpStatusCode.OK,
-                new PagedResult<EncomendaMoldeDto>
-                {
-                    Items =
-                    [
-                        new EncomendaMoldeDto
-                        {
-                            EncomendaMolde_id = 10,
-                            Encomenda_id = 20,
-                            Molde_id = 1,
-                            Quantidade = 120,
-                            Prioridade = 1,
-                            DataEntregaPrevista = new DateTime(2026, 6, 18),
-                            Estado = "ABERTO",
-                            NumeroEncomendaCliente = "ENC-001",
-                            NumeroMolde = "M-001"
-                        }
-                    ],
-                    Page = 1,
-                    PageSize = 1,
                     TotalItems = 1
-                }),
-            "/api/encomenda-moldes/por-molde/2?page=1&pageSize=1" => CreateJsonResponse(
-                HttpStatusCode.OK,
-                new PagedResult<EncomendaMoldeDto>
-                {
-                    Items = [],
-                    Page = 1,
-                    PageSize = 1,
-                    TotalItems = 0
                 }),
             "/api/encomenda-moldes/por-molde/1?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,

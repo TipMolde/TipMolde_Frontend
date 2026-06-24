@@ -85,59 +85,69 @@ public class RegistoProducaoViewModelTests
     }
 
     [Test]
-    public void CanRegistarOcorrencia_Should_BeTrue_When_StateIsPreparacao()
+    public void CanEnviarOcorrencia_Should_BeFalse_When_FormIsHidden()
     {
         // ARRANGE
-        _sut.SelectedEstado = new EstadoProducaoOption
+        _sut.GestorProducaoId = 1;
+        _sut.PecaContexto = new ProducaoPecaDisponivelItem
         {
-            Value = "PREPARACAO",
-            DisplayName = "PREPARACAO"
+            PecaId = 42,
+            EncomendaMolde_id = 11
         };
+        _sut.Ocorrencia = "Paragem por ajuste";
 
         // ASSERT
-        _sut.CanRegistarOcorrencia.Should().BeTrue();
+        _sut.CanEnviarOcorrencia.Should().BeFalse();
     }
 
     [Test]
-    public void CanRegistarOcorrencia_Should_BeTrue_When_StateIsPausado()
+    public void CanEnviarOcorrencia_Should_BeTrue_When_FormIsVisibleAndOcorrenciaExists()
     {
         // ARRANGE
-        _sut.SelectedEstado = new EstadoProducaoOption
+        _sut.GestorProducaoId = 1;
+        _sut.PecaContexto = new ProducaoPecaDisponivelItem
         {
-            Value = "PAUSADO",
-            DisplayName = "PAUSADO"
+            PecaId = 42,
+            EncomendaMolde_id = 11
         };
+        _sut.IsOcorrenciaFormVisible = true;
+        _sut.Ocorrencia = "Paragem por ajuste";
 
         // ASSERT
-        _sut.CanRegistarOcorrencia.Should().BeTrue();
+        _sut.CanEnviarOcorrencia.Should().BeTrue();
     }
 
     [Test]
-    public void CanRegistarCorrecao_Should_BeFalse_When_OcorrenciaIsEmpty()
+    public void CanEnviarOcorrencia_Should_BeFalse_When_OcorrenciaIsEmpty()
     {
         // ARRANGE
-        _sut.SelectedEstado = new EstadoProducaoOption
+        _sut.GestorProducaoId = 1;
+        _sut.PecaContexto = new ProducaoPecaDisponivelItem
         {
-            Value = "EM_CURSO",
-            DisplayName = "EM CURSO"
+            PecaId = 42,
+            EncomendaMolde_id = 11
         };
+        _sut.IsOcorrenciaFormVisible = true;
 
         // ASSERT
-        _sut.CanRegistarCorrecao.Should().BeFalse();
+        _sut.CanEnviarOcorrencia.Should().BeFalse();
     }
 
     [Test]
-    public void CanRegistarOcorrencia_Should_BeFalse_When_StateIsPendente()
+    public void CanEnviarOcorrencia_Should_BeFalse_When_PecaContextoHasNoEncomendaMoldeId()
     {
         // ARRANGE
-        _sut.SelectedEstado = new EstadoProducaoOption
+        _sut.GestorProducaoId = 1;
+        _sut.PecaContexto = new ProducaoPecaDisponivelItem
         {
-            Value = "PENDENTE",
-            DisplayName = "PENDENTE"
+            PecaId = 42,
+            EncomendaMolde_id = 0
         };
+        _sut.IsOcorrenciaFormVisible = true;
+        _sut.Ocorrencia = "Paragem por ajuste";
 
         // ASSERT
-        _sut.CanRegistarOcorrencia.Should().BeFalse();
+        _sut.CanEnviarOcorrencia.Should().BeFalse();
     }
 
     [Test]
@@ -182,18 +192,19 @@ public class RegistoProducaoViewModelTests
     }
 
     [Test]
-    public void CanRegistarCorrecao_Should_BeTrue_When_OcorrenciaExists()
+    public void CanEnviarOcorrencia_Should_BeFalse_When_GestorNaoEstaIdentificado()
     {
         // ARRANGE
-        _sut.SelectedEstado = new EstadoProducaoOption
+        _sut.PecaContexto = new ProducaoPecaDisponivelItem
         {
-            Value = "EM_CURSO",
-            DisplayName = "EM CURSO"
+            PecaId = 42,
+            EncomendaMolde_id = 11
         };
+        _sut.IsOcorrenciaFormVisible = true;
         _sut.Ocorrencia = "Paragem por ajuste";
 
         // ASSERT
-        _sut.CanRegistarCorrecao.Should().BeTrue();
+        _sut.CanEnviarOcorrencia.Should().BeFalse();
     }
 
     [Test]
