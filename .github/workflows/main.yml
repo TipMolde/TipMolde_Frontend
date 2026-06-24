@@ -462,13 +462,35 @@ jobs:
           fetch-depth: 0
           clean: true
 
+      - name: Initialize CI paths
+        shell: powershell
+        run: |
+          $ciRoot = Join-Path $env:RUNNER_TEMP "tipmolde-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-$env:GITHUB_JOB"
+
+          "DOTNET_CLI_HOME=$ciRoot\d" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "TOOLS_DIR=$ciRoot\t" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_PACKAGES=$ciRoot\p" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_HTTP_CACHE_PATH=$ciRoot\h" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "NUGET_SCRATCH=$ciRoot\s" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Prepare .NET directories
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:DOTNET_CLI_HOME | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:TOOLS_DIR | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_PACKAGES | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_HTTP_CACHE_PATH | Out-Null
+          New-Item -ItemType Directory -Force -Path $env:NUGET_SCRATCH | Out-Null
+
       - name: Add local tools to PATH
         shell: powershell
         run: |
           $env:TOOLS_DIR | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Install Report Generator
-        run: dotnet tool install dotnet-reportgenerator-globaltool --tool-path $env:TOOLS_DIR --version 5.5.10
+        shell: powershell
+        run: |
+          dotnet tool install dotnet-reportgenerator-globaltool --tool-path "$env:TOOLS_DIR" --version "5.5.10"
 
       - name: Download test results
         uses: actions/download-artifact@v4
