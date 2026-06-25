@@ -11,6 +11,7 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   PROJECT_PATH: TipMolde/TipMolde.csproj
   BUILD_CONFIGURATION: Release
+  WINDOWS_TFM: net8.0-windows10.0.19041.0
 
 jobs:
   build-windows:
@@ -27,10 +28,15 @@ jobs:
           dotnet-version: 8.0.414
 
       - name: Install MAUI Windows workload
-        run: dotnet workload install maui-windows
+        shell: pwsh
+        run: |
+          dotnet workload install maui-windows --skip-manifest-update
 
       - name: Restore
-        run: dotnet restore "$env:PROJECT_PATH"
+        shell: pwsh
+        run: |
+          dotnet restore "$env:PROJECT_PATH" `
+            -p:TargetFrameworks="${{ env.WINDOWS_TFM }}"
 
       - name: Decode PFX certificate
         shell: pwsh
