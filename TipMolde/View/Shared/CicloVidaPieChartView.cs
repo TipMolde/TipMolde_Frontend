@@ -88,12 +88,35 @@ public sealed partial class CicloVidaPieChartView : GraphicsView
         Drawable = new CicloVidaPieChartDrawable(this);
         HeightRequest = 260;
         WidthRequest = 260;
+        MinimumHeightRequest = 220;
+        MinimumWidthRequest = 220;
+        Loaded += OnLoaded;
+        SizeChanged += OnSizeChanged;
     }
 
     private static void OnChartPropertyChanged(BindableObject bindable, object oldValue, object newValue)
     {
         if (bindable is CicloVidaPieChartView chartView)
-            chartView.Invalidate();
+            chartView.RequestInvalidate();
+    }
+
+    private void OnLoaded(object? sender, EventArgs e) => RequestInvalidate();
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        if (Width > 0 && Height > 0)
+            RequestInvalidate();
+    }
+
+    private void RequestInvalidate()
+    {
+        if (Dispatcher?.IsDispatchRequired == true)
+        {
+            Dispatcher.Dispatch(Invalidate);
+            return;
+        }
+
+        Invalidate();
     }
 
     private sealed class CicloVidaPieChartDrawable : IDrawable

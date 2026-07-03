@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TipMolde.View.AdicionarUtilizadorPage"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid RowDefinitions="Auto,*"
+          BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+        <Border Grid.Row="0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                Padding="24,18">
+            <Grid ColumnDefinitions="Auto,*,Auto"
+                  ColumnSpacing="16">
+
+                <VerticalStackLayout Grid.Column="1"
+                                     Spacing="2"
+                                     VerticalOptions="Center">
+                    <Label Text="Adicionar utilizador"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="24"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                    <Label Text="Cria uma nova conta e volta automaticamente para a lista."
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="{StaticResource PageContentPadding}"
+                                 Spacing="18">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                        StrokeThickness="1"
+                        Padding="24">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="24" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+                        <Label Text="Dados do utilizador"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="20"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Nome"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Entry Text="{Binding Nome}"
+                                   Placeholder="Nome completo"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Email"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Entry Text="{Binding Email}"
+                                   Placeholder="utilizador@tipmolde.pt"
+                                   Keyboard="Email"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                   ClearButtonVisibility="WhileEditing" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Password inicial"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Entry Text="{Binding Password}"
+                                   Placeholder="Password temporaria"
+                                   IsPassword="True"
+                                   ClearButtonVisibility="WhileEditing"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"/>
+                            <Label Text="Usa a password temporaria acordada pela equipa, ou define outra."
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Cargo"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Picker Title="Selecionar cargo"
+                                ItemsSource="{Binding AvailableRoles}"
+                                SelectedItem="{Binding SelectedRole, Mode=TwoWay}"
+                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}" />
+                        </VerticalStackLayout>
+
+                        <Label Text="{Binding ErrorMessage}"
+                               IsVisible="{Binding HasError}"
+                               TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
+                               FontSize="13" />
+
+                        <ActivityIndicator IsRunning="{Binding IsSaving}"
+                                           IsVisible="{Binding IsSaving}"
+                                           HorizontalOptions="Center" />
+
+                        <Grid ColumnDefinitions="Auto,Auto"
+                              ColumnSpacing="12">
+                            <Button Text="Voltar"
+                                    Command="{Binding VoltarCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                    TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                    HeightRequest="44" />
+
+                            <Button Grid.Column="1"
+                                    Text="Criar utilizador"
+                                    Command="{Binding CreateCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                    HeightRequest="44" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

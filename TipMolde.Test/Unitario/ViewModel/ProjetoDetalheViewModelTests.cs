@@ -35,7 +35,8 @@ public class ProjetoDetalheViewModelTests
             new RegistosTempoProjetoService(httpClient),
             authorizationService,
             sessaoPersistidaService,
-            _dialogService.Object);
+            _dialogService.Object,
+            Mock.Of<IFilePickerService>());
 
         _sut.CanManageTempo = true;
         _sut.IsAdmin = true;

@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.ProjetoDetalhePage"
+             x:Name="PaginaProjetoDetalhe"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Detalhe do Projeto" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="{StaticResource PageContentPadding}"
+                                     Spacing="18">
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="24">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="Auto,*"
+                                  ColumnSpacing="16">
+                                <Button Text="Voltar"
+                                        Command="{Binding VoltarCommand}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                        TextColor="White"
+                                        HorizontalOptions="Start"
+                                        HeightRequest="42" />
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="{Binding ProjetoTituloDisplay}"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="28"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding ProjetoSubtituloDisplay}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="18"
+                                  RowSpacing="12">
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Pasta do servidor"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding ProjetoCaminhoDisplay}"
+                                           LineBreakMode="TailTruncation"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Resumo das revisoes"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding RevisoesResumoDisplay}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="0"
+                                                     Spacing="4">
+                                    <Label Text="Tempo total"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding TempoTotalDisplay}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Sessao atual"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding TempoSessaoAtivaDisplay}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Label Text="{Binding ErrorMessage}"
+                           IsVisible="{Binding HasError}"
+                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
+
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="14">
+                        <Button Text="Criar revisao"
+                                Command="{Binding CriarRevisaoCommand}"
+                                IsVisible="{Binding IsAdmin}"
+                                IsEnabled="{Binding CanCreateRevisao}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                TextColor="White"
+                                HeightRequest="42" />
+                        <Button Grid.Column="1"
+                                Text="Registar tempo"
+                                Command="{Binding RegistarTempoCommand}"
+                                IsVisible="{Binding CanAccessTempo}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                TextColor="White"
+                                HeightRequest="42" />
+                    </Grid>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="18">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Revisoes do cliente"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="18"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="Segue a validacao do cliente, o estado da revisao e o feedback recebido."
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="1"
+                                        Text="Atualizar"
+                                        Command="{Binding RecarregarCommand}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                        TextColor="White"
+                                        HeightRequest="42"
+                                        Padding="18,10" />
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding Revisoes}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="14" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding EmptyRevisoesMessage}"
+                                               HorizontalOptions="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:RevisaoDto">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="18">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="20" />
+                                            </Border.StrokeShape>
+
+                                            <VerticalStackLayout Spacing="10">
+                                                <Grid ColumnDefinitions="*,Auto"
+                                                      ColumnSpacing="12">
+                                                    <VerticalStackLayout Spacing="3">
+                                                        <Label Text="{Binding NumRevisaoDisplay}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="18" />
+                                                        <Label Text="{Binding DataEnvioDisplay, StringFormat='Enviada: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+
+                                                    <Border BackgroundColor="{AppThemeBinding Light=#E0F2FE, Dark=#082F49}"
+                                                            StrokeThickness="0"
+                                                            Padding="10,6"
+                                                            VerticalOptions="Start">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="14" />
+                                                        </Border.StrokeShape>
+                                                        <Label Text="{Binding EstadoDisplay}"
+                                                               TextColor="{AppThemeBinding Light=#0369A1, Dark=#BAE6FD}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <Label Text="{Binding DescricaoAlteracoes}"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                <Grid ColumnDefinitions="*,Auto"
+                                                      ColumnSpacing="12"
+                                                      IsVisible="{Binding TemResposta}">
+                                                    <VerticalStackLayout Spacing="3">
+                                                        <Label Text="{Binding DataRespostaDisplay, StringFormat='Resposta: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        <Label Text="{Binding ResumoFeedbackDisplay}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+                                                </Grid>
+
+                                                <Grid ColumnDefinitions="*,Auto"
+                                                      ColumnSpacing="12"
+                                                      IsVisible="{Binding TemAnexo}">
+                                                    <VerticalStackLayout Spacing="3">
+                                                        <Label Text="{Binding FeedbackAnexoFileName, StringFormat='Anexo: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+
+                                                    <Button Grid.Column="1"
+                                                            Text="Descarregar anexo"
+                                                            Command="{Binding BindingContext.AbrirAnexoCommand, Source={x:Reference PaginaProjetoDetalhe}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                            TextColor="White"
+                                                            HeightRequest="36"
+                                                            Padding="14,8" />
+                                                </Grid>
+
+                                                <Button Text="Responder ao cliente"
+                                                        Command="{Binding BindingContext.ResponderRevisaoCommand, Source={x:Reference PaginaProjetoDetalhe}}"
+                                                        CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding PodeResponder}"
+                                                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                        TextColor="White"
+                                                        HeightRequest="40" />
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20"
+                            IsVisible="{Binding CanAccessTempo}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="18">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Tempo registado"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="18"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="Historico temporal do projeto para o utilizador autenticado."
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Button Grid.Column="1"
+                                        Text="Registar tempo"
+                                        Command="{Binding RegistarTempoCommand}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                        TextColor="White"
+                                        HeightRequest="42"
+                                        Padding="18,10" />
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="18">
+                                <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Tempo total"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Text="{Binding TempoTotalDisplay}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Sessao atual"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Text="{Binding TempoSessaoAtivaDisplay}"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding RegistosTempo}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="12" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding EmptyTempoMessage}"
+                                               HorizontalOptions="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:RegistoTempoProjetoDto">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="16">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+
+                                            <Grid ColumnDefinitions="*,Auto"
+                                                  ColumnSpacing="12">
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Label Text="{Binding EstadoDisplay}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="16" />
+                                                    <Label Text="{Binding DataHoraDisplay, StringFormat='Registado em: {0}'}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

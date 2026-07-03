@@ -5,7 +5,7 @@
              x:Class="TipMolde.View.Shared.TopBarView"
              x:Name="Self">
 
-    <Border Padding="{OnIdiom Phone='16,14', Desktop='28,22'}"
+    <Border Padding="{Binding RootPadding, Source={x:Reference Self}}"
             Margin="0,0,0,2"
             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark=#111827}"
             Stroke="{AppThemeBinding Light={StaticResource CardBorder}, Dark={StaticResource Gray600}}"
@@ -22,9 +22,9 @@
                                    VerticalOptions="Center">
                 <Button Text="Menu"
                         Command="{Binding ViewModel.OpenNavigationMenuCommand, Source={x:Reference Self}}"
-                        IsVisible="{OnIdiom Phone=True, Desktop=False}"
-                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                        IsVisible="{Binding ShowNavigationMenu, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
                         HeightRequest="40"
                         Padding="14,8" />
 
@@ -33,20 +33,20 @@
                                      VerticalOptions="Center">
                     <Label Text="{Binding TitleText, Source={x:Reference Self}}"
                            FontFamily="OpenSansSemibold"
-                           FontSize="{OnIdiom Phone='22', Desktop='28'}"
+                           FontSize="{Binding TitleFontSize, Source={x:Reference Self}}"
                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                            LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
             </HorizontalStackLayout>
 
-            <HorizontalStackLayout Spacing="{OnIdiom Phone='8', Desktop='12'}"
-                                   Margin="{OnIdiom Phone='0,12,0,0', Desktop='0'}"
+            <HorizontalStackLayout Spacing="{Binding ActionsSpacing, Source={x:Reference Self}}"
+                                   Margin="{Binding ActionsMargin, Source={x:Reference Self}}"
                                    HorizontalOptions="End"
                                    VerticalOptions="Center">
 
                 <Border BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
                         StrokeThickness="0"
-                        Padding="{OnIdiom Phone='12,8', Desktop='16,8'}">
+                        Padding="{Binding UserBadgePadding, Source={x:Reference Self}}">
                     <Border.GestureRecognizers>
                         <TapGestureRecognizer Command="{Binding ViewModel.OpenDefinicoesCommand, Source={x:Reference Self}}" />
                     </Border.GestureRecognizers>
@@ -57,7 +57,7 @@
                     <HorizontalStackLayout Spacing="8">
                         <Label Text="{Binding ViewModel.DisplayUserName, Source={x:Reference Self}}"
                                FontFamily="OpenSansSemibold"
-                               FontSize="{OnIdiom Phone='13', Desktop='14'}"
+                               FontSize="{Binding UserNameFontSize, Source={x:Reference Self}}"
                                VerticalOptions="Center"
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                MaxLines="1"
@@ -69,9 +69,9 @@
                         Command="{Binding ViewModel.LogoutCommand, Source={x:Reference Self}}"
                         BackgroundColor="Red"
                         TextColor="White"
-                        FontSize="{OnIdiom Phone='12', Desktop='14'}"
+                        FontSize="{Binding ActionFontSize, Source={x:Reference Self}}"
                         CornerRadius="18"
-                        Padding="{OnIdiom Phone='12,8', Desktop='18,10'}"
+                        Padding="{Binding LogoutPadding, Source={x:Reference Self}}"
                         MinimumHeightRequest="44" />
             </HorizontalStackLayout>
         </FlexLayout>

@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using TipMolde.Diagnostics;
+using TipMolde.Services;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View.Shared;
@@ -15,6 +18,7 @@ public partial class SidebarView : ContentView
     private bool _showLabels;
     private bool _isInitialized;
     private Page? _parentPage;
+    private ResponsiveLayoutService? _layoutService;
 
     public double SidebarWidth
     {
@@ -42,46 +46,36 @@ public partial class SidebarView : ContentView
         set => SetValue(ViewModelProperty, value);
     }
 
-    private static bool IsPhone => DeviceInfo.Current.Idiom == DeviceIdiom.Phone;
-
     public SidebarView()
     {
         InitializeComponent();
-        IsVisible = !IsPhone;
-        ConfigureSidebar();
+        ApplyFallbackLayout();
         Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    private void ConfigureSidebar()
+    private void ApplyFallbackLayout()
     {
-        if (IsPhone)
-            SetExpanded(false);
-        else
-            SetExpanded(true);
-    }
-
-    private void SetExpanded(bool expanded)
-    {
-        ShowLabels = expanded;
-
-        if (expanded)
-            SidebarWidth = IsPhone ? 230 : 280;
-        else
-            SidebarWidth = IsPhone ? 88 : 96;
+        IsVisible = false;
+        ShowLabels = false;
+        SidebarWidth = 0;
     }
 
     private void OnHeaderTapped(object sender, TappedEventArgs e)
     {
-        if (!IsPhone)
+        if (_layoutService is null || !_layoutService.ShowSidebar)
             return;
-
-        SetExpanded(!ShowLabels);
     }
 
-    private async void OnLoaded(object? sender, EventArgs e)
+    private void OnLoaded(object? sender, EventArgs e)
     {
-        if (!IsVisible)
-            return;
+        TaskMonitor.Observe("TipMolde.View.Shared.SidebarView.OnLoaded", OnLoadedAsync());
+    }
+
+    private async Task OnLoadedAsync()
+    {
+        EnsureLayoutService();
+        ApplyResponsiveLayout();
 
         if (Handler?.MauiContext?.Services.GetService(typeof(SidebarViewModel)) is not SidebarViewModel vm)
             return;
@@ -97,6 +91,19 @@ public partial class SidebarView : ContentView
         await vm.EnsureLoadedAsync(forceRefresh: true);
     }
 
+    private void OnUnloaded(object? sender, EventArgs e)
+    {
+        if (_layoutService is not null)
+            _layoutService.PropertyChanged -= OnLayoutServicePropertyChanged;
+
+        if (_parentPage is not null)
+            _parentPage.Appearing -= OnParentPageAppearing;
+
+        _layoutService = null;
+        _parentPage = null;
+        _isInitialized = false;
+    }
+
     private void AttachToParentPage()
     {
         _parentPage = FindParentPage();
@@ -104,7 +111,12 @@ public partial class SidebarView : ContentView
             _parentPage.Appearing += OnParentPageAppearing;
     }
 
-    private async void OnParentPageAppearing(object? sender, EventArgs e)
+    private void OnParentPageAppearing(object? sender, EventArgs e)
+    {
+        TaskMonitor.Observe("TipMolde.View.Shared.SidebarView.OnParentPageAppearing", OnParentPageAppearingAsync());
+    }
+
+    private async Task OnParentPageAppearingAsync()
     {
         if (ViewModel is null)
             return;
@@ -124,5 +136,42 @@ public partial class SidebarView : ContentView
         }
 
         return null;
+    }
+
+    private void EnsureLayoutService()
+    {
+        if (_layoutService is not null)
+            return;
+
+        _layoutService = Handler?.MauiContext?.Services.GetService(typeof(ResponsiveLayoutService)) as ResponsiveLayoutService;
+        if (_layoutService is not null)
+            _layoutService.PropertyChanged += OnLayoutServicePropertyChanged;
+    }
+
+    private void OnLayoutServicePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.LayoutMode), StringComparison.Ordinal) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.ShowSidebar), StringComparison.Ordinal) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.ShowSidebarLabels), StringComparison.Ordinal) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.SidebarWidth), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        MainThread.BeginInvokeOnMainThread(ApplyResponsiveLayout);
+    }
+
+    private void ApplyResponsiveLayout()
+    {
+        if (_layoutService is null)
+        {
+            ApplyFallbackLayout();
+            return;
+        }
+
+        IsVisible = _layoutService.ShowSidebar;
+        ShowLabels = _layoutService.ShowSidebarLabels;
+        SidebarWidth = _layoutService.SidebarWidth;
     }
 }

@@ -1,0 +1,1347 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             x:Class="TipMolde.View.DashboardPage"
+             x:Name="PaginaDashboard">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Dashboard" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="{Binding ResponsiveContentPadding, Source={x:Reference PaginaDashboard}}"
+                                     Spacing="{OnIdiom Phone='16', Desktop='18'}">
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="{OnIdiom Phone='18', Desktop='24'}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Planeamento semanal"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="{OnIdiom Phone='20', Desktop='24'}"
+                                           LineBreakMode="WordWrap"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="Escolhe a semana inicial e quantas semanas queres ver. Os moldes sao distribuidos num calendario semanal continuo."
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                           LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="{AppThemeBinding Light=#F1F5F9, Dark=#111827}"
+                                        StrokeThickness="0"
+                                        Padding="14,10"
+                                        VerticalOptions="Start">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+
+                                    <VerticalStackLayout Spacing="2">
+                                        <Label Text="Periodo visivel"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Text="{Binding IntervaloPlanificacaoDisplay}"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="16"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="14"
+                                  RowSpacing="14">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Text="Semana inicial"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <DatePicker Date="{Binding SemanaInicialPlanificacao, Mode=TwoWay}"
+                                                Format="dd/MM/yyyy" />
+                                    <Label Text="A data escolhida e alinhada automaticamente para domingo."
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="{Binding AdaptiveSecondaryColumn, Source={x:Reference PaginaDashboard}}"
+                                                     Grid.Row="{Binding AdaptiveSecondaryRow, Source={x:Reference PaginaDashboard}}"
+                                                     Spacing="6">
+                                    <Label Text="Semanas visiveis"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Button Text="-"
+                                                Command="{Binding ReduzirSemanasPlanificacaoCommand}"
+                                                WidthRequest="44"
+                                                HeightRequest="40" />
+                                        <Label Text="{Binding NumeroSemanasPlanificacaoDisplay}"
+                                               VerticalTextAlignment="Center"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Button Text="+"
+                                                Command="{Binding AumentarSemanasPlanificacaoCommand}"
+                                                WidthRequest="44"
+                                                HeightRequest="40" />
+                                    </HorizontalStackLayout>
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <HorizontalStackLayout Spacing="10">
+                                <Button Text="Semana anterior"
+                                        Command="{Binding SemanaAnteriorPlanificacaoCommand}" />
+                                <Button Text="Semana atual"
+                                        Command="{Binding SemanaAtualPlanificacaoCommand}" />
+                                <Button Text="Semana seguinte"
+                                        Command="{Binding SemanaSeguintePlanificacaoCommand}" />
+                            </HorizontalStackLayout>
+
+                            <Label Text="{Binding PlanificacaoResumoDisplay}"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                            <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                    StrokeThickness="1"
+                                    Padding="18"
+                                    IsVisible="{Binding HasNoPlanificacao}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18" />
+                                </Border.StrokeShape>
+                                <Label Text="{Binding PlanificacaoVaziaDisplay}"
+                                       HorizontalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </Border>
+
+                            <Grid IsVisible="{Binding HasPlanificacao}">
+                                <VerticalStackLayout x:Name="PlanificacaoCalendarRoot"
+                                                     Spacing="12">
+                                    <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+                                          ColumnSpacing="0">
+                                        <Label Text="Domingo"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="1"
+                                               Text="Segunda-feira"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="2"
+                                               Text="Terca-feira"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="3"
+                                               Text="Quarta-feira"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="4"
+                                               Text="Quinta-feira"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="5"
+                                               Text="Sexta-feira"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                        <Label Grid.Column="6"
+                                               Text="Sabado"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="12"
+                                               HorizontalOptions="Center"
+                                               HorizontalTextAlignment="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    </Grid>
+
+                                    <VerticalStackLayout Spacing="10"
+                                                         BindableLayout.ItemsSource="{Binding PlanificacaoSemanas}">
+                                        <BindableLayout.ItemTemplate>
+                                            <DataTemplate x:DataType="models:DashboardPlanificacaoSemanaItem">
+                                                <Grid ColumnDefinitions="*,*,*,*,*,*,*"
+                                                      ColumnSpacing="8">
+                                                    <Border WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaDomingo}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaDomingo.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaDomingo.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaDomingo.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaDomingo.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaDomingo.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaDomingo.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="1"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaSegunda}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaSegunda.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaSegunda.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaSegunda.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaSegunda.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaSegunda.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaSegunda.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="2"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaTerca}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaTerca.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaTerca.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaTerca.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaTerca.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaTerca.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaTerca.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="3"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaQuarta}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaQuarta.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaQuarta.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaQuarta.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaQuarta.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaQuarta.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaQuarta.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="4"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaQuinta}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaQuinta.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaQuinta.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaQuinta.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaQuinta.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaQuinta.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaQuinta.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="5"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaSexta}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaSexta.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaSexta.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaSexta.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaSexta.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaSexta.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaSexta.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+
+                                                    <Border Grid.Column="6"
+                                                            WidthRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            HeightRequest="{Binding BindingContext.PlanificacaoCellSize, Source={x:Reference PaginaDashboard}}"
+                                                            BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.GestureRecognizers>
+                                                            <TapGestureRecognizer Command="{Binding BindingContext.SelecionarPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                  CommandParameter="{Binding DiaSabado}" />
+                                                        </Border.GestureRecognizers>
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+                                                        <VerticalStackLayout Spacing="6"
+                                                                             Padding="10">
+                                                            <Label Text="{Binding DiaSabado.DiaSemanaDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="12"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DiaSabado.DataDisplay}"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="16"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <VerticalStackLayout Spacing="4"
+                                                                                 BindableLayout.ItemsSource="{Binding DiaSabado.MoldesVisiveis}">
+                                                                <BindableLayout.ItemTemplate>
+                                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                                        <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                                StrokeThickness="0"
+                                                                                Padding="6,4">
+                                                                            <Border.StrokeShape>
+                                                                                <RoundRectangle CornerRadius="10" />
+                                                                            </Border.StrokeShape>
+                                                                            <Border.GestureRecognizers>
+                                                                                <TapGestureRecognizer Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                                                      CommandParameter="{Binding .}" />
+                                                                            </Border.GestureRecognizers>
+                                                                            <VerticalStackLayout Spacing="0">
+                                                                                <Label Text="{Binding NumeroMoldeDisplay}"
+                                                                                       FontFamily="OpenSansSemibold"
+                                                                                       FontSize="10"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                                <Label Text="{Binding NomeMoldeDisplay}"
+                                                                                       FontSize="9"
+                                                                                       LineBreakMode="TailTruncation"
+                                                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                            </VerticalStackLayout>
+                                                                        </Border>
+                                                                    </DataTemplate>
+                                                                </BindableLayout.ItemTemplate>
+                                                            </VerticalStackLayout>
+                                                            <Label Text="{Binding DiaSabado.MoldesExtraCount, StringFormat='+{0} mais'}"
+                                                                   IsVisible="{Binding DiaSabado.TemMoldesExtra}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            <Label Text="Sem moldes neste dia"
+                                                                   IsVisible="{Binding DiaSabado.SemMoldes}"
+                                                                   FontSize="10"
+                                                                   LineBreakMode="TailTruncation"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </BindableLayout.ItemTemplate>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+
+                                <Grid IsVisible="{Binding HasSelectedPlanificacaoDia}"
+                                      BackgroundColor="#99000000"
+                                      Padding="18">
+                                    <BoxView Color="Transparent">
+                                        <BoxView.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding BindingContext.FecharPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}" />
+                                        </BoxView.GestureRecognizers>
+                                    </BoxView>
+
+                                    <Border HorizontalOptions="Center"
+                                            VerticalOptions="Center"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20"
+                                            MaximumWidthRequest="820"
+                                            WidthRequest="{OnIdiom Phone='320', Desktop='760'}"
+                                            Margin="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="24" />
+                                        </Border.StrokeShape>
+
+                                        <VerticalStackLayout Spacing="16">
+                                            <Grid ColumnDefinitions="*,Auto"
+                                                  ColumnSpacing="16">
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Label Text="{Binding SelectedPlanificacaoDiaDisplay}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="20"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                    <Label Text="{Binding SelectedPlanificacaoDiaResumoDisplay}"
+                                                           FontSize="13"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </VerticalStackLayout>
+
+                                                <Button Grid.Column="1"
+                                                        Text="Fechar"
+                                                        Command="{Binding BindingContext.FecharPlanificacaoDiaCommand, Source={x:Reference PaginaDashboard}}"
+                                                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#334155}"
+                                                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                                        HeightRequest="38" />
+                                            </Grid>
+
+                                            <Label Text="{Binding MoldesDiaSelecionado.Count, StringFormat='{}{0} molde(s) neste dia'}"
+                                                   FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                            <CollectionView ItemsSource="{Binding MoldesDiaSelecionado}"
+                                                            SelectionMode="None"
+                                                            HeightRequest="360">
+                                                <CollectionView.ItemsLayout>
+                                                    <LinearItemsLayout Orientation="Vertical"
+                                                                       ItemSpacing="10" />
+                                                </CollectionView.ItemsLayout>
+
+                                                <CollectionView.EmptyView>
+                                                    <Label Text="Nao ha moldes para mostrar neste dia."
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </CollectionView.EmptyView>
+
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate x:DataType="models:FilaGlobalMoldeItemDto">
+                                                        <Border BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#0F172A}"
+                                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                                StrokeThickness="1"
+                                                                Padding="14">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="16" />
+                                                            </Border.StrokeShape>
+
+                                                            <Grid ColumnDefinitions="*,Auto"
+                                                                  ColumnSpacing="12">
+                                                                <VerticalStackLayout Spacing="3">
+                                                                    <Label Text="{Binding NomeMoldeDisplay}"
+                                                                           FontFamily="OpenSansSemibold"
+                                                                           FontSize="16"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                    <Label Text="{Binding NumeroMoldeDisplay, StringFormat='Molde: {0}'}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                    <Label Text="{Binding NumeroEncomendaDisplay, StringFormat='Encomenda: {0}'}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                    <Label Text="{Binding NomeClienteDisplay, StringFormat='Cliente: {0}'}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                </VerticalStackLayout>
+
+                                                                <VerticalStackLayout Grid.Column="1"
+                                                                                     Spacing="8"
+                                                                                     VerticalOptions="Center">
+                                                                    <Border BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                            StrokeThickness="0"
+                                                                            Padding="10,6"
+                                                                            HorizontalOptions="End">
+                                                                        <Border.StrokeShape>
+                                                                            <RoundRectangle CornerRadius="12" />
+                                                                        </Border.StrokeShape>
+                                                                        <Label Text="{Binding Prioridade, StringFormat='Prioridade {0}'}"
+                                                                               FontFamily="OpenSansSemibold"
+                                                                               FontSize="11"
+                                                                               TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                    </Border>
+
+                                                                    <Label Text="{Binding DataEntregaPrevistaDisplay, StringFormat='Entrega: {0}'}"
+                                                                           FontSize="11"
+                                                                           HorizontalTextAlignment="End"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                                    <Button Text="Abrir detalhe"
+                                                                            Command="{Binding BindingContext.AbrirMoldePlanificacaoCommand, Source={x:Reference PaginaDashboard}}"
+                                                                            CommandParameter="{Binding .}"
+                                                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                                            HeightRequest="38" />
+                                                                </VerticalStackLayout>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Background="{StaticResource BrandGradientBrush}"
+                            StrokeThickness="0"
+                            Padding="{OnIdiom Phone='16', Desktop='28'}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="30" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="{OnIdiom Phone='16', Desktop='20'}">
+                            <Label Text="Dashboard do molde mais proximo de entrega"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="{OnIdiom Phone='22', Desktop='30'}"
+                                   TextColor="White"
+                                   LineBreakMode="WordWrap" />
+
+                            <Label Text="Resumo visual do ciclo de vida, cliente e data prevista de entrega."
+                                   FontSize="{OnIdiom Phone='14', Desktop='16'}"
+                                   TextColor="#E2E8F0"
+                                   LineBreakMode="WordWrap" />
+
+                            <Button Text="Abrir detalhe do molde"
+                                    Command="{Binding AbrirDashboardMoldeCommand}"
+                                    IsEnabled="{Binding HasMoldeEntregaDashboard}"
+                                    HorizontalOptions="Start" />
+
+                            <Border Background="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                    StrokeThickness="0"
+                                    Padding="{OnIdiom Phone='14', Desktop='16'}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="26" />
+                                </Border.StrokeShape>
+
+                                <VerticalStackLayout Spacing="14">
+                                    <ActivityIndicator IsRunning="{Binding IsLoadingHero}"
+                                                       IsVisible="{Binding IsLoadingHero}"
+                                                       HorizontalOptions="Center" />
+
+                                    <VerticalStackLayout Spacing="16"
+                                                         IsVisible="{Binding HasMoldeEntregaDashboard}">
+                                        <Grid ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="14">
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="{Binding NomeMoldeMaisProximoDisplay}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="{OnIdiom Phone='18', Desktop='24'}"
+                                                       LineBreakMode="WordWrap"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                                                <Label Text="{Binding NumeroMoldeMaisProximoDisplay, StringFormat='Molde: {0}'}"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                <Label Text="{Binding ClienteMoldeMaisProximoDisplay, StringFormat='Cliente: {0}'}"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                <Label Text="{Binding DataEntregaMoldeMaisProximoDisplay, StringFormat='Entrega prevista: {0}'}"
+                                                       FontSize="14"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </VerticalStackLayout>
+
+                                            <Border Grid.Column="1"
+                                                    Background="{AppThemeBinding Light=#ECFDF5, Dark=#0F3D38}"
+                                                    StrokeThickness="0"
+                                                    Padding="14,10"
+                                                    VerticalOptions="Start">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="18" />
+                                                </Border.StrokeShape>
+
+                                                <VerticalStackLayout Spacing="2">
+                                                    <Label Text="Conclusao"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="12"
+                                                           TextColor="{StaticResource BrandOrangeDark}" />
+                                                    <Label Text="{Binding PercentagemConclusaoMaisProximoDisplay}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="18"
+                                                           TextColor="{StaticResource BrandOrangeDark}" />
+                                                </VerticalStackLayout>
+                                            </Border>
+                                        </Grid>
+
+                                        <Grid ColumnDefinitions="Auto,*"
+                                              RowDefinitions="Auto,Auto"
+                                              ColumnSpacing="16"
+                                              RowSpacing="14">
+                                            <VerticalStackLayout Spacing="8">
+                                                <shared:CicloVidaPieChartView HorizontalOptions="Center"
+                                                                              HeightRequest="{OnIdiom Phone='180', Desktop='200'}"
+                                                                              TotalPecas="{Binding DashboardMaisProximo.TotalPecas}"
+                                                                              Maquinacao="{Binding DashboardMaisProximo.Maquinacao}"
+                                                                              Erosao="{Binding DashboardMaisProximo.Erosao}"
+                                                                              Montagem="{Binding DashboardMaisProximo.Montagem}"
+                                                                              MaterialPendente="{Binding DashboardMaisProximo.MaterialPendente}"
+                                                                              EmEspera="{Binding DashboardMaisProximo.EmEspera}"
+                                                                              WidthRequest="{OnIdiom Phone='180', Desktop='200'}" />
+
+                                                <Label Text="{Binding DashboardMaisProximo.TotalPecas, StringFormat='Total de pecas: {0}'}"
+                                                       HorizontalOptions="Center"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                       FontSize="13" />
+                                            </VerticalStackLayout>
+
+                                            <Grid Grid.Column="{Binding AdaptiveSecondaryColumn, Source={x:Reference PaginaDashboard}}"
+                                                  Grid.Row="{Binding AdaptiveSecondaryRow, Source={x:Reference PaginaDashboard}}"
+                                                  ColumnDefinitions="*,*"
+                                                  ColumnSpacing="12"
+                                                  RowDefinitions="Auto,Auto,Auto"
+                                                  RowSpacing="12"
+                                                  MaximumWidthRequest="{OnIdiom Phone='420', Desktop='520'}">
+                                                <Border Background="{AppThemeBinding Light=#EFF6FF, Dark=#172554}"
+                                                        StrokeThickness="0"
+                                                        Padding="14">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Border WidthRequest="14"
+                                                                HeightRequest="14"
+                                                                BackgroundColor="#2563EB"
+                                                                StrokeThickness="0"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="7" />
+                                                            </Border.StrokeShape>
+                                                        </Border>
+
+                                                        <VerticalStackLayout Grid.Column="1"
+                                                                             Spacing="3">
+                                                            <Label Text="Maquinacao"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="13"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DashboardMaisProximo.Maquinacao, StringFormat='{}{0} pecas'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </Border>
+
+                                                <Border Grid.Column="1"
+                                                        Background="{AppThemeBinding Light=#FFF7ED, Dark=#431407}"
+                                                        StrokeThickness="0"
+                                                        Padding="14">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Border WidthRequest="14"
+                                                                HeightRequest="14"
+                                                                BackgroundColor="#F97316"
+                                                                StrokeThickness="0"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="7" />
+                                                            </Border.StrokeShape>
+                                                        </Border>
+
+                                                        <VerticalStackLayout Grid.Column="1"
+                                                                             Spacing="3">
+                                                            <Label Text="Erosao"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="13"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DashboardMaisProximo.Erosao, StringFormat='{}{0} pecas'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </Border>
+
+                                                <Border Grid.Row="1"
+                                                        Background="{AppThemeBinding Light=#F0FDF4, Dark=#052E16}"
+                                                        StrokeThickness="0"
+                                                        Padding="14">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Border WidthRequest="14"
+                                                                HeightRequest="14"
+                                                                BackgroundColor="#16A34A"
+                                                                StrokeThickness="0"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="7" />
+                                                            </Border.StrokeShape>
+                                                        </Border>
+
+                                                        <VerticalStackLayout Grid.Column="1"
+                                                                             Spacing="3">
+                                                            <Label Text="Montagem"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="13"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DashboardMaisProximo.Montagem, StringFormat='{}{0} pecas'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </Border>
+
+                                                <Border Grid.Row="1"
+                                                        Grid.Column="1"
+                                                        Background="{AppThemeBinding Light=#FFFBEB, Dark=#422006}"
+                                                        StrokeThickness="0"
+                                                        Padding="14">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Border WidthRequest="14"
+                                                                HeightRequest="14"
+                                                                BackgroundColor="#EAB308"
+                                                                StrokeThickness="0"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="7" />
+                                                            </Border.StrokeShape>
+                                                        </Border>
+
+                                                        <VerticalStackLayout Grid.Column="1"
+                                                                             Spacing="3">
+                                                            <Label Text="Material pendente"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="13"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DashboardMaisProximo.MaterialPendente, StringFormat='{}{0} pecas'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </Border>
+
+                                                <Border Grid.Row="2"
+                                                        Grid.ColumnSpan="2"
+                                                        Background="{AppThemeBinding Light=#F1F5F9, Dark=#0F172A}"
+                                                        StrokeThickness="0"
+                                                        Padding="14">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          ColumnSpacing="12">
+                                                        <Border WidthRequest="14"
+                                                                HeightRequest="14"
+                                                                BackgroundColor="#64748B"
+                                                                StrokeThickness="0"
+                                                                VerticalOptions="Center">
+                                                            <Border.StrokeShape>
+                                                                <RoundRectangle CornerRadius="7" />
+                                                            </Border.StrokeShape>
+                                                        </Border>
+
+                                                        <VerticalStackLayout Grid.Column="1"
+                                                                             Spacing="3">
+                                                            <Label Text="Em espera"
+                                                                   FontFamily="OpenSansSemibold"
+                                                                   FontSize="13"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                            <Label Text="{Binding DashboardMaisProximo.EmEspera, StringFormat='{}{0} pecas'}"
+                                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        </VerticalStackLayout>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+                                        </Grid>
+                                    </VerticalStackLayout>
+
+                                    <Label
+                                           Text="{Binding HeroErrorMessage}"
+                                           IsVisible="{Binding HasHeroError}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
+                                           FontSize="13" />
+
+                                    <Label
+                                           Text="Sem dados suficientes para apresentar o molde mais proximo de entrega."
+                                           IsVisible="{Binding HasNoMoldeEntregaDashboard}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                           FontSize="13" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Grid ColumnDefinitions="*,*"
+                          RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnSpacing="16"
+                          RowSpacing="16">
+
+                        <Border Grid.Column="0"
+                                Grid.Row="0"
+                                Grid.ColumnSpan="{Binding SummaryCardColumnSpan, Source={x:Reference PaginaDashboard}}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20"
+                                MinimumWidthRequest="{OnIdiom Phone='150', Desktop='220'}"
+                                MaximumWidthRequest="{OnIdiom Phone='260', Desktop='280'}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Moldes por Entregar"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18" />
+                                <Label Text="{Binding TotalMoldesPorEntregarDisplay}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="{OnIdiom Phone='30', Desktop='38'}" />
+                                <Label Text="Associados a encomendas ainda nao concluidas"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="{Binding SummarySecondColumn, Source={x:Reference PaginaDashboard}}"
+                                Grid.Row="{Binding SummarySecondRow, Source={x:Reference PaginaDashboard}}"
+                                Grid.ColumnSpan="{Binding SummaryCardColumnSpan, Source={x:Reference PaginaDashboard}}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20"
+                                MinimumWidthRequest="{OnIdiom Phone='150', Desktop='220'}"
+                                MaximumWidthRequest="{OnIdiom Phone='260', Desktop='280'}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Taxa de Conclusao"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18" />
+                                <Label Text="{Binding TaxaConclusaoDisplay}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="{OnIdiom Phone='30', Desktop='38'}" />
+                                <Label Text="Todas as Encomendas entrgues"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="{Binding SummaryThirdColumn, Source={x:Reference PaginaDashboard}}"
+                                Grid.Row="{Binding SummaryThirdRow, Source={x:Reference PaginaDashboard}}"
+                                Grid.ColumnSpan="{Binding SummaryCardColumnSpan, Source={x:Reference PaginaDashboard}}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20"
+                                MinimumWidthRequest="{OnIdiom Phone='150', Desktop='220'}"
+                                MaximumWidthRequest="{OnIdiom Phone='260', Desktop='280'}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Concluidos"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18" />
+                                <Label Text="{Binding EncomendasConcluidasUltimosTresMesesDisplay}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="{OnIdiom Phone='30', Desktop='38'}" />
+                                <Label Text="{Binding IntervaloUltimosTresMesesDisplay, StringFormat='Concluidas registadas entre {0}'}"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Border Grid.Column="{Binding SummaryFourthColumn, Source={x:Reference PaginaDashboard}}"
+                                Grid.Row="{Binding SummaryFourthRow, Source={x:Reference PaginaDashboard}}"
+                                Grid.ColumnSpan="{Binding SummaryCardColumnSpan, Source={x:Reference PaginaDashboard}}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="20"
+                                MinimumWidthRequest="{OnIdiom Phone='150', Desktop='220'}"
+                                MaximumWidthRequest="{OnIdiom Phone='260', Desktop='280'}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="24" />
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Com Atraso"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="18" />
+                                <Label Text="{Binding MoldesComAtrasoDisplay}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="{OnIdiom Phone='30', Desktop='38'}" />
+                                <Label Text="Moldes cuja data prevista de entrega ja foi ultrapassada"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+
+                    <VerticalStackLayout Spacing="14"
+                                         IsVisible="{Binding CanUseRececaoMaterial}">
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="22">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="26" />
+                            </Border.StrokeShape>
+
+                            <VerticalStackLayout Spacing="16">
+                                <Label Text="Registo de chegada de material"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="{OnIdiom Phone='22', Desktop='26'}" />
+                                <Label Text="Seleciona o molde, marca as pecas que chegaram e deixa-as prontas para entrar em trabalho."
+                                       FontSize="15"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                <Label Text="Sem moldes com pedido de material ativo disponiveis para registar rececoes."
+                                       IsVisible="{Binding HasNoMoldesRececaoDisponiveis}"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                <VerticalStackLayout Spacing="8"
+                                                     IsVisible="{Binding HasMoldesRececaoDisponiveis}">
+                                    <Label Text="Molde"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="14"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Picker Title="Selecionar molde"
+                                            ItemsSource="{Binding MoldesRececaoDisponiveis}"
+                                            SelectedItem="{Binding SelectedMoldeRececao, Mode=TwoWay}"
+                                            ItemDisplayBinding="{Binding DisplayName}"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                    <Label Text="{Binding SelectedMoldeRececaoResumo}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <ActivityIndicator IsRunning="{Binding IsLoadingRececaoMaterial}"
+                                                   IsVisible="{Binding IsLoadingRececaoMaterial}"
+                                                   HorizontalOptions="Center" />
+
+                                <Label Text="{Binding RececaoMaterialErrorMessage}"
+                                       IsVisible="{Binding HasRececaoMaterialError}"
+                                       TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
+                                       FontSize="13" />
+
+                                <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                        StrokeThickness="1"
+                                        Padding="16"
+                                        IsVisible="{Binding HasSelectedMoldeRececao}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+
+                                    <VerticalStackLayout Spacing="12">
+                                        <Label Text="Pecas pendentes para este molde"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="16"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                                        <Label Text="{Binding PecasRececaoSelectionSummary}"
+                                               FontSize="12"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                        <CollectionView ItemsSource="{Binding PecasPendentesRececao}"
+                                                        SelectionMode="None"
+                                                        HeightRequest="280"
+                                                        IsVisible="{Binding HasPecasPendentesRececao}">
+                                            <CollectionView.ItemsLayout>
+                                                <LinearItemsLayout Orientation="Vertical"
+                                                                   ItemSpacing="10" />
+                                            </CollectionView.ItemsLayout>
+
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="viewmodel:SelectablePecaRececaoItem">
+                                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1"
+                                                            Padding="14">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="16" />
+                                                        </Border.StrokeShape>
+
+                                                        <Grid ColumnDefinitions="Auto,*"
+                                                              ColumnSpacing="12">
+                                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                                      VerticalOptions="Start" />
+
+                                                            <VerticalStackLayout Grid.Column="1"
+                                                                                 Spacing="4">
+                                                                <Grid ColumnDefinitions="*,Auto"
+                                                                      ColumnSpacing="10">
+                                                                    <VerticalStackLayout Spacing="2">
+                                                                        <Label Text="{Binding DesignacaoDisplay}"
+                                                                               FontFamily="OpenSansSemibold"
+                                                                               FontSize="14"
+                                                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                        <Label Text="{Binding NumeroPecaDisplay, StringFormat='Numero: {0}'}"
+                                                                               FontSize="12"
+                                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                    </VerticalStackLayout>
+
+                                                                    <Border Grid.Column="1"
+                                                                            Background="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                                            StrokeThickness="0"
+                                                                            Padding="10,6"
+                                                                            VerticalOptions="Start">
+                                                                        <Border.StrokeShape>
+                                                                            <RoundRectangle CornerRadius="12" />
+                                                                        </Border.StrokeShape>
+                                                                        <Label Text="{Binding PrioridadeDisplay}"
+                                                                               FontSize="11"
+                                                                               FontFamily="OpenSansSemibold"
+                                                                               TextColor="{AppThemeBinding Light={StaticResource Info}, Dark=#BFDBFE}" />
+                                                                    </Border>
+                                                                </Grid>
+
+                                                                <Label Text="{Binding MaterialDisplay, StringFormat='Material: {0}'}"
+                                                                       FontSize="12"
+                                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                <Label Text="{Binding QuantidadeDisplay}"
+                                                                       FontSize="12"
+                                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                            </VerticalStackLayout>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+
+                                        <Label Text="Todas as pecas deste molde ja tem o material recebido."
+                                               IsVisible="{Binding HasNoPecasPendentesRececao}"
+                                               FontSize="13"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                        <Button Text="{Binding RececaoMaterialButtonText}"
+                                                Command="{Binding RegistarChegadaMaterialCommand}"
+                                                IsEnabled="{Binding CanRegistarChegadaMaterial}"
+                                                HorizontalOptions="Start" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.RegistoProducaoPage"
+             x:Name="PaginaRegistoProducao"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="{Binding PageTitle}" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="{StaticResource PageContentPadding}"
+                                     Spacing="18">
+
+                    <Border StrokeThickness="0"
+                            Padding="28">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0"
+                                                 EndPoint="1,1">
+                                <GradientStop Color="{AppThemeBinding Light=#0F172A, Dark=#020617}"
+                                              Offset="0.0" />
+                                <GradientStop Color="{AppThemeBinding Light=#1D4ED8, Dark=#1E3A8A}"
+                                              Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="30" />
+                        </Border.StrokeShape>
+
+                        <Grid ColumnDefinitions="*,Auto"
+                              RowDefinitions="Auto,Auto,Auto"
+                              ColumnSpacing="18"
+                              RowSpacing="16">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Trabalho de peca"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="13"
+                                       TextColor="#BFDBFE"
+                                       TextTransform="Uppercase" />
+                                <Label Text="{Binding PageTitle}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="30"
+                                       TextColor="White" />
+                                <Label Text="{Binding IntroText}"
+                                       FontSize="14"
+                                       LineBreakMode="WordWrap"
+                                       TextColor="#DBEAFE" />
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1"
+                                                 Spacing="10"
+                                                 HorizontalOptions="End">
+                                <Border BackgroundColor="#1F2937"
+                                        StrokeThickness="0"
+                                        Padding="12,8">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding GestorProducaoDisplay}"
+                                           FontFamily="OpenSansSemibold"
+                                           TextColor="White" />
+                                </Border>
+
+                                <Border BackgroundColor="#0B1220"
+                                        StrokeThickness="0"
+                                        Padding="12,8"
+                                        IsVisible="{Binding HasRegistoAtivo}">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+                                    <Label Text="Producao ativa"
+                                           FontFamily="OpenSansSemibold"
+                                           TextColor="#FDE68A" />
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <Grid Grid.Row="1"
+                                  Grid.ColumnSpan="2"
+                                  ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
+                                <Border BackgroundColor="#1AFFFFFF"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Fase atual"
+                                               FontFamily="OpenSansSemibold"
+                                               TextColor="White" />
+                                        <Label Text="{Binding FaseAtualDisplay}"
+                                               TextColor="#E0F2FE" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="#1AFFFFFF"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Proxima fase planeada"
+                                               FontFamily="OpenSansSemibold"
+                                               TextColor="White" />
+                                        <Label Text="{Binding ProximaFasePlaneadaDisplay}"
+                                               TextColor="#E0F2FE" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+
+                            <Grid Grid.Row="2"
+                                  Grid.ColumnSpan="2"
+                                  ColumnDefinitions="*,*"
+                                  ColumnSpacing="12">
+                                <Border BackgroundColor="#1AFFFFFF"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Tempo total de producao"
+                                               FontFamily="OpenSansSemibold"
+                                               TextColor="White" />
+                                        <Label Text="{Binding TempoTotalProducaoDisplay}"
+                                               TextColor="#E0F2FE" />
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="#1AFFFFFF"
+                                        StrokeThickness="0"
+                                        Padding="14">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="18" />
+                                    </Border.StrokeShape>
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="Sessao ativa"
+                                               FontFamily="OpenSansSemibold"
+                                               TextColor="White" />
+                                        <Label Text="{Binding TempoSessaoAtivaProducaoDisplay}"
+                                               TextColor="#E0F2FE" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Grid ColumnDefinitions="Auto,*"
+                          ColumnSpacing="10">
+                        <Button Text="Voltar"
+                                Command="{Binding VoltarCommand}"
+                                Grid.Column="0"
+                                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                HeightRequest="44"
+                                Padding="18,10" />
+                    </Grid>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Border IsVisible="{Binding HasError}"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            Stroke="{AppThemeBinding Light=#FCA5A5, Dark=#7F1D1D}"
+                            StrokeThickness="1"
+                            Padding="16">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="18" />
+                        </Border.StrokeShape>
+                        <Label Text="{Binding ErrorMessage}"
+                               TextColor="{AppThemeBinding Light=#991B1B, Dark=#FEE2E2}" />
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="22">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Ocorrencias"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="20" />
+                                    <Label Text="Abre um formulario independente para reportar uma ocorrencia e, se quiseres, a correcao."
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Button Text="{Binding OcorrenciaToggleButtonText}"
+                                        Command="{Binding ToggleOcorrenciaFormCommand}"
+                                        Grid.Column="1"
+                                        BackgroundColor="#B91C1C"
+                                        TextColor="White"
+                                        HeightRequest="44"
+                                        Padding="18,10"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Center" />
+                            </Grid>
+
+                            <Border IsVisible="{Binding IsOcorrenciaFormVisible}"
+                                    BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                    StrokeThickness="1"
+                                    Padding="18">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="20" />
+                                </Border.StrokeShape>
+
+                                <VerticalStackLayout Spacing="14">
+                                    <Grid ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="12">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Reportar ocorrencia"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="16" />
+                                            <Label Text="{Binding OcorrenciaHint}"
+                                                   FontSize="12"
+                                                   LineBreakMode="WordWrap"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Ocorrencia"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13" />
+                                        <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="12">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+                                            <Editor Text="{Binding Ocorrencia, Mode=TwoWay}"
+                                                    AutoSize="TextChanges"
+                                                    Placeholder="Escreve a ocorrencia"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}"
+                                                    HeightRequest="96" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Correcao (opcional)"
+                                               FontFamily="OpenSansSemibold"
+                                               FontSize="13" />
+                                        <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="12">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+                                            <Editor Text="{Binding Correcao, Mode=TwoWay}"
+                                                    AutoSize="TextChanges"
+                                                    Placeholder="Escreve a correcao, se existir"
+                                                    BackgroundColor="Transparent"
+                                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark=White}"
+                                                    HeightRequest="96" />
+                                        </Border>
+                                        <Label Text="{Binding CorrecaoHint}"
+                                               FontSize="12"
+                                               LineBreakMode="WordWrap"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                    </VerticalStackLayout>
+
+                                    <Button Text="{Binding SaveOcorrenciaButtonText}"
+                                            Command="{Binding EnviarOcorrenciaCommand}"
+                                            BackgroundColor="{AppThemeBinding Light=#B91C1C, Dark=#F87171}"
+                                            TextColor="White"
+                                            HeightRequest="46" />
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Resumo da peca"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="20" />
+                                    <Label Text="Dados base da peca que estao a ser trabalhados."
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                        StrokeThickness="0"
+                                        Padding="12,8">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding PrioridadeDisplay}"
+                                           FontFamily="OpenSansSemibold"
+                                           TextColor="{AppThemeBinding Light=#1D4ED8, Dark=#BFDBFE}" />
+                                </Border>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="16"
+                                  RowSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Molde"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Label Text="{Binding NumeroMoldeDisplay}"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Text="{Binding NomeMoldeDisplay}"
+                                           FontSize="12"
+                                           LineBreakMode="WordWrap"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Peca"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Label Text="{Binding DesignacaoPecaDisplay}"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Text="{Binding NumeroPecaDisplay}"
+                                           FontSize="12"
+                                           LineBreakMode="WordWrap"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Spacing="4">
+                                    <Label Text="Estado atual"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Label Text="{Binding EstadoAtualDisplay}"
+                                           LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="4">
+                                    <Label Text="Entrega"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Label Text="{Binding DataEntregaPrevistaDisplay}"
+                                           LineBreakMode="WordWrap" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="22">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="Novo registo"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="20" />
+                                <Label Text="A fase em trabalho ja vem sugerida pela proxima fase da peca. Quando a concluires, escolhe o passo seguinte."
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,*"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="16"
+                                  RowSpacing="14">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Fase"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Picker Title="Selecionar fase"
+                                            ItemsSource="{Binding FasesDisponiveis}"
+                                            SelectedItem="{Binding SelectedFase, Mode=TwoWay}"
+                                            IsEnabled="{Binding CanSelecionarFase}"
+                                            ItemDisplayBinding="{Binding NomeDisplay}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="8">
+                                    <Label Text="Estado seguinte"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Picker Title="Selecionar estado"
+                                            ItemsSource="{Binding EstadosDisponiveis}"
+                                            SelectedItem="{Binding SelectedEstado, Mode=TwoWay}"
+                                            ItemDisplayBinding="{Binding DisplayName}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Spacing="8"
+                                                     IsVisible="{Binding CanEditarProximaFase}">
+                                    <Label Text="Proxima fase seguinte"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Picker Title="Selecionar proxima fase"
+                                            ItemsSource="{Binding ProximasFasesDisponiveis}"
+                                            SelectedItem="{Binding SelectedProximaFase, Mode=TwoWay}"
+                                            ItemDisplayBinding="{Binding NomeDisplay}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Grid.Column="1"
+                                                     Spacing="8"
+                                                     IsVisible="{Binding IsMachineSelectionVisible}">
+                                    <Label Text="Maquina"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Picker Title="Selecionar maquina"
+                                            ItemsSource="{Binding MaquinasDisponiveis}"
+                                            SelectedItem="{Binding SelectedMaquina, Mode=TwoWay}"
+                                            IsEnabled="{Binding CanSelecionarMaquina}"
+                                            ItemDisplayBinding="{Binding DisplayName}" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Label Text="{Binding ProximaFaseHint}"
+                                   FontSize="12"
+                                   LineBreakMode="WordWrap"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                            <Label Text="{Binding MachineHint}"
+                                   FontSize="12"
+                                   LineBreakMode="WordWrap"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                            <Button Text="{Binding SaveButtonText}"
+                                    Command="{Binding GuardarCommand}"
+                                    BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                    HeightRequest="46" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="22">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid RowDefinitions="Auto,Auto"
+                                  RowSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="{Binding HistoricoTituloDisplay}"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="20"
+                                           LineBreakMode="WordWrap" />
+                                    <Label Text="Segue aqui os ultimos registos desta peca, num formato mais facil de ler."
+                                           FontSize="13"
+                                           LineBreakMode="WordWrap"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Border Grid.Row="1"
+                                        BackgroundColor="{AppThemeBinding Light=#E0F2FE, Dark=#082F49}"
+                                        StrokeThickness="0"
+                                        Padding="12,8">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding HistoricoCountDisplay}"
+                                           TextColor="{AppThemeBinding Light=#0369A1, Dark=#BAE6FD}" />
+                                </Border>
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding HistoricoRegistos}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="12" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding EmptyHistoricoMessage}"
+                                               HorizontalOptions="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:RegistoProducaoHistoricoItem">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="16">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+
+                                            <Grid ColumnDefinitions="*,Auto"
+                                                  RowDefinitions="Auto,Auto"
+                                                  ColumnSpacing="12"
+                                                  RowSpacing="8">
+                                                <VerticalStackLayout Spacing="4">
+                                                    <Label Text="{Binding FaseDisplay}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="16" />
+                                                    <Label Text="{Binding DataHoraDisplay, StringFormat='Registado em: {0}'}"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </VerticalStackLayout>
+
+                                                <Border Grid.Column="1"
+                                                        BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                        StrokeThickness="0"
+                                                        Padding="10,6">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="14" />
+                                                    </Border.StrokeShape>
+                                                    <Label Text="{Binding EstadoDisplay}"
+                                                           TextColor="{AppThemeBinding Light=#1D4ED8, Dark=#BFDBFE}" />
+                                                </Border>
+
+                                                <Label Grid.Row="1"
+                                                       Grid.ColumnSpan="2"
+                                                       Text="{Binding MaquinaDisplay, StringFormat='Maquina: {0}'}"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

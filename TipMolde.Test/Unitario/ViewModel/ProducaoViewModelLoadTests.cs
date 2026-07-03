@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using TipMolde.Models;
 using TipMolde.Services;
@@ -34,7 +35,8 @@ public class ProducaoViewModelLoadTests
             new SessaoPersistidaService(httpClient),
             new UtilizadoresService(httpClient),
             new RegistosProducaoService(httpClient),
-            new DialogServiceStub());
+            new DialogServiceStub(),
+            Mock.Of<INavigationService>());
     }
 
     [Test(Description = "T1FRT - O carregamento inicial da pagina de producao deve carregar dados base e o contexto pedido.")]
@@ -224,10 +226,10 @@ public class ProducaoViewModelLoadTests
 
     private sealed class DialogServiceStub : IDialogService
     {
-        public Page GetCurrentPage() => new ContentPage();
         public Task<string> ShowOptionsAsync(string message, string action) => Task.FromResult(string.Empty);
         public Task<string?> ShowSelectionAsync(string title, string cancel, params string[] options) => Task.FromResult<string?>(null);
         public Task<string?> PromptAsync(string title, string message, PromptDialogOptions? options = null) => Task.FromResult<string?>(null);
+        public Task<bool> ConfirmAsync(string title, string message, string accept, string cancel) => Task.FromResult(false);
         public Task<bool> ConfirmDeleteAsync(string message) => Task.FromResult(false);
         public Task ShowInfoAsync(string title, string message) => Task.CompletedTask;
         public Task ShowSuccessAsync(string title, string message) => Task.CompletedTask;

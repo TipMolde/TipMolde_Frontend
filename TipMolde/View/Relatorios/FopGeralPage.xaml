@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             x:Class="TipMolde.View.FopGeralPage"
+             x:Name="PaginaFopGeral"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0">
+
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="{Binding PageTitle}" />
+
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="{StaticResource PageContentPadding}"
+                                     Spacing="18">
+
+                    <HorizontalStackLayout Spacing="10">
+                        <Button Text="Voltar"
+                                Command="{Binding VoltarCommand}"
+                                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                HeightRequest="44"
+                                Padding="18,10" />
+
+                        <Label Text="Consulta e regressa facilmente aos relatorios."
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                    </HorizontalStackLayout>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="22">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding PageTitle}"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="22" />
+                                <Label Text="{Binding IntroText}"
+                                       FontSize="13"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </VerticalStackLayout>
+
+                            <Grid ColumnDefinitions="*,*"
+                                  ColumnSpacing="16">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Data inicial"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <DatePicker Date="{Binding DataInicio, Mode=TwoWay}"
+                                                Format="dd/MM/yyyy" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="8">
+                                    <Label Text="Data final"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <DatePicker Date="{Binding DataFim, Mode=TwoWay}"
+                                                Format="dd/MM/yyyy" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="10">
+                                <Button Text="Aplicar filtros"
+                                        Command="{Binding AplicarFiltrosCommand}"
+                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                        HeightRequest="44" />
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding PeriodoDisplay}"
+                                       VerticalOptions="Center"
+                                       HorizontalTextAlignment="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                <Button Grid.Column="2"
+                                        Text="{Binding ExportExcelButtonText}"
+                                        Command="{Binding ExportarExcelCommand}"
+                                        BackgroundColor="#166534"
+                                        TextColor="White"
+                                        HeightRequest="44"
+                                        Padding="18,10"
+                                        HorizontalOptions="End" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                       IsVisible="{Binding IsLoading}"
+                                       HorizontalOptions="Center" />
+
+                    <Border IsVisible="{Binding HasError}"
+                            BackgroundColor="{AppThemeBinding Light=#FEF2F2, Dark=#450A0A}"
+                            Stroke="{AppThemeBinding Light=#FCA5A5, Dark=#7F1D1D}"
+                            StrokeThickness="1"
+                            Padding="16">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="18" />
+                        </Border.StrokeShape>
+                        <Label Text="{Binding ErrorMessage}"
+                               TextColor="{AppThemeBinding Light=#991B1B, Dark=#FEE2E2}" />
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="22">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="16">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="12">
+                                <VerticalStackLayout Spacing="4">
+                                    <Label Text="Ocorrencias encontradas"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="20" />
+                                    <Label Text="Linhas da FOP geral filtradas por intervalo de datas."
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding TotalItems, StringFormat='Total: {0}'}"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                            </Grid>
+
+                            <CollectionView ItemsSource="{Binding Linhas}"
+                                            SelectionMode="None">
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="12" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="20">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding EmptyMessage}"
+                                               HorizontalOptions="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:FopGeralLinhaDto">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="16">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="18" />
+                                            </Border.StrokeShape>
+
+                                            <VerticalStackLayout Spacing="10">
+                                                <Grid ColumnDefinitions="*,Auto"
+                                                      ColumnSpacing="12">
+                                                    <VerticalStackLayout Spacing="4">
+                                                        <Label Text="{Binding DataDisplay, StringFormat='Data: {0}'}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="15" />
+                                                        <Label Text="{Binding ResponsavelNome, StringFormat='Responsavel: {0}'}"
+                                                               FontSize="12"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="{AppThemeBinding Light=#DBEAFE, Dark=#1E3A8A}"
+                                                            StrokeThickness="0"
+                                                            Padding="10,6">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="14" />
+                                                        </Border.StrokeShape>
+                                                        <Label Text="{Binding FichaFop_id, StringFormat='FOP {0}'}"
+                                                               TextColor="{AppThemeBinding Light=#1D4ED8, Dark=#BFDBFE}" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <Label Text="{Binding Ocorrencia, StringFormat='Ocorrencia: {0}'}"
+                                                       LineBreakMode="WordWrap" />
+
+                                                <Label Text="{Binding Correcao, StringFormat='Correcao: {0}'}"
+                                                       LineBreakMode="WordWrap"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                                <Grid ColumnDefinitions="*,*"
+                                                      ColumnSpacing="12">
+                                                    <Label Text="{Binding PecaDisplay, StringFormat='Peca: {0}'}"
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    <Label Grid.Column="1"
+                                                           Text="{Binding MoldeDisplay, StringFormat='Molde: {0}'}"
+                                                           FontSize="12"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                </Grid>
+                                            </VerticalStackLayout>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+                                  ColumnSpacing="8"
+                                  RowSpacing="8">
+                                <Button Text="Primeira"
+                                        Command="{Binding FirstPageCommand}"
+                                        HeightRequest="40" />
+                                <Button Grid.Column="1"
+                                        Text="Anterior"
+                                        Command="{Binding PreviousPageCommand}"
+                                        HeightRequest="40" />
+                                <Entry Grid.Column="2"
+                                       Text="{Binding PageInput, Mode=TwoWay}"
+                                       Keyboard="Numeric"
+                                       WidthRequest="72"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalOptions="Center" />
+                                <Button Grid.Column="3"
+                                        Text="Ir"
+                                        Command="{Binding GoToPageCommand}"
+                                        HeightRequest="40" />
+                                <Button Grid.Column="4"
+                                        Text="Seguinte"
+                                        Command="{Binding NextPageCommand}"
+                                        HeightRequest="40" />
+                                <Label Grid.Column="5"
+                                       Text="{Binding TotalPages, StringFormat='de {0} paginas'}"
+                                       VerticalOptions="Center"
+                                       HorizontalOptions="End"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                <Button Grid.Column="6"
+                                        Text="Ultima"
+                                        Command="{Binding LastPageCommand}"
+                                        HeightRequest="40" />
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </ScrollView>
+        </Grid>
+    </Grid>
+</ContentPage>

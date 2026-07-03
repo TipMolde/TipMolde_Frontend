@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:TipMolde.Models"
+             xmlns:shared="clr-namespace:TipMolde.View.Shared"
+             xmlns:viewmodel="clr-namespace:TipMolde.ViewModel"
+             x:Class="TipMolde.View.PedidosMaterial"
+             x:Name="PaginaPedidosMaterial"
+             x:DataType="viewmodel:PedidosMaterialViewModel"
+             BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="0"
+          HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand"
+          BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+        <shared:SidebarView Grid.Column="0" />
+
+        <Grid Grid.Column="1"
+              RowDefinitions="Auto,*"
+              BackgroundColor="{AppThemeBinding Light={StaticResource Surface}, Dark={StaticResource OffBlack}}">
+            <shared:TopBarView Grid.Row="0"
+                               TitleText="Pedidos de Material" />
+
+            <Grid Grid.Row="1"
+                  RowDefinitions="*"
+                  ColumnDefinitions="*"
+                  HorizontalOptions="FillAndExpand"
+                  VerticalOptions="FillAndExpand"
+                  MinimumWidthRequest="0"
+                  Padding="{StaticResource PageContentPadding}">
+            <ScrollView Grid.Row="0"
+                        Orientation="Vertical"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="FillAndExpand">
+                <VerticalStackLayout Spacing="18"
+                                     HorizontalOptions="FillAndExpand"
+                                     MinimumWidthRequest="0">
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="20"
+                            HorizontalOptions="FillAndExpand"
+                            MinimumWidthRequest="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="28" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="12"
+                                             HorizontalOptions="FillAndExpand"
+                                             MinimumWidthRequest="0">
+                            <VerticalStackLayout Spacing="6"
+                                                 HorizontalOptions="FillAndExpand"
+                                                 MinimumWidthRequest="0">
+                                <Label Text="Pedido de material"
+                                       FontFamily="OpenSansSemibold"
+                                       FontSize="22"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                <Label Text="Seleciona um fornecedor, escolhe um ou mais moldes com pecas disponiveis e confirma as linhas que queres incluir no pedido."
+                                       FontSize="14"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+
+                            <Grid RowDefinitions="Auto,Auto"
+                                  RowSpacing="14"
+                                  HorizontalOptions="FillAndExpand"
+                                  MinimumWidthRequest="0">
+                                <VerticalStackLayout Grid.Row="0"
+                                                     Spacing="10"
+                                                     HorizontalOptions="FillAndExpand"
+                                                     MinimumWidthRequest="0">
+                                    <Picker Title="Selecionar fornecedor"
+                                            ItemsSource="{Binding FornecedoresDisponiveis}"
+                                            ItemDisplayBinding="{Binding DisplayName}"
+                                            SelectedItem="{Binding SelectedFornecedor, Mode=TwoWay}"
+                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                                    <Label Text="{Binding SelectedMoldesSummary}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                    <Label Text="{Binding SelectedPecasSummary}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Grid.Row="1"
+                                                     Spacing="10"
+                                                     HorizontalOptions="FillAndExpand"
+                                                     MinimumWidthRequest="0">
+                                    <Button Text="Atualizar"
+                                            Command="{Binding AtualizarDadosCommand}"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                            TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                            HeightRequest="44"
+                                            HorizontalOptions="FillAndExpand" />
+
+                                    <Button Text="Criar pedido"
+                                            Command="{Binding CriarPedidoCommand}"
+                                            IsEnabled="{Binding CanCreatePedido}"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                            TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                            HeightRequest="44"
+                                            HorizontalOptions="FillAndExpand" />
+                                </VerticalStackLayout>
+                            </Grid>
+
+                            <Label Text="{Binding PecaInfoMessage}"
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                            <Label Text="{Binding ErrorMessage}"
+                                   IsVisible="{Binding HasError}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}"
+                                   FontSize="13" />
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  ColumnSpacing="12"
+                                  HorizontalOptions="FillAndExpand"
+                                  MinimumWidthRequest="0">
+                                <ActivityIndicator Grid.Column="0"
+                                                   IsRunning="{Binding IsLoading}"
+                                                   IsVisible="{Binding IsLoading}"
+                                                   HorizontalOptions="Start" />
+
+                                <ActivityIndicator Grid.Column="1"
+                                                   IsRunning="{Binding IsLoadingPecas}"
+                                                   IsVisible="{Binding IsLoadingPecas}"
+                                                   HorizontalOptions="End" />
+                            </Grid>
+
+                            <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                    StrokeThickness="1"
+                                    Padding="18">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="24" />
+                                </Border.StrokeShape>
+
+                                <VerticalStackLayout Spacing="14"
+                                                     HorizontalOptions="FillAndExpand"
+                                                     MinimumWidthRequest="0">
+                                    <Grid ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="12">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Fornecedores"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="20"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            <Label Text="Lista, adiciona, edita e remove fornecedores usados no pedido de material."
+                                                   FontSize="13"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <Button Grid.Column="1"
+                                                Text="{Binding FornecedoresToggleText}"
+                                                Command="{Binding ToggleFornecedoresCommand}"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                                HeightRequest="40" />
+                                    </Grid>
+
+                                    <VerticalStackLayout Spacing="16"
+                                                         IsVisible="{Binding IsFornecedoresVisible}"
+                                                         HorizontalOptions="FillAndExpand"
+                                                         MinimumWidthRequest="0">
+                                        <VerticalStackLayout Spacing="12"
+                                                             HorizontalOptions="FillAndExpand"
+                                                             MinimumWidthRequest="0">
+                                            <Label Text="{Binding FornecedoresFormTitle}"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="17"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="Nome"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Entry Text="{Binding FornecedorNome, Mode=TwoWay}"
+                                                       Placeholder="Nome do fornecedor"
+                                                       ClearButtonVisibility="WhileEditing"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="NIF"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Entry Text="{Binding FornecedorNif, Mode=TwoWay}"
+                                                       Placeholder="123456789"
+                                                       Keyboard="Numeric"
+                                                       ClearButtonVisibility="WhileEditing"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="Morada"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Entry Text="{Binding FornecedorMorada, Mode=TwoWay}"
+                                                       Placeholder="Opcional"
+                                                       ClearButtonVisibility="WhileEditing"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="Email"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Entry Text="{Binding FornecedorEmail, Mode=TwoWay}"
+                                                       Placeholder="Opcional"
+                                                       Keyboard="Email"
+                                                       ClearButtonVisibility="WhileEditing"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            </VerticalStackLayout>
+
+                                            <VerticalStackLayout Spacing="8">
+                                                <Label Text="Telefone"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="13"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                <Entry Text="{Binding FornecedorTelefone, Mode=TwoWay}"
+                                                       Placeholder="Opcional"
+                                                       Keyboard="Telephone"
+                                                       ClearButtonVisibility="WhileEditing"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                            </VerticalStackLayout>
+                                        </VerticalStackLayout>
+
+                                        <Grid ColumnDefinitions="Auto,Auto,*"
+                                              ColumnSpacing="12"
+                                              HorizontalOptions="FillAndExpand"
+                                              MinimumWidthRequest="0">
+                                            <Button Text="{Binding FornecedoresActionText}"
+                                                    Command="{Binding SalvarFornecedorCommand}"
+                                                    IsEnabled="{Binding CanSalvarFornecedor}"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                                    HeightRequest="42" />
+
+                                            <Button Grid.Column="1"
+                                                    Text="Limpar"
+                                                    Command="{Binding LimparFornecedorCommand}"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                                    HeightRequest="42" />
+
+                                            <Label Grid.Column="2"
+                                                   Text="{Binding FornecedoresErrorMessage}"
+                                                   IsVisible="{Binding HasFornecedorError}"
+                                                   VerticalTextAlignment="Center"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
+                                        </Grid>
+
+                                        <ActivityIndicator IsRunning="{Binding IsSavingFornecedor}"
+                                                           IsVisible="{Binding IsSavingFornecedor}"
+                                                           HorizontalOptions="Center" />
+
+                                        <CollectionView ItemsSource="{Binding FornecedoresDisponiveis}"
+                                                        SelectionMode="None"
+                                                        HeightRequest="{OnIdiom Phone='320', Desktop='380'}"
+                                                        HorizontalOptions="FillAndExpand">
+                                            <CollectionView.EmptyView>
+                                                <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                        StrokeThickness="1"
+                                                        Padding="18">
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle CornerRadius="18" />
+                                                    </Border.StrokeShape>
+
+                                                    <Label Text="Nao existem fornecedores registados."
+                                                           HorizontalOptions="Center"
+                                                           HorizontalTextAlignment="Center"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                </Border>
+                                            </CollectionView.EmptyView>
+
+                                            <CollectionView.ItemsLayout>
+                                                <LinearItemsLayout Orientation="Vertical"
+                                                                   ItemSpacing="12" />
+                                            </CollectionView.ItemsLayout>
+
+                                            <CollectionView.ItemTemplate>
+                                                <DataTemplate x:DataType="models:FornecedorDto">
+                                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1"
+                                                            Padding="16"
+                                                            HorizontalOptions="FillAndExpand"
+                                                            MinimumWidthRequest="0">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="18" />
+                                                        </Border.StrokeShape>
+
+                                                        <VerticalStackLayout Spacing="12"
+                                                                             HorizontalOptions="FillAndExpand"
+                                                                             MinimumWidthRequest="0">
+                                                            <Grid ColumnDefinitions="*,Auto"
+                                                                  ColumnSpacing="12">
+                                                                <VerticalStackLayout Spacing="4">
+                                                                    <Label Text="{Binding DisplayName}"
+                                                                           FontFamily="OpenSansSemibold"
+                                                                           FontSize="16"
+                                                                           LineBreakMode="TailTruncation"
+                                                                           MaxLines="1"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                                    <Label Text="{Binding NIF, StringFormat='NIF: {0}'}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                                </VerticalStackLayout>
+
+                                                                <HorizontalStackLayout Grid.Column="1"
+                                                                                       Spacing="8"
+                                                                                       VerticalOptions="Start">
+                                                                    <Button Text="Editar"
+                                                                            Command="{Binding BindingContext.EditarFornecedorCommand, Source={x:Reference PaginaPedidosMaterial}}"
+                                                                            CommandParameter="{Binding .}"
+                                                                            BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                                                            TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                                                            HeightRequest="38" />
+                                                                    <Button Text="Apagar"
+                                                                            Command="{Binding BindingContext.EliminarFornecedorCommand, Source={x:Reference PaginaPedidosMaterial}}"
+                                                                            CommandParameter="{Binding .}"
+                                                                            BackgroundColor="{AppThemeBinding Light=#FEE2E2, Dark=#7F1D1D}"
+                                                                            TextColor="{AppThemeBinding Light=#991B1B, Dark=#FECACA}"
+                                                                            HeightRequest="38" />
+                                                                </HorizontalStackLayout>
+                                                            </Grid>
+
+                                                            <Grid ColumnDefinitions="*,*"
+                                                                  RowDefinitions="Auto,Auto"
+                                                                  ColumnSpacing="16"
+                                                                  RowSpacing="8">
+                                                                <VerticalStackLayout Spacing="2">
+                                                                    <Label Text="Morada"
+                                                                           FontFamily="OpenSansSemibold"
+                                                                           FontSize="12" />
+                                                                    <Label Text="{Binding Morada}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                                           LineBreakMode="WordWrap" />
+                                                                </VerticalStackLayout>
+
+                                                                <VerticalStackLayout Grid.Column="1"
+                                                                                     Spacing="2">
+                                                                    <Label Text="Email"
+                                                                           FontFamily="OpenSansSemibold"
+                                                                           FontSize="12" />
+                                                                    <Label Text="{Binding Email}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                                           LineBreakMode="WordWrap" />
+                                                                </VerticalStackLayout>
+
+                                                                <VerticalStackLayout Grid.Row="1"
+                                                                                     Spacing="2">
+                                                                    <Label Text="Telefone"
+                                                                           FontFamily="OpenSansSemibold"
+                                                                           FontSize="12" />
+                                                                    <Label Text="{Binding Telefone}"
+                                                                           FontSize="12"
+                                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                                           LineBreakMode="WordWrap" />
+                                                                </VerticalStackLayout>
+                                                            </Grid>
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </CollectionView.ItemTemplate>
+                                        </CollectionView>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                            </Border>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                            StrokeThickness="1"
+                            Padding="18"
+                            HorizontalOptions="FillAndExpand"
+                            MinimumWidthRequest="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="24" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="12"
+                                             HorizontalOptions="FillAndExpand"
+                                             MinimumWidthRequest="0">
+                            <Label Text="Moldes disponiveis para pedido"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="17"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                            <CollectionView ItemsSource="{Binding MoldesDisponiveis}"
+                                            SelectionMode="None"
+                                            HeightRequest="230"
+                                            HorizontalOptions="FillAndExpand">
+                                <CollectionView.EmptyView>
+                                    <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="18">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="18" />
+                                        </Border.StrokeShape>
+
+                                        <Label Text="Nao existem moldes com pecas disponiveis para pedido de material."
+                                               HorizontalOptions="Center"
+                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                               LineBreakMode="WordWrap"
+                                               HorizontalTextAlignment="Center" />
+                                    </Border>
+                                </CollectionView.EmptyView>
+
+                                <CollectionView.ItemsLayout>
+                                    <LinearItemsLayout Orientation="Vertical"
+                                                       ItemSpacing="10" />
+                                </CollectionView.ItemsLayout>
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="viewmodel:SelectableMoldePedidoMaterialItem">
+                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                StrokeThickness="1"
+                                                Padding="12"
+                                                HorizontalOptions="FillAndExpand"
+                                                MinimumWidthRequest="0">
+                                            <Border.StrokeShape>
+                                                <RoundRectangle CornerRadius="16" />
+                                            </Border.StrokeShape>
+
+                                            <Grid RowDefinitions="Auto,Auto"
+                                                  RowSpacing="10"
+                                                  HorizontalOptions="FillAndExpand"
+                                                  MinimumWidthRequest="0">
+                                                <Grid ColumnDefinitions="Auto,Auto,*"
+                                                      ColumnSpacing="12"
+                                                      HorizontalOptions="FillAndExpand"
+                                                      MinimumWidthRequest="0">
+                                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                              VerticalOptions="Start" />
+
+                                                    <Border Grid.Column="1"
+                                                            WidthRequest="40"
+                                                            HeightRequest="40"
+                                                            BackgroundColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                            StrokeThickness="1">
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="12" />
+                                                        </Border.StrokeShape>
+                                                        <Image Source="{Binding ImagemCapaSource}"
+                                                               Aspect="AspectFill"
+                                                               WidthRequest="40"
+                                                               HeightRequest="40" />
+                                                    </Border>
+
+                                                    <VerticalStackLayout Grid.Column="2"
+                                                                         Spacing="4"
+                                                                         HorizontalOptions="FillAndExpand"
+                                                                         MinimumWidthRequest="0">
+                                                        <Label Text="{Binding DisplayName}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="16"
+                                                               LineBreakMode="TailTruncation"
+                                                               MaxLines="1"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                        <Label Text="{Binding ResumoDisplay}"
+                                                               FontSize="12"
+                                                               LineBreakMode="TailTruncation"
+                                                               MaxLines="2"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+                                                </Grid>
+
+                                                <Label Grid.Row="1"
+                                                       Text="{Binding TotalPecasDisponiveisDisplay}"
+                                                       FontFamily="OpenSansSemibold"
+                                                       FontSize="12"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                                                       HorizontalOptions="End"
+                                                       HorizontalTextAlignment="End" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Grid RowDefinitions="Auto,*"
+                          RowSpacing="12"
+                          HorizontalOptions="FillAndExpand"
+                          MinimumWidthRequest="0">
+                        <VerticalStackLayout Grid.Row="0"
+                                             Spacing="10"
+                                             HorizontalOptions="FillAndExpand"
+                                             MinimumWidthRequest="0">
+                            <Label Text="Pesquisar pecas"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="16"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+
+                            <SearchBar Placeholder="Pesquisar por numero, designacao, molde ou material"
+                                       Text="{Binding PecaSearchTerm, Mode=TwoWay}" />
+                        </VerticalStackLayout>
+
+                        <CollectionView Grid.Row="1"
+                                        ItemsSource="{Binding PecasDisponiveis}"
+                                        SelectionMode="None"
+                                        HeightRequest="{OnIdiom Phone='460', Desktop='560'}"
+                                        HorizontalOptions="FillAndExpand"
+                                        RemainingItemsThreshold="3"
+                                        RemainingItemsThresholdReachedCommand="{Binding CarregarMaisPecasCommand}">
+                            <CollectionView.ItemsLayout>
+                                <LinearItemsLayout Orientation="Vertical"
+                                                   ItemSpacing="14" />
+                            </CollectionView.ItemsLayout>
+
+                            <CollectionView.EmptyView>
+                                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                        StrokeThickness="1"
+                                        Padding="30">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="24" />
+                                    </Border.StrokeShape>
+
+                                    <Label Text="{Binding PecaInfoMessage}"
+                                           HorizontalOptions="Center"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                           LineBreakMode="WordWrap"
+                                           HorizontalTextAlignment="Center" />
+                                </Border>
+                            </CollectionView.EmptyView>
+
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="viewmodel:SelectablePecaPedidoMaterialItem">
+                                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                                            Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                            StrokeThickness="1"
+                                            Padding="14"
+                                            HorizontalOptions="FillAndExpand"
+                                            MinimumWidthRequest="0">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="22" />
+                                        </Border.StrokeShape>
+
+                                        <Grid RowDefinitions="Auto,Auto"
+                                              RowSpacing="10"
+                                              HorizontalOptions="FillAndExpand"
+                                              MinimumWidthRequest="0">
+                                            <Grid ColumnDefinitions="Auto,*"
+                                                  ColumnSpacing="12"
+                                                  HorizontalOptions="FillAndExpand"
+                                                  MinimumWidthRequest="0">
+                                                <CheckBox Grid.Column="0"
+                                                          IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                          VerticalOptions="Start" />
+
+                                                <VerticalStackLayout Grid.Column="1"
+                                                                     Spacing="3"
+                                                                     HorizontalOptions="FillAndExpand"
+                                                                     MinimumWidthRequest="0">
+                                                    <Label Text="{Binding MoldeDisplay}"
+                                                           FontSize="11"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="1"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    <Label Text="{Binding NumeroPeca}"
+                                                           FontFamily="OpenSansSemibold"
+                                                           FontSize="15"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="1"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                                                    <Label Text="{Binding Designacao}"
+                                                           FontSize="13"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                    <Label Text="{Binding Resumo}"
+                                                           FontSize="11"
+                                                           LineBreakMode="TailTruncation"
+                                                           MaxLines="1"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    <Label Text="{Binding MaterialDesignacao}"
+                                                           FontSize="11"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                    <Label Text="{Binding TratamentoTermico}"
+                                                           FontSize="10"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                    <Label Text="{Binding Massa}"
+                                                           FontSize="10"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                    <Label Text="{Binding Observacao}"
+                                                           FontSize="10"
+                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                           LineBreakMode="WordWrap" />
+                                                </VerticalStackLayout>
+                                            </Grid>
+
+                                            <HorizontalStackLayout Grid.Row="1"
+                                                                   Spacing="8"
+                                                                   HorizontalOptions="End"
+                                                                   VerticalOptions="Center">
+                                                <Label Text="Qtd"
+                                                       FontSize="11"
+                                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                                       VerticalOptions="Center" />
+                                                <Entry Text="{Binding QuantidadeTexto, Mode=TwoWay}"
+                                                       Keyboard="Numeric"
+                                                       HorizontalOptions="FillAndExpand"
+                                                       MinimumWidthRequest="48"
+                                                       HorizontalTextAlignment="Center"
+                                                       HeightRequest="40"
+                                                       ClearButtonVisibility="WhileEditing" />
+                                            </HorizontalStackLayout>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </Grid>
+                </VerticalStackLayout>
+            </ScrollView>
+
+            <Grid Grid.Row="0"
+                  IsVisible="{Binding IsPedidoResumoVisible}"
+                  BackgroundColor="#B3000000"
+                  Padding="24"
+                  ZIndex="10">
+                <Border BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                        StrokeThickness="1"
+                        Padding="24"
+                        MaximumWidthRequest="720"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="28" />
+                    </Border.StrokeShape>
+
+                    <Grid RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="16">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="{Binding PedidoResumoTitulo}"
+                                   FontFamily="OpenSansSemibold"
+                                   FontSize="22"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            <Label Text="Confirma o pedido, volta a selecionar mais pecas ou cancela esta acao."
+                                   FontSize="13"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                   LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+
+                        <Border Grid.Row="1"
+                                BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                StrokeThickness="1"
+                                Padding="16">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="20" />
+                            </Border.StrokeShape>
+
+                            <ScrollView HeightRequest="240"
+                                        Orientation="Vertical">
+                                <Label Text="{Binding PedidoResumoTexto}"
+                                       FontSize="13"
+                                       LineBreakMode="WordWrap"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
+                            </ScrollView>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Row="2"
+                                             Spacing="10"
+                                             HorizontalOptions="FillAndExpand"
+                                             MinimumWidthRequest="0">
+                            <Button Text="Cancelar"
+                                    Command="{Binding CancelarResumoPedidoCommand}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                    HeightRequest="44"
+                                    HorizontalOptions="FillAndExpand" />
+
+                            <Button Text="Continuar a selecionar"
+                                    Command="{Binding ContinuarSelecionarPedidoCommand}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrangeDark}, Dark={StaticResource BrandOrangeDark}}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                    HeightRequest="44"
+                                    HorizontalOptions="FillAndExpand" />
+
+                            <Button Text="Confirmar pedido"
+                                    Command="{Binding ConfirmarResumoPedidoCommand}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                                    HeightRequest="44"
+                                    HorizontalOptions="FillAndExpand" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+            </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

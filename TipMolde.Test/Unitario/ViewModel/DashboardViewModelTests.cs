@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using TipMolde.Models;
 using TipMolde.Services;
@@ -32,8 +33,10 @@ public class DashboardViewModelTests
             new EncomendasService(httpClient),
             new MoldesService(httpClient),
             new PecasService(httpClient),
+            new PedidosMaterialService(httpClient),
             new AuthorizationService(new SessaoPersistidaService(httpClient), new UtilizadoresService(httpClient)),
-            new DialogServiceStub());
+            new DialogServiceStub(),
+            Mock.Of<INavigationService>());
     }
 
     [Test(Description = "T1FRT - O dashboard deve mostrar apenas moldes com pedido de material ativo na rececao.")]
@@ -45,8 +48,8 @@ public class DashboardViewModelTests
         // ASSERT
         _sut.MoldesRececaoDisponiveis.Should().ContainSingle();
         _sut.MoldesRececaoDisponiveis.Single().MoldeId.Should().Be(1);
-        _sut.SelectedMoldeRececao.Should().NotBeNull();
-        _sut.SelectedMoldeRececao!.MoldeId.Should().Be(1);
+        _sut.SelectedMoldeRececao.Should().BeNull();
+        _sut.HasSelectedMoldeRececao.Should().BeFalse();
         _requests.Should().Contain(request =>
             request.Path == "/api/pecas/por-molde/1/pendentes-rececao-material?page=1&pageSize=1");
         _requests.Should().Contain(request =>
@@ -58,19 +61,28 @@ public class DashboardViewModelTests
     {
         // ACT
         await _sut.LoadAsync();
-        _sut.DataInicioPlanificacao = new DateTime(2026, 6, 15);
-        _sut.DataFimPlanificacao = new DateTime(2026, 6, 30);
+        _sut.SemanaInicialPlanificacao = new DateTime(2026, 6, 15);
+        _sut.NumeroSemanasPlanificacao = 3;
 
         // ASSERT
         _sut.MoldesPlanificacao.Should().ContainSingle();
         _sut.MoldesPlanificacao.Single().MoldeId.Should().Be(2);
-        _sut.PlanificacaoResumoDisplay.Should().Be("1 molde(s) no intervalo");
+        _sut.PlanificacaoResumoDisplay.Should().Be("1 molde(s) nas semanas visiveis");
     }
 
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch
         {
+            "/api/users/me" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new UtilizadorDto
+                {
+                    User_id = 1,
+                    Nome = "Administrador",
+                    Email = "admin@tipmolde.pt",
+                    Role = "ADMIN"
+                }),
             "/api/encomendas/em-producao?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<EncomendaResumoDto>
@@ -323,10 +335,10 @@ public class DashboardViewModelTests
 
     private sealed class DialogServiceStub : IDialogService
     {
-        public Page GetCurrentPage() => new ContentPage();
         public Task<string> ShowOptionsAsync(string message, string action) => Task.FromResult(string.Empty);
         public Task<string?> ShowSelectionAsync(string title, string cancel, params string[] options) => Task.FromResult<string?>(null);
         public Task<string?> PromptAsync(string title, string message, PromptDialogOptions? options = null) => Task.FromResult<string?>(null);
+        public Task<bool> ConfirmAsync(string title, string message, string accept, string cancel) => Task.FromResult(false);
         public Task<bool> ConfirmDeleteAsync(string message) => Task.FromResult(false);
         public Task ShowSuccessAsync(string title, string message) => Task.CompletedTask;
         public Task ShowInfoAsync(string title, string message) => Task.CompletedTask;

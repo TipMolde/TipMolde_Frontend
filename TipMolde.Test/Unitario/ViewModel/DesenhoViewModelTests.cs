@@ -33,7 +33,8 @@ public class DesenhoViewModelTests
         _sut = new DesenhoViewModel(
             new EncomendasService(httpClient),
             new PecasService(httpClient),
-            _dialogService.Object);
+            _dialogService.Object,
+            Mock.Of<IFilePickerService>());
     }
 
     [Test(Description = "T1FRT - O ViewModel deve mostrar apenas moldes aptos para desenho e nao deve bloquear moldes sem pecas.")]
@@ -71,7 +72,8 @@ public class DesenhoViewModelTests
         var sut = new DesenhoViewModel(
             new EncomendasService(httpClient),
             new PecasService(httpClient),
-            _dialogService.Object);
+            _dialogService.Object,
+            Mock.Of<IFilePickerService>());
 
         // ACT
         await sut.LoadAsync();

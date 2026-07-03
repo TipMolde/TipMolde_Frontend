@@ -1,3 +1,4 @@
+using TipMolde.Diagnostics;
 using TipMolde.Services;
 
 namespace TipMolde.View;
@@ -7,7 +8,7 @@ public partial class AppShell : Shell
     private static readonly IReadOnlyDictionary<string, AppFeature> RootRoutePermissions =
         new Dictionary<string, AppFeature>(StringComparer.OrdinalIgnoreCase)
         {
-            ["MainPage"] = AppFeature.Dashboard,
+            ["DashboardPage"] = AppFeature.Dashboard,
             ["Utilizadores"] = AppFeature.Utilizadores,
             ["Clientes"] = AppFeature.Clientes,
             ["Encomendas"] = AppFeature.Encomendas,
@@ -22,14 +23,19 @@ public partial class AppShell : Shell
         };
 
     private readonly AuthorizationService _authorizationService;
+    private readonly ResponsiveLayoutService _responsiveLayoutService;
     private bool _isNavigationRefreshRunning;
 
-    public AppShell(AuthorizationService authorizationService)
+    public AppShell(
+        AuthorizationService authorizationService,
+        ResponsiveLayoutService responsiveLayoutService)
     {
         _authorizationService = authorizationService;
+        _responsiveLayoutService = responsiveLayoutService;
 
         InitializeComponent();
         ConfigureAdaptiveNavigation();
+        _responsiveLayoutService.PropertyChanged += OnResponsiveLayoutChanged;
 
         Loaded += OnLoaded;
         Navigated += OnNavigated;
@@ -43,6 +49,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(AdicionarPecaPage), typeof(AdicionarPecaPage));
         Routing.RegisterRoute(nameof(EditarPecaPage), typeof(EditarPecaPage));
         Routing.RegisterRoute(nameof(EditarMaquinaPage), typeof(EditarMaquinaPage));
+        Routing.RegisterRoute(nameof(MaquinaDetalhePage), typeof(MaquinaDetalhePage));
         Routing.RegisterRoute(nameof(EditarClientePage), typeof(EditarClientePage));
         Routing.RegisterRoute(nameof(ClienteDetalhePage), typeof(ClienteDetalhePage));
         Routing.RegisterRoute(nameof(EncomendaDetalhePage), typeof(EncomendaDetalhePage));
@@ -75,6 +82,7 @@ public partial class AppShell : Shell
             ProducaoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Producao);
             MaquinasShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Maquinas);
             DesenhoShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
+            ProjetosShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Desenho);
             RelatoriosShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Relatorios);
             DefinicoesShellItem.FlyoutItemIsVisible = await _authorizationService.CanAccessAsync(AppFeature.Definicoes);
         }
@@ -84,42 +92,118 @@ public partial class AppShell : Shell
         }
     }
 
+    public void ShowAuthenticationOnly()
+    {
+        AutenticacaoShellItem.FlyoutItemIsVisible = true;
+        DashboardShellItem.FlyoutItemIsVisible = false;
+        UtilizadoresShellItem.FlyoutItemIsVisible = false;
+        ClientesShellItem.FlyoutItemIsVisible = false;
+        EncomendasShellItem.FlyoutItemIsVisible = false;
+        PedidosMaterialShellItem.FlyoutItemIsVisible = false;
+        ProducaoShellItem.FlyoutItemIsVisible = false;
+        MaquinasShellItem.FlyoutItemIsVisible = false;
+        DesenhoShellItem.FlyoutItemIsVisible = false;
+        ProjetosShellItem.FlyoutItemIsVisible = false;
+        RelatoriosShellItem.FlyoutItemIsVisible = false;
+        DefinicoesShellItem.FlyoutItemIsVisible = false;
+    }
+
+    public void ShowAuthenticatedLandingOnly()
+    {
+        ShowDashboardRouteOnly();
+    }
+
+    public void ShowDashboardRouteOnly()
+    {
+        AutenticacaoShellItem.FlyoutItemIsVisible = true;
+        DashboardShellItem.FlyoutItemIsVisible = true;
+        UtilizadoresShellItem.FlyoutItemIsVisible = false;
+        ClientesShellItem.FlyoutItemIsVisible = false;
+        EncomendasShellItem.FlyoutItemIsVisible = false;
+        PedidosMaterialShellItem.FlyoutItemIsVisible = false;
+        ProducaoShellItem.FlyoutItemIsVisible = false;
+        MaquinasShellItem.FlyoutItemIsVisible = false;
+        DesenhoShellItem.FlyoutItemIsVisible = false;
+        ProjetosShellItem.FlyoutItemIsVisible = false;
+        RelatoriosShellItem.FlyoutItemIsVisible = false;
+        DefinicoesShellItem.FlyoutItemIsVisible = false;
+    }
+
+    public void HideAuthenticationItem()
+    {
+        AutenticacaoShellItem.FlyoutItemIsVisible = false;
+    }
+
     private void ConfigureAdaptiveNavigation()
     {
-        FlyoutBehavior = DeviceInfo.Current.Idiom == DeviceIdiom.Phone
+        FlyoutBehavior = _responsiveLayoutService.ShowNavigationMenu
             ? FlyoutBehavior.Flyout
             : FlyoutBehavior.Disabled;
+
+        if (FlyoutBehavior == FlyoutBehavior.Disabled)
+            FlyoutIsPresented = false;
     }
 
-    private async void OnLoaded(object? sender, EventArgs e)
+    private void OnLoaded(object? sender, EventArgs e)
     {
+        TaskMonitor.Observe("TipMolde.View.AppShell.OnLoaded", OnLoadedAsync());
+    }
+
+    private async Task OnLoadedAsync()
+    {
+        if (IsAuthenticationRoute(CurrentState?.Location?.OriginalString))
+            return;
+
         await RefreshNavigationAsync();
     }
 
-    private async void OnNavigated(object? sender, ShellNavigatedEventArgs e)
+    private void OnNavigated(object? sender, ShellNavigatedEventArgs e)
     {
+        TaskMonitor.Observe("TipMolde.View.AppShell.OnNavigated", OnNavigatedAsync(e));
+    }
+
+    private async Task OnNavigatedAsync(ShellNavigatedEventArgs e)
+    {
+        if (IsAuthenticationRoute(e.Current?.Location?.OriginalString))
+            return;
+
         await RefreshNavigationAsync();
     }
 
-    private async void OnNavigating(object? sender, ShellNavigatingEventArgs e)
+    private void OnNavigating(object? sender, ShellNavigatingEventArgs e)
+    {
+        TaskMonitor.Observe("TipMolde.View.AppShell.OnNavigating", OnNavigatingAsync(e));
+    }
+
+    private async Task OnNavigatingAsync(ShellNavigatingEventArgs e)
     {
         var feature = ResolveFeatureFromRoute(e.Target.Location.OriginalString);
         if (feature is null)
             return;
 
-        var isAuthorized = await _authorizationService.CanAccessAsync(feature.Value);
+        bool isAuthorized;
+        try
+        {
+            isAuthorized = await _authorizationService.CanAccessAsync(feature.Value);
+        }
+        catch (Exception ex)
+        {
+            TaskMonitor.ReportException("TipMolde.View.AppShell.OnNavigatingAsync.Authorization", ex);
+            e.Cancel();
+            await ShowNavigationErrorAsync(
+                "Erro de autorizacao",
+                "Nao foi possivel validar o acesso a esta area. Tenta novamente.");
+            return;
+        }
+
         if (isAuthorized)
             return;
 
         e.Cancel();
 
-        if (CurrentPage is not null)
-        {
-            await CurrentPage.DisplayAlert(
-                "Acesso restrito",
-                "Nao tens permissao para aceder a esta area.",
-                "Fechar");
-        }
+        await ShowNavigationErrorAsync(
+            "Acesso restrito",
+            "Nao tens permissao para aceder a esta area.");
     }
 
     private static AppFeature? ResolveFeatureFromRoute(string? route)
@@ -134,5 +218,29 @@ public partial class AppShell : Shell
         }
 
         return null;
+    }
+
+    private static bool IsAuthenticationRoute(string? route) =>
+        !string.IsNullOrWhiteSpace(route) &&
+        route.Contains("AutenticacaoPage", StringComparison.OrdinalIgnoreCase);
+
+    private async Task ShowNavigationErrorAsync(string title, string message)
+    {
+        if (CurrentPage is null)
+            return;
+
+        await CurrentPage.DisplayAlert(title, message, "Fechar");
+    }
+
+    private void OnResponsiveLayoutChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.PropertyName) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.LayoutMode), StringComparison.Ordinal) &&
+            !string.Equals(e.PropertyName, nameof(ResponsiveLayoutService.ShowNavigationMenu), StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        MainThread.BeginInvokeOnMainThread(ConfigureAdaptiveNavigation);
     }
 }

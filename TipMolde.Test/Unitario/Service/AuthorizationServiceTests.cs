@@ -1,6 +1,11 @@
 using FluentAssertions;
 using NUnit.Framework;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using TipMolde.Models;
 using TipMolde.Services;
 
 namespace TipMolde.Test.Unitario.Service;
@@ -9,7 +14,7 @@ namespace TipMolde.Test.Unitario.Service;
 /// Testes unitarios do servico de autorizacao do frontend.
 /// </summary>
 /// <remarks>
-/// Valida as regras de permissao das funcionalidades expostas na interface.
+/// Valida a obtencao da role pelo backend e as regras de permissao expostas na interface.
 /// </remarks>
 [TestFixture]
 [Category("Unit")]
@@ -20,10 +25,7 @@ public class AuthorizationServiceTests
     [SetUp]
     public void SetUp()
     {
-        var httpClient = new HttpClient(new HttpClientHandler())
-        {
-            BaseAddress = new Uri("https://localhost/")
-        };
+        var httpClient = CreateHttpClient(HandleRequest);
 
         var sessaoPersistidaService = new SessaoPersistidaService(httpClient);
         var utilizadoresService = new UtilizadoresService(httpClient);
@@ -51,6 +53,16 @@ public class AuthorizationServiceTests
         typeof(AuthorizationService)
             .GetField("_cachedUserId", BindingFlags.Instance | BindingFlags.NonPublic)!
             .SetValue(_sut, userId);
+    }
+
+    [Test(Description = "T0FRT - O servico deve obter a role atual a partir do endpoint /api/users/me.")]
+    public async Task GetCurrentRoleAsync_Should_ReturnRoleFromBackend_When_UserIsAuthenticated()
+    {
+        // ACT
+        var result = await _sut.GetCurrentRoleAsync();
+
+        // ASSERT
+        result.Should().Be("GESTOR_PRODUCAO");
     }
 
     [Test(Description = "T1FRT - O administrador deve poder criar maquinas.")]
@@ -131,5 +143,84 @@ public class AuthorizationServiceTests
             .GetValue(_sut)
             .Should()
             .BeNull();
+    }
+
+    private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
+    {
+        return request.RequestUri?.PathAndQuery switch
+        {
+            "/api/users/me" => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new UtilizadorDto
+                {
+                    User_id = 1,
+                    Nome = "Gestor Producao",
+                    Email = "gestor@tipmolde.pt",
+                    Role = "GESTOR_PRODUCAO"
+                }),
+            _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+    }
+
+    private static HttpClient CreateHttpClient(Func<HttpRequestMessage, HttpResponseMessage> responder)
+    {
+        var handler = new RecordingHttpMessageHandler(responder);
+
+        var httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://localhost/")
+        };
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", CreateJwtToken(1));
+
+        return httpClient;
+    }
+
+    private static HttpResponseMessage CreateJsonResponse<T>(HttpStatusCode statusCode, T value)
+    {
+        return new HttpResponseMessage(statusCode)
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(value),
+                Encoding.UTF8,
+                "application/json")
+        };
+    }
+
+    private static string CreateJwtToken(int userId)
+    {
+        var header = Base64UrlEncode("{\"alg\":\"none\",\"typ\":\"JWT\"}");
+        var payload = Base64UrlEncode(JsonSerializer.Serialize(new
+        {
+            sub = userId.ToString()
+        }));
+
+        return $"{header}.{payload}.signature";
+    }
+
+    private static string Base64UrlEncode(string value)
+    {
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    private sealed class RecordingHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, HttpResponseMessage> _responder;
+
+        public RecordingHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> responder)
+        {
+            _responder = responder;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_responder(request));
+        }
     }
 }

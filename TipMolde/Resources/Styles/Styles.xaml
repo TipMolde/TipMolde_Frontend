@@ -4,6 +4,11 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
+    <OnIdiom x:Key="PageContentPadding"
+             x:TypeArguments="Thickness"
+             Phone="16,16,16,16"
+             Desktop="28,22,28,20" />
+
     <Style TargetType="ActivityIndicator">
         <Setter Property="Color" Value="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource White}}" />
     </Style>

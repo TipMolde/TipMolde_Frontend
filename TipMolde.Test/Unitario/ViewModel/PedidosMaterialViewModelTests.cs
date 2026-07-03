@@ -158,7 +158,7 @@ public class PedidosMaterialViewModelTests
                     PageSize = 100,
                     TotalItems = 1
                 }),
-            "/api/moldes?page=1&pageSize=100" => CreateJsonResponse(
+            "/api/moldes/com-encomenda?page=1&pageSize=100" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<MoldeDto>
                 {

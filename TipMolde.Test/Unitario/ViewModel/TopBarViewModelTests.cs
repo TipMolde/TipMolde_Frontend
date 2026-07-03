@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Moq;
 using NUnit.Framework;
 using TipMolde.Services;
 using TipMolde.ViewModel;
@@ -29,7 +30,12 @@ public class TopBarViewModelTests
         var utilizadoresService = new UtilizadoresService(httpClient);
         var authorizationService = new AuthorizationService(sessaoPersistidaService, utilizadoresService);
 
-        _sut = new TopBarViewModel(authorizationService, sessaoPersistidaService, utilizadoresService);
+        _sut = new TopBarViewModel(
+            authorizationService,
+            sessaoPersistidaService,
+            utilizadoresService,
+            Mock.Of<INavigationService>(),
+            new ResponsiveLayoutService());
     }
 
     [Test(Description = "T1FRT - O ViewModel deve restaurar o nome padrao quando o estado e reiniciado.")]

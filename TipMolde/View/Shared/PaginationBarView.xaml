@@ -4,93 +4,195 @@
              x:Class="TipMolde.View.Shared.PaginationBarView"
              x:Name="Self">
 
-    <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto"
-          ColumnSpacing="12"
-          Margin="0,8,0,0">
+    <VerticalStackLayout Spacing="12"
+                         Margin="0,8,0,0">
 
-        <Button Grid.Column="0"
-                Text="Primeira"
-                Command="{Binding FirstPageCommand, Source={x:Reference Self}}"
-                IsEnabled="{Binding CanGoFirst, Source={x:Reference Self}}"
-                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                CornerRadius="18"
-                HeightRequest="44" />
+        <Grid IsVisible="{Binding IsExpandedLayout, Source={x:Reference Self}}"
+              ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+              ColumnSpacing="8"
+              RowSpacing="8">
+            <Button Grid.Column="0"
+                    Text="Primeira"
+                    Command="{Binding FirstPageCommand, Source={x:Reference Self}}"
+                    IsEnabled="{Binding CanGoFirst, Source={x:Reference Self}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                    CornerRadius="18"
+                    HeightRequest="44"
+                    HorizontalOptions="Start" />
 
-        <Button Grid.Column="1"
-                Text="◀"
-                Command="{Binding PreviousPageCommand, Source={x:Reference Self}}"
-                IsEnabled="{Binding CanGoPrevious, Source={x:Reference Self}}"
-                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                CornerRadius="18"
-                HeightRequest="44"
-                WidthRequest="52" />
+            <Button Grid.Column="1"
+                    Text="Anterior"
+                    Command="{Binding PreviousPageCommand, Source={x:Reference Self}}"
+                    IsEnabled="{Binding CanGoPrevious, Source={x:Reference Self}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                    CornerRadius="18"
+                    HeightRequest="44"
+                    MinimumWidthRequest="52"
+                    HorizontalOptions="Start" />
 
-        <Border Grid.Column="2"
-                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
-                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
-                StrokeThickness="1"
-                Padding="12,8"
-                VerticalOptions="Center">
-            <Border.StrokeShape>
-                <RoundRectangle CornerRadius="18" />
-            </Border.StrokeShape>
+            <Border Grid.Column="2"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                    StrokeThickness="1"
+                    Padding="12,8"
+                    VerticalOptions="Center"
+                    HorizontalOptions="Start">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="18" />
+                </Border.StrokeShape>
 
-            <HorizontalStackLayout Spacing="8"
-                                   VerticalOptions="Center">
-                <Label Text="Pagina"
-                       FontSize="14"
-                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
-                       VerticalOptions="Center" />
+                <HorizontalStackLayout Spacing="8"
+                                       VerticalOptions="Center">
+                    <Label Text="Pagina"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                           VerticalOptions="Center" />
 
-                <Entry Text="{Binding PageInput, Source={x:Reference Self}, Mode=TwoWay}"
-                       Keyboard="Numeric"
-                       WidthRequest="70"
-                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
-                       HorizontalTextAlignment="Center"
-                       VerticalOptions="Center"
-                       ClearButtonVisibility="Never" />
+                    <Entry Text="{Binding PageInput, Source={x:Reference Self}, Mode=TwoWay}"
+                           Keyboard="Numeric"
+                           WidthRequest="70"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                           HorizontalTextAlignment="Center"
+                           VerticalOptions="Center"
+                           ClearButtonVisibility="Never" />
 
-                <Label Text="/"
-                       FontSize="14"
-                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
-                       VerticalOptions="Center" />
+                    <Label Text="/"
+                           FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                           VerticalOptions="Center" />
 
-                <Label Text="{Binding TotalPages, Source={x:Reference Self}}"
-                       FontFamily="OpenSansSemibold"
-                       FontSize="16"
-                       TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
-                       VerticalOptions="Center" />
+                    <Label Text="{Binding TotalPages, Source={x:Reference Self}}"
+                           FontFamily="OpenSansSemibold"
+                           FontSize="16"
+                           TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <Button Grid.Column="3"
+                    Text="Ir"
+                    Command="{Binding GoToPageCommand, Source={x:Reference Self}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                    CornerRadius="18"
+                    HeightRequest="44"
+                    HorizontalOptions="Start" />
+
+            <Button Grid.Column="4"
+                    Text="Seguinte"
+                    Command="{Binding NextPageCommand, Source={x:Reference Self}}"
+                    IsEnabled="{Binding CanGoNext, Source={x:Reference Self}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                    CornerRadius="18"
+                    HeightRequest="44"
+                    HorizontalOptions="Start" />
+
+            <Button Grid.Column="6"
+                    Text="Ultima"
+                    Command="{Binding LastPageCommand, Source={x:Reference Self}}"
+                    IsEnabled="{Binding CanGoLast, Source={x:Reference Self}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                    TextColor="{AppThemeBinding Light=White, Dark=White}"
+                    CornerRadius="18"
+                    HeightRequest="44"
+                    HorizontalOptions="End" />
+        </Grid>
+
+        <VerticalStackLayout IsVisible="{Binding IsCompactLayout, Source={x:Reference Self}}"
+                             Spacing="10">
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Primeira"
+                        Command="{Binding FirstPageCommand, Source={x:Reference Self}}"
+                        IsEnabled="{Binding CanGoFirst, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
+                        CornerRadius="18"
+                        HeightRequest="44"
+                        HorizontalOptions="Start" />
+
+                <Button Text="Anterior"
+                        Command="{Binding PreviousPageCommand, Source={x:Reference Self}}"
+                        IsEnabled="{Binding CanGoPrevious, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
+                        CornerRadius="18"
+                        HeightRequest="44"
+                        MinimumWidthRequest="52"
+                        HorizontalOptions="Start" />
             </HorizontalStackLayout>
-        </Border>
 
-        <Button Grid.Column="3"
-                Text="Ir"
-                Command="{Binding GoToPageCommand, Source={x:Reference Self}}"
-                BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
-                CornerRadius="18"
-                HeightRequest="44"
-                HorizontalOptions="Start" />
+            <Grid ColumnDefinitions="*,Auto"
+                  ColumnSpacing="8">
+                <Border Grid.Column="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}"
+                        Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                        StrokeThickness="1"
+                        Padding="12,8"
+                        VerticalOptions="Center">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
 
-        <Button Grid.Column="4"
-                Text="▶"
-                Command="{Binding NextPageCommand, Source={x:Reference Self}}"
-                IsEnabled="{Binding CanGoNext, Source={x:Reference Self}}"
-                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                CornerRadius="18"
-                HeightRequest="44"
-                WidthRequest="52" />
+                    <HorizontalStackLayout Spacing="8"
+                                           VerticalOptions="Center">
+                        <Label Text="Pagina"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                               VerticalOptions="Center" />
 
-        <Button Grid.Column="5"
-                Text="Ultima"
-                Command="{Binding LastPageCommand, Source={x:Reference Self}}"
-                IsEnabled="{Binding CanGoLast, Source={x:Reference Self}}"
-                BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                CornerRadius="18"
-                HeightRequest="44" />
-    </Grid>
+                        <Entry Text="{Binding PageInput, Source={x:Reference Self}, Mode=TwoWay}"
+                               Keyboard="Numeric"
+                               WidthRequest="70"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                               HorizontalTextAlignment="Center"
+                               VerticalOptions="Center"
+                               ClearButtonVisibility="Never" />
+
+                        <Label Text="/"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                               VerticalOptions="Center" />
+
+                        <Label Text="{Binding TotalPages, Source={x:Reference Self}}"
+                               FontFamily="OpenSansSemibold"
+                               FontSize="16"
+                               TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <Button Grid.Column="1"
+                        Text="Ir"
+                        Command="{Binding GoToPageCommand, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
+                        CornerRadius="18"
+                        HeightRequest="44"
+                        HorizontalOptions="End" />
+            </Grid>
+
+            <HorizontalStackLayout Spacing="8">
+                <Button Text="Seguinte"
+                        Command="{Binding NextPageCommand, Source={x:Reference Self}}"
+                        IsEnabled="{Binding CanGoNext, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
+                        CornerRadius="18"
+                        HeightRequest="44"
+                        HorizontalOptions="Start" />
+
+                <Button Text="Ultima"
+                        Command="{Binding LastPageCommand, Source={x:Reference Self}}"
+                        IsEnabled="{Binding CanGoLast, Source={x:Reference Self}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource BrandOrange}, Dark={StaticResource BrandOrangeDark}}"
+                        TextColor="{AppThemeBinding Light=White, Dark=White}"
+                        CornerRadius="18"
+                        HeightRequest="44"
+                        HorizontalOptions="Start" />
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+    </VerticalStackLayout>
 </ContentView>

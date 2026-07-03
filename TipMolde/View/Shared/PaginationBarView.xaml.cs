@@ -4,6 +4,8 @@ namespace TipMolde.View.Shared;
 
 public partial class PaginationBarView : ContentView
 {
+    private bool _isCompactLayout;
+
     public static readonly BindableProperty PageProperty =
         BindableProperty.Create(
             nameof(Page),
@@ -161,8 +163,44 @@ public partial class PaginationBarView : ContentView
         set => SetValue(LastPageCommandProperty, value);
     }
 
+    public bool IsCompactLayout
+    {
+        get => _isCompactLayout;
+        private set
+        {
+            if (_isCompactLayout == value)
+                return;
+
+            _isCompactLayout = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsExpandedLayout));
+        }
+    }
+
+    public bool IsExpandedLayout => !IsCompactLayout;
+
     public PaginationBarView()
     {
         InitializeComponent();
+        SizeChanged += OnSizeChanged;
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object? sender, EventArgs e)
+    {
+        UpdateLayoutMode(Width);
+    }
+
+    private void OnSizeChanged(object? sender, EventArgs e)
+    {
+        UpdateLayoutMode(Width);
+    }
+
+    private void UpdateLayoutMode(double width)
+    {
+        if (double.IsNaN(width) || width <= 0)
+            return;
+
+        IsCompactLayout = width < 720;
     }
 }

@@ -4,67 +4,78 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TipMolde.View"
-    Title="TipMolde">
+    Title="TipMolde"
+    Shell.NavBarIsVisible="False">
 
     <ShellContent
         x:Name="AutenticacaoShellItem"
         ContentTemplate="{DataTemplate local:AutenticacaoPage}"
-        Route="AutenticacaoPage"
-        FlyoutItemIsVisible="False" />
+        Route="AutenticacaoPage" />
 
     <ShellContent
         x:Name="DashboardShellItem"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        ContentTemplate="{DataTemplate local:DashboardPage}"
+        Route="DashboardPage"
+        FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="UtilizadoresShellItem"
          ContentTemplate="{DataTemplate local:Utilizadores}"
-         Route="Utilizadores" />
+         Route="Utilizadores"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="ClientesShellItem"
          ContentTemplate="{DataTemplate local:Clientes}"
-         Route="Clientes" />
+         Route="Clientes"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="EncomendasShellItem"
          ContentTemplate="{DataTemplate local:Encomendas}"
-         Route="Encomendas" />
+         Route="Encomendas"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="PedidosMaterialShellItem"
          ContentTemplate="{DataTemplate local:PedidosMaterial}"
-         Route="PedidosMaterial" />
+         Route="PedidosMaterial"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="ProducaoShellItem"
          ContentTemplate="{DataTemplate local:Producao}"
-         Route="Producao" />
+         Route="Producao"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="MaquinasShellItem"
          ContentTemplate="{DataTemplate local:MaquinasPage}"
-         Route="Maquinas" />
+         Route="Maquinas"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="DesenhoShellItem"
          ContentTemplate="{DataTemplate local:DesenhoPage}"
-         Route="Desenho" />
+         Route="Desenho"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="ProjetosShellItem"
          ContentTemplate="{DataTemplate local:ProjetosPage}"
-         Route="Projetos" />
+         Route="Projetos"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="RelatoriosShellItem"
          ContentTemplate="{DataTemplate local:RelatoriosPage}"
-         Route="Relatorios" />
+         Route="Relatorios"
+         FlyoutItemIsVisible="False" />
 
     <ShellContent
          x:Name="DefinicoesShellItem"
          ContentTemplate="{DataTemplate local:Definicoes}"
-         Route="Definicoes" />
+         Route="Definicoes"
+         FlyoutItemIsVisible="False" />
 
 </Shell>

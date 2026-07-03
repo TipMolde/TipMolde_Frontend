@@ -15,8 +15,8 @@ namespace TipMolde
                 .UseMauiApp<App>()
                 .ConfigureFonts(fonts =>
                 {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("OpenSansRegular.ttf", "Open Sans");
+                    fonts.AddFont("OpenSansSemibold.ttf", "Open Sans SemiBold");
                 });
 
             builder.Services.AddSingleton(_ => ApiEndpointResolver.Resolve());
@@ -33,13 +33,16 @@ namespace TipMolde
             });
 
             builder.Services.AddSingleton<ApiConnectivityService>();
+            builder.Services.AddSingleton<ResponsiveLayoutService>();
             builder.Services.AddSingleton<SessaoPersistidaService>();
             builder.Services.AddSingleton<ThemePreferenceService>();
             builder.Services.AddSingleton<UtilizadoresService>();
             builder.Services.AddSingleton<AuthorizationService>();
             builder.Services.AddSingleton<IDialogService, DialogService>();
+            builder.Services.AddSingleton<IFilePickerService, FilePickerService>();
             builder.Services.AddSingleton<IDestinationFolderPickerService, DestinationFolderPickerService>();
             builder.Services.AddSingleton<AppShell>();
+            builder.Services.AddSingleton<INavigationService, AppShellNavigationService>();
 
             builder.Services.AddSingleton<TopBarViewModel>();
             builder.Services.AddTransient<SidebarViewModel>();
@@ -47,9 +50,8 @@ namespace TipMolde
             builder.Services.AddTransient<AutenticacaoService>();
             builder.Services.AddTransient<AutenticacaoPage>();
             builder.Services.AddTransient<AutenticacaoViewModel>();
-
             builder.Services.AddSingleton<DashboardViewModel>();
-            builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<DashboardPage>();
 
             builder.Services.AddTransient<UtilizadoresViewModel>();
             builder.Services.AddTransient<Utilizadores>();
@@ -70,6 +72,7 @@ namespace TipMolde
             builder.Services.AddTransient<RegistosTempoProjetoService>();
             builder.Services.AddTransient<PecasService>();
             builder.Services.AddTransient<MaquinasService>();
+            builder.Services.AddTransient<IndustrialProducaoService>();
             builder.Services.AddTransient<FasesProducaoService>();
             builder.Services.AddTransient<RegistosProducaoService>();
             builder.Services.AddTransient<GlobalMoldePriorityService>();
@@ -93,6 +96,8 @@ namespace TipMolde
             builder.Services.AddTransient<EditarPecaPage>();
             builder.Services.AddTransient<EditarMaquinaViewModel>();
             builder.Services.AddTransient<EditarMaquinaPage>();
+            builder.Services.AddTransient<MaquinaDetalheViewModel>();
+            builder.Services.AddTransient<MaquinaDetalhePage>();
 
             builder.Services.AddTransient<EditarClienteViewModel>();
             builder.Services.AddTransient<EditarClientePage>();
@@ -137,6 +142,8 @@ namespace TipMolde
             builder.Services.AddTransient<Definicoes>();
 
 #if DEBUG
+            builder.Logging.SetMinimumLevel(LogLevel.Trace);
+            builder.Logging.AddFilter("Microsoft.UI.Xaml.UIElement", LogLevel.Trace);
             builder.Logging.AddDebug();
 #endif
 
