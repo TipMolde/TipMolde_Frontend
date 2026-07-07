@@ -17,14 +17,26 @@ public sealed class FopGeralLinhaDto
     public string? MoldeNome { get; set; }
 
     public string DataDisplay => Data.ToString("dd/MM/yyyy HH:mm");
-    public string PecaDisplay => string.IsNullOrWhiteSpace(PecaNumero)
-        ? "Peca sem numero"
-        : string.IsNullOrWhiteSpace(PecaDesignacao)
-            ? PecaNumero
-            : $"{PecaNumero} - {PecaDesignacao}";
-    public string MoldeDisplay => string.IsNullOrWhiteSpace(MoldeNumero)
-        ? "Molde sem numero"
-        : string.IsNullOrWhiteSpace(MoldeNome)
-            ? MoldeNumero
-            : $"{MoldeNumero} - {MoldeNome}";
+
+    public string PecaDisplay
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(PecaNumero))
+                return "Peca sem numero";
+
+            return string.IsNullOrWhiteSpace(PecaDesignacao) ? PecaNumero : $"{PecaNumero} - {PecaDesignacao}";
+        }
+    }
+
+    public string MoldeDisplay
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(MoldeNumero))
+                return "Molde sem numero";
+
+            return string.IsNullOrWhiteSpace(MoldeNome) ? MoldeNumero : $"{MoldeNumero} - {MoldeNome}";
+        }
+    }
 }

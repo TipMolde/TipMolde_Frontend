@@ -61,12 +61,6 @@ public partial class SidebarView : ContentView
         SidebarWidth = 0;
     }
 
-    private void OnHeaderTapped(object sender, TappedEventArgs e)
-    {
-        if (_layoutService is null || !_layoutService.ShowSidebar)
-            return;
-    }
-
     private void OnLoaded(object? sender, EventArgs e)
     {
         TaskMonitor.Observe("TipMolde.View.Shared.SidebarView.OnLoaded", OnLoadedAsync());

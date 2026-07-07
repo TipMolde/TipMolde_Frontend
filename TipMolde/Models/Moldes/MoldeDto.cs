@@ -70,9 +70,15 @@ public sealed class MoldeDto
     public string? MaterialInjecao { get; set; }
 
     public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
-    public string DisplayName => string.IsNullOrWhiteSpace(Numero)
-        ? "Molde sem numero"
-        : string.IsNullOrWhiteSpace(Nome)
-            ? Numero
-            : $"{Numero} - {Nome}";
+
+    public string DisplayName
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Numero))
+                return "Molde sem numero";
+
+            return string.IsNullOrWhiteSpace(Nome) ? Numero : $"{Numero} - {Nome}";
+        }
+    }
 }

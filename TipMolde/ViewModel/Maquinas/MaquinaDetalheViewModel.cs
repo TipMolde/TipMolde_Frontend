@@ -191,7 +191,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
         await ShellNavigationService.GoBackAsync();
     }

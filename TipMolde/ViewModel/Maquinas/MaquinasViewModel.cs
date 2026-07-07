@@ -17,6 +17,9 @@ public partial class MaquinasViewModel : SearchableViewModel
     private const string EstadoDisponivel = "DISPONIVEL";
     private const string EstadoEmUso = "EM_USO";
     private const string EstadoManutencao = "MANUTENCAO";
+    private const string EstadoDisponivelDisplay = "Disponivel";
+    private const string EstadoEmUsoDisplay = "Em Uso";
+    private const string EstadoManutencaoDisplay = "Manutencao";
 
     private readonly MaquinasService _maquinasService;
     private readonly FasesProducaoService _fasesProducaoService;
@@ -772,8 +775,8 @@ public partial class MaquinasViewModel : SearchableViewModel
 
     private void LoadFormDefaults()
     {
-        SelectedEstadoMaquinaOption ??= EstadoMaquinaOptions.First();
-        SelectedFaseDedicadaOption ??= FasesDedicadas.First();
+        SelectedEstadoMaquinaOption ??= EstadoMaquinaOptions[0];
+        SelectedFaseDedicadaOption ??= FasesDedicadas[0];
     }
 
     private void LoadFaseNomeOptions()
@@ -787,7 +790,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
     private void LoadFormDefaultsFase()
     {
-        SelectedFaseNomeOption ??= FaseNomeOptions.First();
+        SelectedFaseNomeOption ??= FaseNomeOptions[0];
     }
 
     private void ResetFormulario()
@@ -796,8 +799,8 @@ public partial class MaquinasViewModel : SearchableViewModel
         NovoNumero = string.Empty;
         NovoNomeModelo = string.Empty;
         NovoIpAddress = string.Empty;
-        SelectedEstadoMaquinaOption = EstadoMaquinaOptions.First();
-        SelectedFaseDedicadaOption = FasesDedicadas.First();
+        SelectedEstadoMaquinaOption = EstadoMaquinaOptions[0];
+        SelectedFaseDedicadaOption = FasesDedicadas[0];
         ErrorMessage = string.Empty;
     }
 
@@ -812,7 +815,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
     private void ResetFormularioFase()
     {
-        SelectedFaseNomeOption = FaseNomeOptions.First();
+        SelectedFaseNomeOption = FaseNomeOptions[0];
         NovaDescricaoFase = string.Empty;
         FasesErrorMessage = string.Empty;
     }
@@ -885,36 +888,10 @@ public partial class MaquinasViewModel : SearchableViewModel
     {
         return
         [
-            new EstadoMaquinaOption(EstadoDisponivel, "Disponivel"),
-            new EstadoMaquinaOption(EstadoEmUso, "Em Uso"),
-            new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
+            new EstadoMaquinaOption(EstadoDisponivel, EstadoDisponivelDisplay),
+            new EstadoMaquinaOption(EstadoEmUso, EstadoEmUsoDisplay),
+            new EstadoMaquinaOption(EstadoManutencao, EstadoManutencaoDisplay)
         ];
-    }
-
-    private static IReadOnlyList<EstadoMaquinaOption> GetEstadoOptionsParaEdicao(string? estadoAtual)
-    {
-        return NormalizeEstado(estadoAtual) switch
-        {
-            EstadoDisponivel =>
-            [
-                new EstadoMaquinaOption(EstadoDisponivel, "Disponivel"),
-                new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
-            ],
-            EstadoEmUso =>
-            [
-                new EstadoMaquinaOption(EstadoEmUso, "Em Uso"),
-                new EstadoMaquinaOption(EstadoManutencao, "Manutencao")
-            ],
-            EstadoManutencao =>
-            [
-                new EstadoMaquinaOption(EstadoManutencao, "Manutencao"),
-                new EstadoMaquinaOption(EstadoDisponivel, "Disponivel")
-            ],
-            _ =>
-            [
-                new EstadoMaquinaOption(NormalizeEstado(estadoAtual), string.IsNullOrWhiteSpace(estadoAtual) ? "Sem estado" : estadoAtual.Replace('_', ' '))
-            ]
-        };
     }
 
     private static IReadOnlyList<FaseNomeOption> GetFaseNomeOptions()

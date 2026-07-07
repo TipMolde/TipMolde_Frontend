@@ -10,6 +10,13 @@ namespace TipMolde.ViewModel;
 /// </summary>
 public partial class EditarMaquinaViewModel : ObservableObject
 {
+    private const string EstadoDisponivel = "DISPONIVEL";
+    private const string EstadoEmUso = "EM_USO";
+    private const string EstadoManutencao = "MANUTENCAO";
+    private const string EstadoDisponivelDisplay = "Disponivel";
+    private const string EstadoEmUsoDisplay = "Em Uso";
+    private const string EstadoManutencaoDisplay = "Manutencao";
+
     private readonly MaquinasService _maquinasService;
     private readonly AuthorizationService _authorizationService;
     private readonly IDialogService _dialogService;
@@ -352,9 +359,9 @@ public partial class EditarMaquinaViewModel : ObservableObject
     {
         return NormalizeEstado(EstadoAtualOriginal) switch
         {
-            "DISPONIVEL" => "Transicoes permitidas: Disponivel -> Manutencao.",
-            "EM_USO" => "Transicoes permitidas: Em Uso -> Manutencao.",
-            "MANUTENCAO" => "Transicoes permitidas: Manutencao -> Disponivel.",
+            EstadoDisponivel => "Transicoes permitidas: Disponivel -> Manutencao.",
+            EstadoEmUso => "Transicoes permitidas: Em Uso -> Manutencao.",
+            EstadoManutencao => "Transicoes permitidas: Manutencao -> Disponivel.",
             _ => "Transicoes permitidas: manter estado atual."
         };
     }
@@ -363,20 +370,20 @@ public partial class EditarMaquinaViewModel : ObservableObject
     {
         return NormalizeEstado(estadoAtual) switch
         {
-            "DISPONIVEL" =>
+            EstadoDisponivel =>
             [
-                new EstadoMaquinaOption("DISPONIVEL", "Disponivel"),
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao")
+                new EstadoMaquinaOption(EstadoDisponivel, EstadoDisponivelDisplay),
+                new EstadoMaquinaOption(EstadoManutencao, EstadoManutencaoDisplay)
             ],
-            "EM_USO" =>
+            EstadoEmUso =>
             [
-                new EstadoMaquinaOption("EM_USO", "Em Uso"),
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao")
+                new EstadoMaquinaOption(EstadoEmUso, EstadoEmUsoDisplay),
+                new EstadoMaquinaOption(EstadoManutencao, EstadoManutencaoDisplay)
             ],
-            "MANUTENCAO" =>
+            EstadoManutencao =>
             [
-                new EstadoMaquinaOption("MANUTENCAO", "Manutencao"),
-                new EstadoMaquinaOption("DISPONIVEL", "Disponivel")
+                new EstadoMaquinaOption(EstadoManutencao, EstadoManutencaoDisplay),
+                new EstadoMaquinaOption(EstadoDisponivel, EstadoDisponivelDisplay)
             ],
             _ =>
             [

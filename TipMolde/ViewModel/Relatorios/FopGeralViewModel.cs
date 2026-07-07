@@ -126,7 +126,7 @@ public partial class FopGeralViewModel : PaginatedViewModel
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
         await Shell.Current.GoToAsync("..");
     }

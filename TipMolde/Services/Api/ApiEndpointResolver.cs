@@ -201,6 +201,7 @@ namespace TipMolde.Services
 #if DEBUG
             return string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase);
 #else
+            _ = environmentName;
             return false;
 #endif
         }

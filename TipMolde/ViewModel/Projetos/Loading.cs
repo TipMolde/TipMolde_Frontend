@@ -75,7 +75,7 @@ public partial class ProjetoDetalheViewModel
     /// </summary>
     /// <returns>Tarefa assincrona da navegacao de retorno.</returns>
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
         await ShellNavigationService.GoBackAsync();
     }

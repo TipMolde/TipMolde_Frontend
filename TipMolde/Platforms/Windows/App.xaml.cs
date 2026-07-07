@@ -49,7 +49,7 @@ namespace TipMolde.WinUI
 
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
 
-        private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+        private static void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             StartupCrashLogger.LogException("TipMolde.WinUI.App.UnhandledException", e.Exception);
         }

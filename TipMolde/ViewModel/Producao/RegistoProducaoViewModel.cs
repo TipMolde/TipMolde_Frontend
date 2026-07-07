@@ -15,6 +15,8 @@ public partial class RegistoProducaoViewModel : ObservableObject
     private const string EstadoPendente = "PENDENTE";
     private const string EstadoPreparacao = "PREPARACAO";
     private const string EstadoEmCurso = "EM_CURSO";
+    private const string EstadoPausado = "PAUSADO";
+    private const string EstadoConcluido = "CONCLUIDO";
 
     private readonly RegistosProducaoService _registosProducaoService;
     private readonly FasesProducaoService _fasesProducaoService;
@@ -105,7 +107,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
     public bool HasPeca => PecaContexto is not null;
     public bool HasRegistoAtivo => RegistoAtivoAtual is not null && EstadoContaComoAtivo(RegistoAtivoAtual.EstadoProducao);
     public bool CanSelecionarFase => !HasRegistoAtivo;
-    public bool CanEditarProximaFase => SelectedEstado is not null && IsEstado(SelectedEstado.Value, "CONCLUIDO") && PecaContexto is not null && ProximasFasesDisponiveis.Count > 0;
+    public bool CanEditarProximaFase => SelectedEstado is not null && IsEstado(SelectedEstado.Value, EstadoConcluido) && PecaContexto is not null && ProximasFasesDisponiveis.Count > 0;
     public bool IsMachineSelectionVisible => SelectedEstado is not null && EstadoRequerMaquina(SelectedEstado.Value);
     public bool CanSelecionarMaquina => IsMachineSelectionVisible && !DeveManterMaquinaDaPreparacao();
     public string GestorProducaoDisplay => GetGestorProducaoDisplay();
@@ -413,7 +415,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
 
         try
         {
-            var proximaFaseId = IsEstado(SelectedEstado.Value, "CONCLUIDO")
+            var proximaFaseId = IsEstado(SelectedEstado.Value, EstadoConcluido)
                 ? SelectedProximaFase?.FasesProducao_id
                 : null;
 
@@ -502,7 +504,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
 
         if (HasRegistoAtivo && RegistoAtivoAtual is not null)
         {
-            var faseAtiva = _todasFases.First(item => item.FasesProducao_id == RegistoAtivoAtual.FaseId);
+            var faseAtiva = _todasFases.FirstOrDefault(item => item.FasesProducao_id == RegistoAtivoAtual.FaseId);
             if (faseAtiva is not null)
             {
                 FasesDisponiveis.Add(faseAtiva);
@@ -543,7 +545,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
             EstadosDisponiveis.Add(estado);
 
         if (EstadosDisponiveis.Count > 0)
-            SelectedEstado = EstadosDisponiveis.First();
+            SelectedEstado = EstadosDisponiveis[0];
     }
 
     private void AtualizarMaquinas()
@@ -563,7 +565,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
             var ultimoRegisto = GetUltimoRegistoFaseSelecionada();
             if (ultimoRegisto?.MaquinaId is int maquinaId)
             {
-                var maquinaAnterior = _todasMaquinas.First(item => item.Maquina_id == maquinaId);
+                var maquinaAnterior = _todasMaquinas.FirstOrDefault(item => item.Maquina_id == maquinaId);
                 MaquinasDisponiveis.Add(new RegistoProducaoMaquinaOption
                 {
                     MaquinaId = maquinaId,
@@ -577,7 +579,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
             }
 
             if (MaquinasDisponiveis.Count > 0)
-                SelectedMaquina = MaquinasDisponiveis.First();
+                SelectedMaquina = MaquinasDisponiveis[0];
             OnPropertyChanged(nameof(CanSelecionarMaquina));
             OnPropertyChanged(nameof(MachineHint));
             return;
@@ -599,7 +601,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
         }
 
         if (MaquinasDisponiveis.Count > 0)
-            SelectedMaquina = MaquinasDisponiveis.First();
+            SelectedMaquina = MaquinasDisponiveis[0];
         OnPropertyChanged(nameof(CanSelecionarMaquina));
         OnPropertyChanged(nameof(MachineHint));
     }
@@ -767,12 +769,12 @@ public partial class RegistoProducaoViewModel : ObservableObject
             "PENDENTE" => isMontagem
                 ? [CreateEstadoOption(EstadoEmCurso)]
                 : [CreateEstadoOption(EstadoPreparacao)],
-            EstadoPreparacao => [CreateEstadoOption(EstadoEmCurso), CreateEstadoOption("PAUSADO")],
-            EstadoEmCurso => [CreateEstadoOption("PAUSADO"), CreateEstadoOption("CONCLUIDO")],
-            "PAUSADO" => isMontagem
+            EstadoPreparacao => [CreateEstadoOption(EstadoEmCurso), CreateEstadoOption(EstadoPausado)],
+            EstadoEmCurso => [CreateEstadoOption(EstadoPausado), CreateEstadoOption(EstadoConcluido)],
+            EstadoPausado => isMontagem
                 ? [CreateEstadoOption(EstadoEmCurso)]
                 : [CreateEstadoOption(EstadoPreparacao), CreateEstadoOption(EstadoEmCurso)],
-            "CONCLUIDO" => isMontagem
+            EstadoConcluido => isMontagem
                 ? []
                 : [CreateEstadoOption(EstadoPreparacao)],
             _ => []
@@ -786,7 +788,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
         foreach (var fase in fases)
         {
             ultimosRegistos.TryGetValue(fase.FasesProducao_id, out var ultimo);
-            if (!IsEstado(ultimo?.EstadoProducao, "CONCLUIDO"))
+            if (!IsEstado(ultimo?.EstadoProducao, EstadoConcluido))
                 return fase;
         }
 
@@ -799,7 +801,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
     {
         if (proximaFaseId.HasValue)
         {
-            var faseConfigurada = _todasFases.First(item => item.FasesProducao_id == proximaFaseId.Value);
+            var faseConfigurada = _todasFases.FirstOrDefault(item => item.FasesProducao_id == proximaFaseId.Value);
             if (faseConfigurada is not null)
                 return faseConfigurada;
         }
@@ -1018,7 +1020,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
                 continue;
             }
 
-            if (estado is "PAUSADO" or "CONCLUIDO")
+            if (estado is EstadoPausado or EstadoConcluido)
             {
                 if (inicioSessao.HasValue && registo.DataHora > inicioSessao.Value)
                     total += registo.DataHora - inicioSessao.Value;
@@ -1093,7 +1095,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
         if (SelectedEstado is null)
             return "Escolhe primeiro o estado do registo.";
 
-        if (IsEstado(SelectedEstado.Value, "CONCLUIDO"))
+        if (IsEstado(SelectedEstado.Value, EstadoConcluido))
             return "Escolhe a fase seguinte para onde a peca vai depois de concluida.";
 
         return "A proxima fase so e pedida quando concluires a fase atual.";

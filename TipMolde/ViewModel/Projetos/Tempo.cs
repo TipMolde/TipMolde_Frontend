@@ -38,7 +38,7 @@ public partial class ProjetoDetalheViewModel
 
         var estado = await _dialogService.ShowSelectionAsync(
             $"Registar tempo para {Projeto.NomeProjetoDisplay}",
-            "Cancelar",
+            DialogCancel,
             estadosDisponiveis.ToArray());
 
         if (string.IsNullOrWhiteSpace(estado))
@@ -108,7 +108,7 @@ public partial class ProjetoDetalheViewModel
                 continue;
             }
 
-            if (estado is "PAUSADO" or "CONCLUIDO")
+            if (estado is EstadoPausado or EstadoConcluido)
             {
                 if (inicioSessao.HasValue && registo.Data_hora > inicioSessao.Value)
                     total += registo.Data_hora - inicioSessao.Value;

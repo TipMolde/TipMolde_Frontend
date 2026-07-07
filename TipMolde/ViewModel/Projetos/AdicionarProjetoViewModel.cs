@@ -104,7 +104,7 @@ public partial class AdicionarProjetoViewModel : ObservableObject
                 TipoProjetoOptions.Add(option);
 
             if (SelectedTipoProjetoOption is null)
-                SelectedTipoProjetoOption = TipoProjetoOptions.FirstOrDefault();
+                SelectedTipoProjetoOption = TipoProjetoOptions.Count > 0 ? TipoProjetoOptions[0] : null;
 
             Moldes.Clear();
             var moldes = await GetAllMoldesAsync();
@@ -127,7 +127,7 @@ public partial class AdicionarProjetoViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
         await ShellNavigationService.GoBackAsync();
     }
@@ -237,18 +237,18 @@ public partial class AdicionarProjetoViewModel : ObservableObject
 
         if (forceSelectFirst)
         {
-            SelectedMolde = listaFiltrada.First();
+            SelectedMolde = listaFiltrada[0];
             return;
         }
 
         if (selectedMoldeId.HasValue)
         {
             SelectedMolde = listaFiltrada.FirstOrDefault(molde => molde.MoldeId == selectedMoldeId.Value)
-                ?? listaFiltrada.First();
+                ?? listaFiltrada[0];
             return;
         }
 
-        SelectedMolde = listaFiltrada.First();
+        SelectedMolde = listaFiltrada[0];
     }
 
     private static bool MatchesSearch(string? value, string normalizedTerm)

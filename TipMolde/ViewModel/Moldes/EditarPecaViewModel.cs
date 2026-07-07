@@ -185,7 +185,7 @@ public partial class EditarPecaViewModel : ObservableObject
             Massa = peca.Massa ?? string.Empty;
             Observacao = peca.Observacao ?? string.Empty;
             SelectedProximaFase = FasesProducao.FirstOrDefault(item => item.FasesProducao_id == peca.ProximaFase_id)
-                ?? FasesProducao.FirstOrDefault();
+                ?? (FasesProducao.Count > 0 ? FasesProducao[0] : null);
         }
         catch (Exception ex)
         {
@@ -198,7 +198,7 @@ public partial class EditarPecaViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task VoltarAsync()
+    private static async Task VoltarAsync()
     {
         await ShellNavigationService.GoBackAsync();
     }

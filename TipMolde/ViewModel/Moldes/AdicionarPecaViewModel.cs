@@ -227,7 +227,7 @@ public partial class AdicionarPecaViewModel : ObservableObject
         foreach (var fase in pagina.Items.OrderBy(item => item.FasesProducao_id))
             FasesProducao.Add(fase);
 
-        SelectedProximaFase = FasesProducao.First();
+        SelectedProximaFase = FasesProducao[0];
     }
 
     private void NotifyCanCreateStateChanged()

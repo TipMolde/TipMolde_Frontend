@@ -22,9 +22,14 @@ public sealed class FornecedorDto
     [JsonPropertyName("telefone")]
     public string? Telefone { get; set; }
 
-    public string DisplayName => string.IsNullOrWhiteSpace(Nome)
-        ? "Fornecedor sem nome"
-        : string.IsNullOrWhiteSpace(NIF)
-            ? Nome
-            : $"{Nome} ({NIF})";
+    public string DisplayName
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Nome))
+                return "Fornecedor sem nome";
+
+            return string.IsNullOrWhiteSpace(NIF) ? Nome : $"{Nome} ({NIF})";
+        }
+    }
 }

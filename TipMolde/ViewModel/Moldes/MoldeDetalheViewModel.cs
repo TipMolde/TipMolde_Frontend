@@ -18,6 +18,9 @@ namespace TipMolde.ViewModel;
 public partial class MoldeDetalheViewModel : PaginatedViewModel
 {
     private const string ValorNaoDefinido = "Nao definido";
+    private const string DialogCancel = "Cancelar";
+    private const string EstadoPausado = "PAUSADO";
+    private const string EstadoConcluido = "CONCLUIDO";
 
     private readonly MoldesService _moldesService;
     private readonly ProjetosService _projetosService;
@@ -415,7 +418,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                     OnPropertyChanged(nameof(EmptyProjetosMessage));
                     OnPropertyChanged(nameof(EmptyProjetosMessageDisplay));
 
-                    SelectedProjeto = Projetos.Count > 0 ? Projetos.First() : null;
+                    SelectedProjeto = Projetos.Count > 0 ? Projetos[0] : null;
                 }
                 finally
                 {
@@ -672,7 +675,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 continue;
             }
 
-            if (estado is "PAUSADO" or "CONCLUIDO")
+            if (estado is EstadoPausado or EstadoConcluido)
             {
                 if (inicioSessao.HasValue && registo.DataHora > inicioSessao.Value)
                     total += registo.DataHora - inicioSessao.Value;
@@ -746,7 +749,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
         var selection = await _dialogService.ShowSelectionAsync(
             $"Inserir pecas para o molde {molde.NumeroMoldeDisplay}",
-            "Cancelar",
+            DialogCancel,
             "Importar CSV",
             "Criar manualmente");
 
@@ -826,13 +829,13 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         var descricaoAlteracoes = await _dialogService.PromptAsync(
             $"Nova revisao para {SelectedProjeto.NomeProjetoDisplay}",
             "Descreve as alteracoes a validar com o cliente.",
-            new PromptDialogOptions
-            {
-                Accept = "Criar",
-                Cancel = "Cancelar",
-                Placeholder = "Descreve as alteracoes",
-                MaxLength = 2000,
-                Keyboard = Keyboard.Text
+                new PromptDialogOptions
+                {
+                    Accept = "Criar",
+                    Cancel = DialogCancel,
+                    Placeholder = "Descreve as alteracoes",
+                    MaxLength = 2000,
+                    Keyboard = Keyboard.Text
             });
 
         if (string.IsNullOrWhiteSpace(descricaoAlteracoes))
@@ -875,7 +878,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
         var decisao = await _dialogService.ShowSelectionAsync(
             $"Responder a {revisao.NumRevisaoDisplay}",
-            "Cancelar",
+            DialogCancel,
             "Aprovar",
             "Rejeitar");
 
@@ -894,7 +897,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 new PromptDialogOptions
                 {
                     Accept = "Guardar",
-                    Cancel = "Cancelar",
+                    Cancel = DialogCancel,
                     Placeholder = "Feedback do cliente",
                     MaxLength = 4000,
                     Keyboard = Keyboard.Text
@@ -951,7 +954,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
         var estado = await _dialogService.ShowSelectionAsync(
             $"Registar tempo para {SelectedProjeto.NomeProjetoDisplay}",
-            "Cancelar",
+            DialogCancel,
             estadosDisponiveis.ToArray());
 
         if (string.IsNullOrWhiteSpace(estado))
@@ -1130,7 +1133,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 continue;
             }
 
-            if (estado is "PAUSADO" or "CONCLUIDO")
+            if (estado is EstadoPausado or EstadoConcluido)
             {
                 if (inicioSessao.HasValue && registo.Data_hora > inicioSessao.Value)
                     total += registo.Data_hora - inicioSessao.Value;

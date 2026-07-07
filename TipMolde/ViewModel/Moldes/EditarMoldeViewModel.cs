@@ -184,7 +184,7 @@ public partial class EditarMoldeViewModel : ObservableObject
             MaterialInjecao = molde.MaterialInjecao ?? string.Empty;
 
             SelectedTipoPedidoOption = TipoPedidoOptions.FirstOrDefault(option => option.Value == molde.TipoPedido)
-                ?? TipoPedidoOptions.First();
+                ?? TipoPedidoOptions[0];
             SelectedCorOption = molde.Cor is null
                 ? null
                 : CorOptions.FirstOrDefault(option => option.Value == molde.Cor.Value);

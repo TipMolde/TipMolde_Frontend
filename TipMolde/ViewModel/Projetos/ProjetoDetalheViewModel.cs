@@ -10,6 +10,10 @@ namespace TipMolde.ViewModel;
 /// </summary>
 public partial class ProjetoDetalheViewModel : ObservableObject
 {
+    private const string DialogCancel = "Cancelar";
+    private const string EstadoPausado = "PAUSADO";
+    private const string EstadoConcluido = "CONCLUIDO";
+
     private readonly ProjetosService _projetosService;
     private readonly RevisoesService _revisoesService;
     private readonly RegistosTempoProjetoService _registosTempoProjetoService;

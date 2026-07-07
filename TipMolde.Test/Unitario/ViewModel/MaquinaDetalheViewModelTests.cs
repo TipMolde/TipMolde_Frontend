@@ -13,7 +13,6 @@ namespace TipMolde.Test.Unitario.ViewModel;
 
 [TestFixture]
 [Category("Unit")]
-[Category("MVVM")]
 public class MaquinaDetalheViewModelTests
 {
     private Mock<IDialogService> _dialogService = null!;

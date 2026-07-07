@@ -54,9 +54,15 @@ public sealed class FilaGlobalMoldeItemDto
     public bool IsEntregaConcluida =>
         string.Equals(EstadoEncomenda?.Trim(), "CONCLUIDA", StringComparison.OrdinalIgnoreCase) ||
         string.Equals(EstadoEncomenda?.Trim(), "CONCLUIDO", StringComparison.OrdinalIgnoreCase);
-    public string EstadoPlanificacaoDisplay => IsEntregaConcluida
-        ? "Entregue"
-        : IsEntregaPassada
-            ? "Entrega ultrapassada"
-            : "Previsto";
+
+    public string EstadoPlanificacaoDisplay
+    {
+        get
+        {
+            if (IsEntregaConcluida)
+                return "Entregue";
+
+            return IsEntregaPassada ? "Entrega ultrapassada" : "Previsto";
+        }
+    }
 }

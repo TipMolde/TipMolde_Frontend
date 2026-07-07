@@ -14,10 +14,6 @@
             <Border BackgroundColor="Transparent"
                     StrokeThickness="0"
                     Padding="6">
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnHeaderTapped" />
-                </Border.GestureRecognizers>
-
                 <HorizontalStackLayout Spacing="14">
                     <Grid WidthRequest="232"
                           HeightRequest="100">

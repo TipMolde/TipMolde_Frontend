@@ -19,9 +19,16 @@ public sealed class RegistoProducaoHistoricoItem
         ? "Sem data"
         : DataHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
 
-    public string MaquinaDisplay => MaquinaId.HasValue
-        ? (string.IsNullOrWhiteSpace(MaquinaNome) ? "Maquina atribuida" : MaquinaNome)
-        : "Sem maquina";
+    public string MaquinaDisplay
+    {
+        get
+        {
+            if (!MaquinaId.HasValue)
+                return "Sem maquina";
+
+            return string.IsNullOrWhiteSpace(MaquinaNome) ? "Maquina atribuida" : MaquinaNome;
+        }
+    }
 
     public bool IsActive => IsEstado("PREPARACAO") || IsEstado("EM_CURSO");
     public bool IsClosed => IsEstado("CONCLUIDO");

@@ -377,7 +377,7 @@ public partial class RelatoriosViewModel : ObservableObject
             }
 
             if (ContextosEncomenda.Count > 0)
-                SelectedContexto = ContextosEncomenda.First();
+                SelectedContexto = ContextosEncomenda[0];
             else
             {
                 PreviewTitulo = "Sem contexto comercial";
@@ -410,6 +410,7 @@ public partial class RelatoriosViewModel : ObservableObject
             }
             catch (ObjectDisposedException)
             {
+                System.Diagnostics.Debug.WriteLine("A operacao de cancelamento do catalogo ja tinha sido descartada.");
             }
             finally
             {
@@ -427,6 +428,7 @@ public partial class RelatoriosViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
+            System.Diagnostics.Debug.WriteLine("A recarga do catalogo foi cancelada por uma pesquisa mais recente.");
         }
         finally
         {

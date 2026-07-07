@@ -13,13 +13,13 @@ public static class MoldeImageSourceHelper
             return FallbackSource;
 
         var normalizedPath = imagePath.Trim().Replace('\\', '/');
-        return string.Equals(normalizedPath, BackendDefaultTemplateSource, StringComparison.OrdinalIgnoreCase)
-            ? FallbackSource
-            : Uri.TryCreate(normalizedPath, UriKind.Absolute, out _)
-                ? normalizedPath
-                : Path.IsPathRooted(normalizedPath)
-                    ? normalizedPath
-                    : BuildBackendImageUrl(normalizedPath);
+        if (string.Equals(normalizedPath, BackendDefaultTemplateSource, StringComparison.OrdinalIgnoreCase))
+            return FallbackSource;
+
+        if (Uri.TryCreate(normalizedPath, UriKind.Absolute, out _) || Path.IsPathRooted(normalizedPath))
+            return normalizedPath;
+
+        return BuildBackendImageUrl(normalizedPath);
     }
 
     private static string BuildBackendImageUrl(string relativePath)

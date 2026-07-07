@@ -250,6 +250,117 @@ public class MoldesServiceTests
         }
     }
 
+    [Test(Description = "T6FRT - O servico deve listar moldes com encomenda usando o termo pesquisado no endpoint correto.")]
+    public async Task GetComEncomendaAsync_Should_UseTrimmedSearchTerm_When_Searching()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<MoldeDto>
+                {
+                    Items = [BuildMoldeDto()],
+                    Page = 1,
+                    PageSize = 5,
+                    TotalItems = 1
+                }),
+            out var requests);
+        var sut = new MoldesService(httpClient);
+
+        // ACT
+        var result = await sut.GetComEncomendaAsync("  Molde Base  ", 2, 5);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.Items.Should().ContainSingle();
+        requests.Should().HaveCount(1);
+        requests[0].Method.Should().Be(HttpMethod.Get);
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/moldes/com-encomenda?searchTerm=Molde%20Base&page=2&pageSize=5");
+    }
+
+    [Test(Description = "T7FRT - O servico deve atualizar um molde com o payload JSON esperado.")]
+    public async Task UpdateAsync_Should_PutExpectedPayload_When_RequestIsSuccessful()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.NoContent),
+            out var requests);
+        var sut = new MoldesService(httpClient);
+
+        // ACT
+        await sut.UpdateAsync(
+            moldeId: 77,
+            numero: "M-077",
+            numeroMoldeCliente: "CLI-077",
+            nome: "Molde Atualizado",
+            imagemCapaPath: "Storage/Uploads/capa-atualizada.png",
+            descricao: "Descricao atualizada",
+            numeroCavidades: 4,
+            tipoPedido: "Urgente",
+            largura: 10.5m,
+            comprimento: 12.5m,
+            altura: 8.5m,
+            pesoEstimado: 120.1m,
+            tipoInjecao: "Canal frio",
+            sistemaInjecao: "Sistema X",
+            contracao: 1.2m,
+            acabamentoPeca: "Polido",
+            cor: null,
+            materialMacho: "Aco",
+            materialCavidade: "Aco Temperado",
+            materialMovimentos: "Bronze",
+            materialInjecao: "ABS");
+
+        // ASSERT
+        requests.Should().HaveCount(1);
+        requests[0].Method.Should().Be(HttpMethod.Put);
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/moldes/77");
+
+        var requestBody = requests[0].Properties.TryGetValue("Body", out var bodyValue)
+            ? bodyValue as string ?? string.Empty
+            : string.Empty;
+
+        requestBody.Should().Contain("\"numero\":\"M-077\"");
+        requestBody.Should().Contain("\"numeroMoldeCliente\":\"CLI-077\"");
+        requestBody.Should().Contain("\"nome\":\"Molde Atualizado\"");
+        requestBody.Should().Contain("\"tipoPedido\":\"Urgente\"");
+        requestBody.Should().Contain("\"materialInjecao\":\"ABS\"");
+    }
+
+    [Test(Description = "T8FRT - A atualizacao de imagem deve falhar quando o caminho vem vazio.")]
+    public async Task UpdateImagemCapaAsync_Should_ThrowArgumentException_When_PathIsEmpty()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.OK),
+            out _);
+        var sut = new MoldesService(httpClient);
+
+        // ACT
+        Func<Task> act = () => sut.UpdateImagemCapaAsync(5, string.Empty);
+
+        // ASSERT
+        var exception = await act.Should().ThrowAsync<ArgumentException>();
+        exception.Which.Message.Should().Contain("O caminho da imagem e obrigatorio.");
+    }
+
+    [Test(Description = "T9FRT - A atualizacao de imagem deve falhar quando o ficheiro nao existe.")]
+    public async Task UpdateImagemCapaAsync_Should_ThrowFileNotFoundException_When_FileDoesNotExist()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.OK),
+            out _);
+        var sut = new MoldesService(httpClient);
+
+        // ACT
+        Func<Task> act = () => sut.UpdateImagemCapaAsync(5, Path.Combine(Path.GetTempPath(), "imagem-inexistente.png"));
+
+        // ASSERT
+        var exception = await act.Should().ThrowAsync<FileNotFoundException>();
+        exception.Which.Message.Should().Contain("A imagem selecionada nao foi encontrada.");
+    }
+
     /// <summary>
     /// Cria um molde de teste para validar serializacao e resposta do servico.
     /// </summary>

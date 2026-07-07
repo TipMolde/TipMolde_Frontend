@@ -14,6 +14,8 @@ namespace TipMolde.Services;
 /// </remarks>
 public sealed class RelatoriosService : ApiServiceBase
 {
+    private const string ApiDateFormat = "yyyy-MM-dd";
+
     /// <summary>
     /// Construtor do servico de relatorios.
     /// </summary>
@@ -97,8 +99,8 @@ public sealed class RelatoriosService : ApiServiceBase
     /// <returns>Resultado paginado com linhas da FOP geral ou nulo quando a API nao devolve sucesso.</returns>
     public async Task<PagedResult<FopGeralLinhaDto>?> GetFopGeralAsync(DateTime dataInicio, DateTime dataFim, int page, int pageSize)
     {
-        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-        var fim = Uri.EscapeDataString(dataFim.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString(ApiDateFormat, CultureInfo.InvariantCulture));
+        var fim = Uri.EscapeDataString(dataFim.Date.ToString(ApiDateFormat, CultureInfo.InvariantCulture));
 
         using var response = await HttpClient.GetAsync(
             $"api/fichas-producao/fop-geral?dataInicio={inicio}&dataFim={fim}&page={page}&pageSize={pageSize}");
@@ -122,8 +124,8 @@ public sealed class RelatoriosService : ApiServiceBase
             ? Path.Combine(FileSystem.Current.AppDataDirectory, "relatorios-gerados")
             : directory;
 
-        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-        var fim = Uri.EscapeDataString(dataFim.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        var inicio = Uri.EscapeDataString(dataInicio.Date.ToString(ApiDateFormat, CultureInfo.InvariantCulture));
+        var fim = Uri.EscapeDataString(dataFim.Date.ToString(ApiDateFormat, CultureInfo.InvariantCulture));
         var endpoint = $"api/fichas-producao/fop-geral/export?dataInicio={inicio}&dataFim={fim}";
 
         Directory.CreateDirectory(targetDirectory);

@@ -98,7 +98,7 @@ public partial class EditarClienteViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task Voltar()
+    private static async Task Voltar()
     {
         await ShellNavigationService.GoBackAsync();
     }

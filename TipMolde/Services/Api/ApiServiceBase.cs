@@ -43,7 +43,7 @@ public abstract class ApiServiceBase
     /// </summary>
     /// <param name="ex">Excecao capturada durante a chamada HTTP.</param>
     /// <returns>True quando a excecao indica indisponibilidade de conectividade; false caso contrario.</returns>
-    protected bool IsConnectivityException(Exception ex)
+    protected static bool IsConnectivityException(Exception ex)
     {
         return ex is HttpRequestException or TaskCanceledException or COMException;
     }

@@ -16,7 +16,6 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     private readonly MoldesService _moldesService;
     private readonly IDialogService _dialogService;
     private readonly IFilePickerService _filePickerService;
-    private FileResult? _imagemCapaSelecionada;
     private bool _loaded;
 
     /// <summary>
@@ -159,10 +158,10 @@ public partial class AdicionarMoldeViewModel : ObservableObject
                 CorOptions.Add(option);
 
             if (SelectedTipoPedidoOption is null)
-                SelectedTipoPedidoOption = TipoPedidoOptions.First();
+                SelectedTipoPedidoOption = TipoPedidoOptions[0];
 
             if (SelectedCorOption is null)
-                SelectedCorOption = CorOptions.First();
+                SelectedCorOption = CorOptions[0];
 
             _loaded = true;
         }
@@ -198,7 +197,6 @@ public partial class AdicionarMoldeViewModel : ObservableObject
             if (file is null || string.IsNullOrWhiteSpace(file.FullPath))
                 return;
 
-            _imagemCapaSelecionada = file;
             ImagemCapaPath = file.FullPath;
             ErrorMessage = string.Empty;
         }
@@ -211,7 +209,6 @@ public partial class AdicionarMoldeViewModel : ObservableObject
     [RelayCommand]
     private void RemoverImagemCapa()
     {
-        _imagemCapaSelecionada = null;
         ImagemCapaPath = string.Empty;
     }
 
