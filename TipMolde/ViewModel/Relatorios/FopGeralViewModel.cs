@@ -7,6 +7,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a consulta e exportacao da FOP geral.
+/// </summary>
 public partial class FopGeralViewModel : PaginatedViewModel
 {
     private const int DefaultPageSize = 20;
@@ -15,6 +18,9 @@ public partial class FopGeralViewModel : PaginatedViewModel
     private readonly IDestinationFolderPickerService _destinationFolderPickerService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model da FOP geral.
+    /// </summary>
     public FopGeralViewModel(
         RelatoriosService relatoriosService,
         IDestinationFolderPickerService destinationFolderPickerService,

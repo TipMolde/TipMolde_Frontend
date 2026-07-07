@@ -4,6 +4,13 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o fluxo de autenticacao inicial do frontend.
+/// </summary>
+/// <remarks>
+/// Centraliza validacao de credenciais, teste de conectividade, persistencia
+/// de sessao e transicao navegacional para a area autenticada.
+/// </remarks>
 public partial class AutenticacaoViewModel : ObservableObject
 {
     private readonly ApiConnectivityService _apiConnectivityService;
@@ -13,6 +20,14 @@ public partial class AutenticacaoViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private bool _hasCheckedOnLoad;
 
+    /// <summary>
+    /// Construtor do view model de autenticacao.
+    /// </summary>
+    /// <param name="apiConnectivityService">Servico usado para validar disponibilidade da API.</param>
+    /// <param name="autenticacaoService">Servico responsavel pelo login no backend.</param>
+    /// <param name="authorizationService">Servico que gere o cache de permissao apos login.</param>
+    /// <param name="sessaoPersistidaService">Servico que persiste ou restaura a sessao autenticada.</param>
+    /// <param name="navigationService">Servico de navegacao principal da aplicacao.</param>
     public AutenticacaoViewModel(
         ApiConnectivityService apiConnectivityService,
         AutenticacaoService autenticacaoService,
@@ -67,6 +82,10 @@ public partial class AutenticacaoViewModel : ObservableObject
         OnPropertyChanged(nameof(IsBusy));
     }
 
+    /// <summary>
+    /// Executa a verificacao inicial de conectividade apenas uma vez por carga da pagina.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento inicial.</returns>
     [RelayCommand]
     private async Task EnsureInitialLoadAsync()
     {
@@ -77,6 +96,10 @@ public partial class AutenticacaoViewModel : ObservableObject
         await TestConnectionAsync();
     }
 
+    /// <summary>
+    /// Autentica o utilizador, guarda a sessao e redireciona para o dashboard.
+    /// </summary>
+    /// <returns>Tarefa assincrona do fluxo de login.</returns>
     [RelayCommand]
     private async Task LoginAsync()
     {
@@ -128,6 +151,10 @@ public partial class AutenticacaoViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Testa a conectividade com a API antes do utilizador iniciar sessao.
+    /// </summary>
+    /// <returns>Tarefa assincrona da validacao de conectividade.</returns>
     [RelayCommand]
     private async Task TestConnectionAsync()
     {

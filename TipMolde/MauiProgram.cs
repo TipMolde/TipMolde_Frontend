@@ -6,8 +6,26 @@ using TipMolde.ViewModel;
 
 namespace TipMolde
 {
+    /// <summary>
+    /// Configura o bootstrap da aplicacao MAUI do frontend.
+    /// </summary>
+    /// <remarks>
+    /// Centraliza o registo de fontes, resolucao do endpoint base da API,
+    /// configuracao do cliente HTTP e composicao de servicos, view models e views.
+    /// </remarks>
     public static class MauiProgram
     {
+        /// <summary>
+        /// Cria e configura a instancia principal de <see cref="MauiApp"/>.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo critico:
+        /// 1. Inicializa a app MAUI e as fontes base.
+        /// 2. Resolve a configuracao da API por plataforma e ambiente.
+        /// 3. Regista dependencias de infraestrutura, navegacao e UI.
+        /// 4. Ativa logging detalhado em ambiente de desenvolvimento.
+        /// </remarks>
+        /// <returns>Aplicacao pronta para arranque com o contentor DI configurado.</returns>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();

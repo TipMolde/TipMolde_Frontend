@@ -7,11 +7,19 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a listagem principal de encomendas ativas.
+/// </summary>
 public partial class EncomendasViewModel : SearchableViewModel
 {
     private readonly EncomendasService _encomendasService;
     private readonly INavigationService _navigationService;
 
+    /// <summary>
+    /// Construtor do view model de encomendas.
+    /// </summary>
+    /// <param name="encomendasService">Servico usado para consultar encomendas.</param>
+    /// <param name="navigationService">Servico de navegacao principal da aplicacao.</param>
     public EncomendasViewModel(
         EncomendasService encomendasService,
         INavigationService navigationService)
@@ -27,17 +35,29 @@ public partial class EncomendasViewModel : SearchableViewModel
         ? "Nao existem encomendas ativas para apresentar."
         : "Nenhuma encomenda corresponde a pesquisa atual.";
 
+    /// <summary>
+    /// Carrega a lista de encomendas ativas.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento da lista.</returns>
     public async Task LoadEncomendasAsync()
     {
         await ReloadCurrentPageAsync();
     }
 
+    /// <summary>
+    /// Abre o formulario de criacao de encomenda.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao para criacao.</returns>
     [RelayCommand]
     private async Task AbrirAdicionarEncomendaAsync()
     {
         await _navigationService.GoToAsync(nameof(AdicionarEncomendaPage));
     }
 
+    /// <summary>
+    /// Abre o formulario de criacao de molde.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao para criacao.</returns>
     [RelayCommand]
     private async Task AbrirAdicionarMoldeAsync()
     {
@@ -71,6 +91,11 @@ public partial class EncomendasViewModel : SearchableViewModel
         });
     }
 
+    /// <summary>
+    /// Abre o detalhe da encomenda selecionada.
+    /// </summary>
+    /// <param name="encomenda">Encomenda escolhida pelo utilizador.</param>
+    /// <returns>Tarefa assincrona da navegacao para o detalhe.</returns>
     [RelayCommand]
     private async Task AbrirEncomendaAsync(EncomendaResumoDto? encomenda)
     {

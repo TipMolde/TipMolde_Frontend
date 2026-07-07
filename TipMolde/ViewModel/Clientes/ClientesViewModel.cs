@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a listagem, pesquisa e operacoes principais sobre clientes.
+/// </summary>
 public partial class ClientesViewModel : SearchableViewModel
 {
     private const string SearchModeNome = "Nome";
@@ -18,6 +21,12 @@ public partial class ClientesViewModel : SearchableViewModel
     private readonly AuthorizationService _authorizationService;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de clientes.
+    /// </summary>
+    /// <param name="clientesService">Servico usado para consultar e remover clientes.</param>
+    /// <param name="dialogService">Servico usado para dialogs de confirmacao e feedback.</param>
+    /// <param name="authorizationService">Servico usado para validar permissao de remocao.</param>
     public ClientesViewModel(
         ClientesService clientesService,
         IDialogService dialogService,
@@ -50,6 +59,10 @@ public partial class ClientesViewModel : SearchableViewModel
         SelectedSearchModeIndex = 1;
     }
 
+    /// <summary>
+    /// Carrega a lista de clientes respeitando pagina, pesquisa e permissoes.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento da lista.</returns>
     public async Task LoadClientesAsync()
     {
         await EnsurePermissionsLoadedAsync();
@@ -94,6 +107,11 @@ public partial class ClientesViewModel : SearchableViewModel
         });
     }
 
+    /// <summary>
+    /// Abre o detalhe do cliente selecionado.
+    /// </summary>
+    /// <param name="cliente">Cliente escolhido na lista.</param>
+    /// <returns>Tarefa assincrona da navegacao para o detalhe.</returns>
     [RelayCommand]
     private async Task AbrirDetalheClienteAsync(ClienteDto? cliente)
     {
@@ -109,12 +127,21 @@ public partial class ClientesViewModel : SearchableViewModel
             });
     }
 
+    /// <summary>
+    /// Abre o formulario de criacao de cliente.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao para criacao.</returns>
     [RelayCommand]
     private static async Task AbrirAdicionarClienteAsync()
     {
         await Shell.Current.GoToAsync("AdicionarClientePage");
     }
 
+    /// <summary>
+    /// Abre o formulario de edicao do cliente selecionado.
+    /// </summary>
+    /// <param name="cliente">Cliente a editar.</param>
+    /// <returns>Tarefa assincrona da navegacao para edicao.</returns>
     [RelayCommand]
     private static async Task EditarClienteAsync(ClienteDto? cliente)
     {
@@ -130,6 +157,11 @@ public partial class ClientesViewModel : SearchableViewModel
             });
     }
 
+    /// <summary>
+    /// Remove um cliente apos confirmacao e recarrega a lista.
+    /// </summary>
+    /// <param name="cliente">Cliente selecionado para remocao.</param>
+    /// <returns>Tarefa assincrona da operacao de eliminacao.</returns>
     [RelayCommand]
     private async Task DeleteAsync(ClienteDto? cliente)
     {

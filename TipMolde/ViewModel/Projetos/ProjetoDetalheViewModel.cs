@@ -5,6 +5,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o detalhe de um projeto, incluindo revisoes e historico temporal.
+/// </summary>
 public partial class ProjetoDetalheViewModel : ObservableObject
 {
     private readonly ProjetosService _projetosService;
@@ -17,6 +20,9 @@ public partial class ProjetoDetalheViewModel : ObservableObject
     private bool _roleLoaded;
     private int? _currentUserId;
 
+    /// <summary>
+    /// Construtor do view model de detalhe de projeto.
+    /// </summary>
     public ProjetoDetalheViewModel(
         ProjetosService projetosService,
         RevisoesService revisoesService,

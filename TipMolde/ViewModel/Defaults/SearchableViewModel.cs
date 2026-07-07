@@ -3,11 +3,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace TipMolde.ViewModel.Defaults;
 
+/// <summary>
+/// Estende a base paginada com suporte a pesquisa textual.
+/// </summary>
 public abstract partial class SearchableViewModel : PaginatedViewModel
 {
     private readonly AsyncRelayCommand _pesquisarCommand;
     private readonly AsyncRelayCommand _limparPesquisaCommand;
 
+    /// <summary>
+    /// Construtor da base de pesquisa paginada.
+    /// </summary>
     protected SearchableViewModel()
     {
         _pesquisarCommand = new AsyncRelayCommand(PesquisarAsync);

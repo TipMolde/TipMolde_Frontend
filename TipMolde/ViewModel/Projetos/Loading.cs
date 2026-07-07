@@ -3,8 +3,16 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o carregamento principal do detalhe de projeto.
+/// </summary>
 public partial class ProjetoDetalheViewModel
 {
+    /// <summary>
+    /// Carrega o contexto completo do projeto, incluindo revisoes e tempo.
+    /// </summary>
+    /// <param name="projetoId">Identificador do projeto a carregar.</param>
+    /// <returns>Tarefa assincrona do carregamento inicial.</returns>
     public async Task LoadAsync(int projetoId)
     {
         ProjetoId = projetoId;
@@ -49,6 +57,10 @@ public partial class ProjetoDetalheViewModel
         }
     }
 
+    /// <summary>
+    /// Recarrega o projeto atualmente em contexto.
+    /// </summary>
+    /// <returns>Tarefa assincrona do recarregamento.</returns>
     [RelayCommand]
     private async Task RecarregarAsync()
     {
@@ -58,6 +70,10 @@ public partial class ProjetoDetalheViewModel
         await LoadAsync(ProjetoId);
     }
 
+    /// <summary>
+    /// Regressa a pagina anterior.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao de retorno.</returns>
     [RelayCommand]
     private async Task VoltarAsync()
     {

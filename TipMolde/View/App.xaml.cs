@@ -3,6 +3,13 @@ using TipMolde.Services;
 
 namespace TipMolde.View;
 
+/// <summary>
+/// Representa a aplicacao MAUI principal do frontend.
+/// </summary>
+/// <remarks>
+/// Orquestra o arranque da shell, a restauracao de sessao e a ativacao
+/// do layout responsivo global antes do utilizador interagir com a UI.
+/// </remarks>
 public partial class App : Application
 {
     private readonly AppShell _appShell;
@@ -10,6 +17,12 @@ public partial class App : Application
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private bool _startupInitialized;
 
+    /// <summary>
+    /// Construtor da aplicacao principal.
+    /// </summary>
+    /// <param name="appShell">Shell principal usada como raiz visual da app.</param>
+    /// <param name="sessaoPersistidaService">Servico que tenta restaurar a sessao autenticada.</param>
+    /// <param name="responsiveLayoutService">Servico global de layout responsivo.</param>
     public App(
         AppShell appShell,
         SessaoPersistidaService sessaoPersistidaService,
@@ -35,6 +48,11 @@ public partial class App : Application
         }
     }
 
+    /// <summary>
+    /// Cria a janela principal e liga o rastreio de redimensionamento responsivo.
+    /// </summary>
+    /// <param name="activationState">Estado opcional de ativacao fornecido pela plataforma.</param>
+    /// <returns>Janela principal da aplicacao.</returns>
     protected override Window CreateWindow(IActivationState? activationState)
     {
         var window = base.CreateWindow(activationState);

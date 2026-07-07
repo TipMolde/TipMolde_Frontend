@@ -7,6 +7,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a area de definicoes pessoais da aplicacao.
+/// </summary>
 public partial class DefinicoesViewModel : ObservableObject
 {
     private readonly UtilizadoresService _utilizadoresService;
@@ -18,6 +21,9 @@ public partial class DefinicoesViewModel : ObservableObject
     private bool _isLoaded;
     private int? _currentUserId;
 
+    /// <summary>
+    /// Construtor do view model de definicoes.
+    /// </summary>
     public DefinicoesViewModel(
         UtilizadoresService utilizadoresService,
         SessaoPersistidaService sessaoPersistidaService,

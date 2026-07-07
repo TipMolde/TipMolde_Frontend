@@ -491,6 +491,13 @@
                                             <VerticalStackLayout Grid.Column="3"
                                                                  Spacing="8"
                                                                  VerticalOptions="Center">
+                                                <Button Text="Detalhes"
+                                                        Command="{Binding BindingContext.AbrirDetalhesCommand, Source={x:Reference PaginaMaquinas}}"
+                                                        CommandParameter="{Binding .}"
+                                                        IsVisible="{Binding HasIpAddress}"
+                                                        BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                        TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                                        HeightRequest="40" />
                                                 <Button Text="Editar"
                                                         Command="{Binding BindingContext.EditarMaquinaCommand, Source={x:Reference PaginaMaquinas}}"
                                                         CommandParameter="{Binding .}"

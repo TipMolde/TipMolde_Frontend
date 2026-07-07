@@ -12,6 +12,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a criacao de pedidos de material, incluindo selecao de moldes, pecas e fornecedores.
+/// </summary>
 public partial class PedidosMaterialViewModel : ObservableObject
 {
     private const int PageSize = 100;
@@ -33,6 +36,14 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
     private const int PecaPageSize = 20;
 
+    /// <summary>
+    /// Construtor do view model de pedidos de material.
+    /// </summary>
+    /// <param name="fornecedoresService">Servico usado para consultar e gerir fornecedores.</param>
+    /// <param name="moldesService">Servico usado para carregar moldes elegiveis para pedido.</param>
+    /// <param name="pecasService">Servico usado para listar pecas sem pedido de material.</param>
+    /// <param name="pedidosMaterialService">Servico usado para criar os pedidos de material.</param>
+    /// <param name="dialogService">Servico usado para apresentar confirmacoes e erros.</param>
     public PedidosMaterialViewModel(
         FornecedoresService fornecedoresService,
         MoldesService moldesService,
@@ -529,6 +540,11 @@ public partial class PedidosMaterialViewModel : ObservableObject
         await LoadPecasAsync(resetPaging: false);
     }
 
+    /// <summary>
+    /// Carrega ou atualiza o estado base da pagina, incluindo fornecedores e moldes elegiveis.
+    /// </summary>
+    /// <param name="forceRefresh">Indica se o carregamento deve ignorar o estado previamente memorizado.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(bool forceRefresh = false)
     {
         if (_loaded && !forceRefresh)

@@ -1,14 +1,26 @@
 namespace TipMolde.Services;
 
+/// <summary>
+/// Implementa a selecao de pastas de destino para exportacoes locais.
+/// </summary>
 public sealed class DestinationFolderPickerService : IDestinationFolderPickerService
 {
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do seletor de pasta de destino.
+    /// </summary>
+    /// <param name="dialogService">Servico usado para informar o utilizador quando a plataforma nao suporta a operacao.</param>
     public DestinationFolderPickerService(IDialogService dialogService)
     {
         _dialogService = dialogService;
     }
 
+    /// <summary>
+    /// Abre o seletor de pasta da plataforma atual.
+    /// </summary>
+    /// <param name="title">Titulo funcional apresentado ao utilizador quando aplicavel.</param>
+    /// <returns>Caminho da pasta escolhida ou nulo quando a operacao nao esta disponivel ou e cancelada.</returns>
     public async Task<string?> PickFolderAsync(string title = "Seleciona a pasta de destino")
     {
 #if WINDOWS

@@ -3,6 +3,13 @@ using TipMolde.Configuration;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Mantem o estado responsivo global usado pela UI MAUI.
+/// </summary>
+/// <remarks>
+/// Traduz a largura atual da janela em propriedades derivadas consumidas
+/// por shell, top bar, sidebar e ecras com comportamento adaptativo.
+/// </remarks>
 public partial class ResponsiveLayoutService : ObservableObject
 {
     [ObservableProperty]
@@ -35,6 +42,10 @@ public partial class ResponsiveLayoutService : ObservableObject
         _ => 132
     };
 
+    /// <summary>
+    /// Atualiza a largura atual da janela e recalcula o modo responsivo ativo.
+    /// </summary>
+    /// <param name="width">Largura util da janela em device-independent units.</param>
     public void UpdateWidth(double width)
     {
         if (width <= 0)

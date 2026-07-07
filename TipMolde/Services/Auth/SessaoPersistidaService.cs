@@ -5,6 +5,13 @@ using System.Text.Json;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Gere a persistencia local da sessao autenticada do frontend.
+/// </summary>
+/// <remarks>
+/// Sincroniza preferencias locais, secure storage e cabecalho Authorization
+/// do cliente HTTP partilhado pela aplicacao.
+/// </remarks>
 public sealed class SessaoPersistidaService
 {
     private const string RememberSessionKey = "remember_session";
@@ -13,13 +20,27 @@ public sealed class SessaoPersistidaService
 
     private readonly HttpClient _httpClient;
 
+    /// <summary>
+    /// Construtor do servico de sessao persistida.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP cuja autenticacao deve acompanhar o estado da sessao.</param>
     public SessaoPersistidaService(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
+    /// <summary>
+    /// Indica se o utilizador escolheu manter a sessao entre arranques da aplicacao.
+    /// </summary>
     public static bool ShouldRememberSession => Preferences.Default.Get(RememberSessionKey, false);
 
+    /// <summary>
+    /// Guarda a sessao autenticada e atualiza o cliente HTTP ativo.
+    /// </summary>
+    /// <param name="token">JWT devolvido pela API apos autenticacao.</param>
+    /// <param name="expiresAt">Instante UTC de expiracao do token.</param>
+    /// <param name="rememberSession">Indica se a sessao deve sobreviver ao fecho da app.</param>
+    /// <returns>Tarefa assincrona que representa a gravacao da sessao.</returns>
     public async Task SaveSessionAsync(string token, DateTimeOffset expiresAt, bool rememberSession)
     {
         Preferences.Default.Set(RememberSessionKey, rememberSession);
@@ -42,6 +63,10 @@ public sealed class SessaoPersistidaService
             new AuthenticationHeaderValue("Bearer", token);
     }
 
+    /// <summary>
+    /// Tenta restaurar a sessao persistida no arranque da aplicacao.
+    /// </summary>
+    /// <returns>True quando a sessao foi restaurada e o cliente HTTP ficou autenticado; false caso contrario.</returns>
     public async Task<bool> TryRestoreSessionAsync()
     {
         if (!ShouldRememberSession)
@@ -72,6 +97,10 @@ public sealed class SessaoPersistidaService
         return true;
     }
 
+    /// <summary>
+    /// Remove a sessao local e limpa a autenticacao aplicada ao cliente HTTP.
+    /// </summary>
+    /// <returns>Tarefa concluida quando o estado local foi limpo.</returns>
     public Task ClearSessionAsync()
     {
         ClearHttpAuthorization();
@@ -88,6 +117,10 @@ public sealed class SessaoPersistidaService
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
 
+    /// <summary>
+    /// Tenta obter o identificador do utilizador atual a partir do token em memoria.
+    /// </summary>
+    /// <returns>ID do utilizador quando o token existe e contem o claim esperado; nulo caso contrario.</returns>
     public int? TryGetCurrentUserId()
     {
         var token = _httpClient.DefaultRequestHeaders.Authorization?.Parameter;

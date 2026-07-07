@@ -4,8 +4,15 @@ using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o carregamento principal e o resumo executivo do dashboard.
+/// </summary>
 public partial class DashboardViewModel
 {
+    /// <summary>
+    /// Carrega os dados principais do dashboard e recompõe todas as secoes derivadas.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento global do dashboard.</returns>
     public async Task LoadAsync()
     {
         if (IsLoadingHero)
@@ -68,6 +75,10 @@ public partial class DashboardViewModel
         }
     }
 
+    /// <summary>
+    /// Abre o detalhe do molde mais proximo de entrega.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao para o detalhe do molde.</returns>
     [RelayCommand(CanExecute = nameof(HasMoldeEntregaDashboard))]
     private async Task AbrirDashboardMoldeAsync()
     {

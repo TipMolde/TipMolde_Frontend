@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a listagem principal de projetos de desenho.
+/// </summary>
 public partial class ProjetosViewModel : PaginatedViewModel
 {
     private readonly ProjetosService _projetosService;
@@ -17,6 +20,9 @@ public partial class ProjetosViewModel : PaginatedViewModel
     private readonly List<ProjetoDto> _projetosFiltrados = [];
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de projetos.
+    /// </summary>
     public ProjetosViewModel(
         ProjetosService projetosService,
         AuthorizationService authorizationService,

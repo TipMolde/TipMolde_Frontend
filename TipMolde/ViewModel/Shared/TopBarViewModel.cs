@@ -5,6 +5,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a barra superior da aplicacao autenticada.
+/// </summary>
 public partial class TopBarViewModel : ObservableObject
 {
     private const string DefaultUserName = "Utilizador";
@@ -16,6 +19,14 @@ public partial class TopBarViewModel : ObservableObject
     private readonly ResponsiveLayoutService _responsiveLayoutService;
     private bool _isLoaded;
 
+    /// <summary>
+    /// Construtor do view model da top bar.
+    /// </summary>
+    /// <param name="authorizationService">Servico usado para limpar a role no logout.</param>
+    /// <param name="sessaoPersistidaService">Servico usado para obter e limpar a sessao atual.</param>
+    /// <param name="utilizadoresService">Servico usado para resolver o nome do utilizador autenticado.</param>
+    /// <param name="navigationService">Servico de navegacao principal da aplicacao.</param>
+    /// <param name="responsiveLayoutService">Servico responsivo usado para ajustar o nome apresentado.</param>
     public TopBarViewModel(
         AuthorizationService authorizationService,
         SessaoPersistidaService sessaoPersistidaService,
@@ -44,6 +55,11 @@ public partial class TopBarViewModel : ObservableObject
         OnPropertyChanged(nameof(DisplayUserName));
     }
 
+    /// <summary>
+    /// Carrega o nome do utilizador autenticado para a barra superior.
+    /// </summary>
+    /// <param name="forceRefresh">Indica se o carregamento deve ignorar o estado local atual.</param>
+    /// <returns>Tarefa assincrona da atualizacao da top bar.</returns>
     public async Task EnsureLoadedAsync(bool forceRefresh = false)
     {
         if (_isLoaded && !forceRefresh)
@@ -71,6 +87,9 @@ public partial class TopBarViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Limpa o estado visual da top bar para reutilizacao apos logout.
+    /// </summary>
     public void Reset()
     {
         _isLoaded = false;
@@ -83,6 +102,10 @@ public partial class TopBarViewModel : ObservableObject
         await _navigationService.GoToAsync("//Definicoes");
     }
 
+    /// <summary>
+    /// Abre o menu de navegacao quando o layout atual o permite.
+    /// </summary>
+    /// <returns>Tarefa concluida apos o pedido de abertura do menu.</returns>
     [RelayCommand]
     private Task OpenNavigationMenuAsync()
     {
@@ -90,6 +113,10 @@ public partial class TopBarViewModel : ObservableObject
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Termina a sessao atual e encaminha o utilizador para autenticacao.
+    /// </summary>
+    /// <returns>Tarefa assincrona do fluxo de logout.</returns>
     [RelayCommand]
     private async Task Logout()
     {

@@ -7,6 +7,9 @@ using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o catalogo de relatorios associados aos moldes.
+/// </summary>
 public partial class RelatoriosViewModel : ObservableObject
 {
     private const int MoldesPageSize = 100;
@@ -25,6 +28,9 @@ public partial class RelatoriosViewModel : ObservableObject
     private string _ultimoTermoCatalogo = string.Empty;
     private CancellationTokenSource? _catalogoReloadCts;
 
+    /// <summary>
+    /// Construtor do view model de relatorios.
+    /// </summary>
     public RelatoriosViewModel(
         MoldesService moldesService,
         EncomendasService encomendasService,
@@ -393,10 +399,23 @@ public partial class RelatoriosViewModel : ObservableObject
 
     private async Task AgendarRecargaCatalogoAsync(string searchTerm)
     {
-        _catalogoReloadCts?.Cancel();
-        _catalogoReloadCts?.Dispose();
         var cts = new CancellationTokenSource();
-        _catalogoReloadCts = cts;
+        var previousCts = Interlocked.Exchange(ref _catalogoReloadCts, cts);
+
+        if (previousCts is not null)
+        {
+            try
+            {
+                await previousCts.CancelAsync();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            finally
+            {
+                previousCts.Dispose();
+            }
+        }
 
         try
         {
@@ -411,9 +430,7 @@ public partial class RelatoriosViewModel : ObservableObject
         }
         finally
         {
-            if (ReferenceEquals(_catalogoReloadCts, cts))
-                _catalogoReloadCts = null;
-
+            Interlocked.CompareExchange(ref _catalogoReloadCts, null, cts);
             cts.Dispose();
         }
     }

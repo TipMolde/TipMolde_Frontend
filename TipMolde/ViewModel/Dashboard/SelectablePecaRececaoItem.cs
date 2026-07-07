@@ -3,8 +3,15 @@ using TipMolde.Models;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Representa uma peca selecionavel no fluxo de rececao de material.
+/// </summary>
 public partial class SelectablePecaRececaoItem : ObservableObject
 {
+    /// <summary>
+    /// Construtor do item selecionavel de rececao.
+    /// </summary>
+    /// <param name="peca">DTO de peca usado para inicializar o item de UI.</param>
     public SelectablePecaRececaoItem(PecaDto peca)
     {
         PecaId = peca.PecaId;

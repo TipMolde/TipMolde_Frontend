@@ -7,6 +7,9 @@ using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o registo operacional de producao para uma peca.
+/// </summary>
 public partial class RegistoProducaoViewModel : ObservableObject
 {
     private const string EstadoPendente = "PENDENTE";
@@ -28,6 +31,9 @@ public partial class RegistoProducaoViewModel : ObservableObject
     private TimeSpan _tempoTotalProducao;
     private string _tempoSessaoAtivaProducao = string.Empty;
 
+    /// <summary>
+    /// Construtor do view model de registo de producao.
+    /// </summary>
     public RegistoProducaoViewModel(
         RegistoProducaoViewModelDependencies dependencies,
         SessaoPersistidaService sessaoPersistidaService,

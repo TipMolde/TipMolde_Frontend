@@ -4,6 +4,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a visibilidade e a navegacao do menu lateral da aplicacao.
+/// </summary>
 public partial class SidebarViewModel : ObservableObject
 {
     private readonly AuthorizationService _authorizationService;
@@ -11,6 +14,12 @@ public partial class SidebarViewModel : ObservableObject
     private readonly INavigationService _navigationService;
     private bool _isLoaded;
 
+    /// <summary>
+    /// Construtor do view model da sidebar.
+    /// </summary>
+    /// <param name="authorizationService">Servico usado para validar acesso a cada area funcional.</param>
+    /// <param name="dialogService">Servico usado para apresentar erros de autorizacao.</param>
+    /// <param name="navigationService">Servico de navegacao principal da aplicacao.</param>
     public SidebarViewModel(
         AuthorizationService authorizationService,
         IDialogService dialogService,
@@ -51,6 +60,11 @@ public partial class SidebarViewModel : ObservableObject
     [ObservableProperty]
     private bool canViewRelatorios;
 
+    /// <summary>
+    /// Carrega as permissoes que controlam a visibilidade do menu lateral.
+    /// </summary>
+    /// <param name="forceRefresh">Indica se a autorizacao deve ser recarregada.</param>
+    /// <returns>Tarefa assincrona da atualizacao da sidebar.</returns>
     public async Task EnsureLoadedAsync(bool forceRefresh = false)
     {
         if (_isLoaded && !forceRefresh)
@@ -60,6 +74,10 @@ public partial class SidebarViewModel : ObservableObject
         _isLoaded = true;
     }
 
+    /// <summary>
+    /// Abre a area de dashboard.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao.</returns>
     [RelayCommand]
     private async Task OpenDashboardAsync()
     {
@@ -120,6 +138,10 @@ public partial class SidebarViewModel : ObservableObject
         await NavigateToFeatureAsync(AppFeature.Relatorios, "//Relatorios", "Relatorios");
     }
 
+    /// <summary>
+    /// Abre a area de definicoes.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao.</returns>
     [RelayCommand]
     private async Task OpenDefinicoesAsync()
     {

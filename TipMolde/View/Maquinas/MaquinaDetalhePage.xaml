@@ -222,6 +222,20 @@
                                 </BindableLayout.ItemTemplate>
                             </VerticalStackLayout>
 
+                            <shared:PaginationBarView Page="{Binding Page}"
+                                                      TotalPages="{Binding TotalPages}"
+                                                      PageInput="{Binding PageInput}"
+                                                      CanGoFirst="{Binding CanGoFirst}"
+                                                      CanGoPrevious="{Binding CanGoPrevious}"
+                                                      CanGoNext="{Binding CanGoNext}"
+                                                      CanGoLast="{Binding CanGoLast}"
+                                                      FirstPageCommand="{Binding FirstPageCommand}"
+                                                      PreviousPageCommand="{Binding PreviousPageCommand}"
+                                                      GoToPageCommand="{Binding GoToPageCommand}"
+                                                      NextPageCommand="{Binding NextPageCommand}"
+                                                      LastPageCommand="{Binding LastPageCommand}"
+                                                      IsVisible="{Binding HasPecasEncontradas}" />
+
                             <Button Text="Confirmar gestor e peca"
                                     Command="{Binding CompletarContextoCommand}"
                                     IsEnabled="{Binding CanCompletarContexto}"

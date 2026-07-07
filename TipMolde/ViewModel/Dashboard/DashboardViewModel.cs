@@ -5,6 +5,13 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o dashboard principal do frontend.
+/// </summary>
+/// <remarks>
+/// Consolida hero do molde mais urgente, resumo executivo, planeamento
+/// semanal e fluxo de rececao de material numa unica superficie de entrada.
+/// </remarks>
 public partial class DashboardViewModel : ObservableObject
 {
     private const string ValorNaoDefinido = "Nao definido";
@@ -23,6 +30,16 @@ public partial class DashboardViewModel : ObservableObject
     private bool _suppressSelectedMoldeRececaoChanged;
     private int _rececaoMaterialLoadVersion;
 
+    /// <summary>
+    /// Construtor do view model principal do dashboard.
+    /// </summary>
+    /// <param name="encomendasService">Servico para consultar encomendas e fila global.</param>
+    /// <param name="moldesService">Servico para consultar detalhe e dashboard dos moldes.</param>
+    /// <param name="pecasService">Servico para consultar e atualizar pecas pendentes.</param>
+    /// <param name="pedidosMaterialService">Servico para consultar pedidos de material.</param>
+    /// <param name="authorizationService">Servico para validar acesso a areas do dashboard.</param>
+    /// <param name="dialogService">Servico para apresentar dialogs ao utilizador.</param>
+    /// <param name="navigationService">Servico de navegacao principal da aplicacao.</param>
     public DashboardViewModel(
         EncomendasService encomendasService,
         MoldesService moldesService,

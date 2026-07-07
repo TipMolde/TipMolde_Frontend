@@ -7,12 +7,18 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a visualizacao paginada da fila global de trabalho.
+/// </summary>
 public partial class FilaTrabalhoViewModel : PaginatedViewModel
 {
     private readonly EncomendasService _encomendasService;
     private readonly MoldesService _moldesService;
     private readonly INavigationService _navigationService;
 
+    /// <summary>
+    /// Construtor do view model da fila de trabalho.
+    /// </summary>
     public FilaTrabalhoViewModel(
         EncomendasService encomendasService,
         MoldesService moldesService,

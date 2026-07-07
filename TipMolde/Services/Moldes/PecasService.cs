@@ -4,13 +4,30 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Encapsula os pedidos HTTP da feature de pecas no frontend.
+/// </summary>
+/// <remarks>
+/// Suporta criacao, importacao, pesquisa, atualizacao e operacoes de producao
+/// sobre pecas associadas aos moldes.
+/// </remarks>
 public sealed class PecasService : ApiServiceBase
 {
+    /// <summary>
+    /// Construtor do servico de pecas.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP configurado com o endpoint base da API.</param>
     public PecasService(HttpClient httpClient)
         : base(httpClient)
     {
     }
 
+    /// <summary>
+    /// Cria uma nova peca para um molde.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde pai.</param>
+    /// <param name="request">Dados funcionais da peca a criar.</param>
+    /// <returns>DTO da peca criada.</returns>
     public async Task<PecaDto?> CreateAsync(int moldeId, PecaUpsertRequest request)
     {
         var payload = BuildCreatePayload(moldeId, request);
@@ -20,6 +37,12 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PecaDto>(response);
     }
 
+    /// <summary>
+    /// Importa pecas para um molde a partir de um ficheiro CSV.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde que recebe as pecas.</param>
+    /// <param name="file">Ficheiro CSV selecionado pelo utilizador.</param>
+    /// <returns>Resultado detalhado da importacao CSV.</returns>
     public async Task<ImportPecasCsvResultDto?> ImportCsvAsync(int moldeId, FileResult file)
     {
         ArgumentNullException.ThrowIfNull(file);
@@ -37,6 +60,13 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<ImportPecasCsvResultDto>(response);
     }
 
+    /// <summary>
+    /// Lista pecas de um molde de forma paginada.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com pecas do molde ou nulo quando a API falha.</returns>
     public async Task<PagedResult<PecaDto>?> GetByMoldeIdAsync(int moldeId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}?page={page}&pageSize={pageSize}");
@@ -51,6 +81,14 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
+    /// <summary>
+    /// Lista pecas de um molde ainda sem pedido de material associado.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <param name="searchTerm">Termo opcional para filtrar a lista.</param>
+    /// <returns>Resultado paginado com pecas elegiveis ou nulo quando a API falha.</returns>
     public async Task<PagedResult<PecaDto>?> GetByMoldeIdWithoutPedidoMaterialAsync(int moldeId, int page, int pageSize, string? searchTerm = null)
     {
         var query = $"api/pecas/por-molde/{moldeId}/sem-pedido-material?page={page}&pageSize={pageSize}";
@@ -70,6 +108,13 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
+    /// <summary>
+    /// Lista pecas com material pendente de rececao para um molde.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com pecas pendentes de rececao ou nulo quando a API falha.</returns>
     public async Task<PagedResult<PecaDto>?> GetByMoldeIdPendingMaterialReceiptAsync(int moldeId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/por-molde/{moldeId}/pendentes-rececao-material?page={page}&pageSize={pageSize}");
@@ -84,6 +129,14 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PagedResult<PecaDto>>(response);
     }
 
+    /// <summary>
+    /// Lista a fila de trabalho de pecas para a area de producao.
+    /// </summary>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <param name="searchTerm">Termo opcional aplicado a pesquisa.</param>
+    /// <param name="searchMode">Modo funcional da pesquisa no backend.</param>
+    /// <returns>Resultado paginado com pecas disponiveis ou nulo quando a API nao devolve sucesso.</returns>
     public async Task<PagedResult<ProducaoPecaDisponivelItem>?> GetFilaTrabalhoAsync(
         int page,
         int pageSize,
@@ -114,6 +167,11 @@ public sealed class PecasService : ApiServiceBase
         }
     }
 
+    /// <summary>
+    /// Obtem uma peca pelo identificador.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca.</param>
+    /// <returns>DTO da peca ou nulo quando nao e encontrada.</returns>
     public async Task<PecaDto?> GetByIdAsync(int pecaId)
     {
         using var response = await HttpClient.GetAsync($"api/pecas/{pecaId}");
@@ -128,6 +186,12 @@ public sealed class PecasService : ApiServiceBase
         return await DeserializeAsync<PecaDto>(response);
     }
 
+    /// <summary>
+    /// Atualiza os dados editaveis de uma peca.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca a atualizar.</param>
+    /// <param name="request">Dados funcionais a aplicar na atualizacao.</param>
+    /// <returns>Tarefa assincrona da atualizacao.</returns>
     public async Task UpdateAsync(int pecaId, PecaUpsertRequest request)
     {
         var payload = BuildUpdatePayload(request);
@@ -135,12 +199,23 @@ public sealed class PecasService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar a peca {pecaId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Remove uma peca existente.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca a remover.</param>
+    /// <returns>Tarefa assincrona da remocao.</returns>
     public async Task DeleteAsync(int pecaId)
     {
         using var response = await HttpClient.DeleteAsync($"api/pecas/{pecaId}");
         await EnsureSuccessAsync(response, $"Nao foi possivel eliminar a peca {pecaId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Atualiza o estado de rececao de material de uma peca.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca.</param>
+    /// <param name="materialRecebido">Novo estado de material recebido.</param>
+    /// <returns>Tarefa assincrona da atualizacao.</returns>
     public async Task UpdateMaterialRecebidoAsync(int pecaId, bool materialRecebido)
     {
         var payload = new
@@ -157,6 +232,12 @@ public sealed class PecasService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar a rececao de material da peca {pecaId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Atualiza a proxima fase produtiva de uma peca.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca.</param>
+    /// <param name="proximaFaseId">Identificador da fase a definir como proxima etapa.</param>
+    /// <returns>Tarefa assincrona da atualizacao.</returns>
     public async Task UpdateProximaFaseAsync(int pecaId, int proximaFaseId)
     {
         var payload = new
@@ -210,6 +291,9 @@ public sealed class PecasService : ApiServiceBase
     }
 }
 
+/// <summary>
+/// Representa os dados editaveis usados para criar ou atualizar uma peca.
+/// </summary>
 public sealed record PecaUpsertRequest
 {
     public string Designacao { get; init; } = string.Empty;

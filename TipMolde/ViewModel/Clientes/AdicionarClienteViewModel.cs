@@ -5,11 +5,19 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o formulario de criacao de clientes.
+/// </summary>
 public partial class AdicionarClienteViewModel : ObservableObject
 {
     private readonly ClientesService _clientesService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de criacao de clientes.
+    /// </summary>
+    /// <param name="clientesService">Servico usado para persistir novos clientes.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
     public AdicionarClienteViewModel(
         ClientesService clientesService,
         IDialogService dialogService)
@@ -55,6 +63,10 @@ public partial class AdicionarClienteViewModel : ObservableObject
         await ShellNavigationService.GoBackAsync();
     }
 
+    /// <summary>
+    /// Valida o formulario e cria um novo cliente.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de criacao.</returns>
     [RelayCommand]
     private async Task Create()
     {

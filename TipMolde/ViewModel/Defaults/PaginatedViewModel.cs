@@ -3,6 +3,13 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace TipMolde.ViewModel.Defaults;
 
+/// <summary>
+/// Fornece comportamento reutilizavel de paginacao para view models de listagem.
+/// </summary>
+/// <remarks>
+/// Centraliza estado de carga, validacao de input de pagina e comandos
+/// de navegacao entre paginas para evitar duplicacao na UI.
+/// </remarks>
 public abstract partial class PaginatedViewModel : ObservableObject
 {
     private readonly AsyncRelayCommand _firstPageCommand;
@@ -11,6 +18,9 @@ public abstract partial class PaginatedViewModel : ObservableObject
     private readonly AsyncRelayCommand _nextPageCommand;
     private readonly AsyncRelayCommand _lastPageCommand;
 
+    /// <summary>
+    /// Construtor da base de paginacao.
+    /// </summary>
     protected PaginatedViewModel()
     {
         _firstPageCommand = new AsyncRelayCommand(FirstPageAsync, () => CanGoFirst);
@@ -53,8 +63,17 @@ public abstract partial class PaginatedViewModel : ObservableObject
     public IAsyncRelayCommand NextPageCommand => _nextPageCommand;
     public IAsyncRelayCommand LastPageCommand => _lastPageCommand;
 
+    /// <summary>
+    /// Carrega a pagina atual segundo a implementacao concreta do view model derivado.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento da pagina.</returns>
     protected abstract Task LoadPageAsync();
 
+    /// <summary>
+    /// Executa um carregamento paginado protegendo contra concorrencia de pedidos.
+    /// </summary>
+    /// <param name="loadAction">Acao assincrona que carrega os dados da pagina.</param>
+    /// <returns>Tarefa assincrona do carregamento protegido.</returns>
     protected async Task ExecutePagedLoadAsync(Func<Task> loadAction)
     {
         if (IsLoading)
@@ -72,6 +91,11 @@ public abstract partial class PaginatedViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Atualiza o estado de paginacao exposto pela UI.
+    /// </summary>
+    /// <param name="totalItems">Total de itens disponiveis no resultado.</param>
+    /// <param name="totalPages">Total de paginas calculado para o resultado atual.</param>
     protected void UpdatePagination(int totalItems, int totalPages)
     {
         TotalItems = totalItems;
@@ -81,12 +105,20 @@ public abstract partial class PaginatedViewModel : ObservableObject
             Page = TotalPages;
     }
 
+    /// <summary>
+    /// Regressa a primeira pagina e recarrega os dados.
+    /// </summary>
+    /// <returns>Tarefa assincrona do recarregamento.</returns>
     protected async Task ResetToFirstPageAndReloadAsync()
     {
         Page = 1;
         await LoadPageAsync();
     }
 
+    /// <summary>
+    /// Recarrega a pagina atual mantendo o contexto de paginacao.
+    /// </summary>
+    /// <returns>Tarefa assincrona do recarregamento.</returns>
     protected async Task ReloadCurrentPageAsync()
     {
         await LoadPageAsync();

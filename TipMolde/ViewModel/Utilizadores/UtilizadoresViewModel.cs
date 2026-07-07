@@ -6,11 +6,19 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a listagem e as operacoes administrativas sobre utilizadores.
+/// </summary>
 public partial class UtilizadoresViewModel : SearchableViewModel
 {
     private readonly UtilizadoresService _utilizadoresService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de utilizadores.
+    /// </summary>
+    /// <param name="utilizadoresService">Servico usado para consultar e alterar utilizadores.</param>
+    /// <param name="dialogService">Servico usado para dialogs e feedback da UI.</param>
     public UtilizadoresViewModel(
         UtilizadoresService utilizadoresService,
         IDialogService dialogService)
@@ -21,6 +29,10 @@ public partial class UtilizadoresViewModel : SearchableViewModel
 
     public ObservableCollection<UtilizadorDto> Utilizadores { get; } = new();
 
+    /// <summary>
+    /// Carrega a lista paginada de utilizadores.
+    /// </summary>
+    /// <returns>Tarefa assincrona do carregamento da lista.</returns>
     [RelayCommand]
     public async Task LoadUtilizadoresAsync()
     {
@@ -66,12 +78,21 @@ public partial class UtilizadoresViewModel : SearchableViewModel
         });
     }
 
+    /// <summary>
+    /// Abre o formulario de criacao de utilizador.
+    /// </summary>
+    /// <returns>Tarefa assincrona da navegacao para criacao.</returns>
     [RelayCommand]
     private static async Task AbrirAdicionarUtilizadorAsync()
     {
         await Shell.Current.GoToAsync("AdicionarUtilizadorPage");
     }
 
+    /// <summary>
+    /// Permite alterar a role do utilizador selecionado.
+    /// </summary>
+    /// <param name="utilizador">Utilizador alvo da alteracao.</param>
+    /// <returns>Tarefa assincrona da operacao de alteracao de cargo.</returns>
     [RelayCommand]
     private async Task EditarCargoAsync(UtilizadorDto? utilizador)
     {
@@ -108,6 +129,11 @@ public partial class UtilizadoresViewModel : SearchableViewModel
         }
     }
 
+    /// <summary>
+    /// Permite repor a password do utilizador selecionado.
+    /// </summary>
+    /// <param name="utilizador">Utilizador alvo da reposicao.</param>
+    /// <returns>Tarefa assincrona da operacao de reposicao.</returns>
     [RelayCommand]
     private async Task ReporPasswordAsync(UtilizadorDto? utilizador)
     {
@@ -156,6 +182,11 @@ public partial class UtilizadoresViewModel : SearchableViewModel
         }
     }
 
+    /// <summary>
+    /// Abre o menu de opcoes administrativas para um utilizador.
+    /// </summary>
+    /// <param name="utilizador">Utilizador alvo das opcoes.</param>
+    /// <returns>Tarefa assincrona da operacao administrativa.</returns>
     [RelayCommand]
     private async Task AbrirOpcoesAsync(UtilizadorDto? utilizador)
     {

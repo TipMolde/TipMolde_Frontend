@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a fila de moldes prontos para desenho e a insercao inicial de pecas.
+/// </summary>
 public partial class DesenhoViewModel : SearchableViewModel
 {
     private readonly EncomendasService _encomendasService;
@@ -20,6 +23,13 @@ public partial class DesenhoViewModel : SearchableViewModel
     private readonly AsyncRelayCommand _pesquisarCommand;
     private readonly AsyncRelayCommand _limparPesquisaCommand;
 
+    /// <summary>
+    /// Construtor do view model da pagina de desenho.
+    /// </summary>
+    /// <param name="encomendasService">Servico usado para obter encomendas confirmadas com moldes elegiveis.</param>
+    /// <param name="pecasService">Servico usado para consultar e importar pecas.</param>
+    /// <param name="dialogService">Servico usado para apresentar selecoes e mensagens de feedback.</param>
+    /// <param name="filePickerService">Servico usado para escolher ficheiros CSV de importacao.</param>
     public DesenhoViewModel(
         EncomendasService encomendasService,
         PecasService pecasService,
@@ -53,6 +63,10 @@ public partial class DesenhoViewModel : SearchableViewModel
         ? "Nao existem moldes com projeto concluido e revisao aprovada para desenho."
         : "Nenhum molde corresponde aos filtros atuais.";
 
+    /// <summary>
+    /// Carrega a lista paginada de moldes com projeto concluido e revisao aprovada.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync()
     {
         ErrorMessage = string.Empty;

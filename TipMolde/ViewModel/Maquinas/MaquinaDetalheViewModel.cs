@@ -3,11 +3,16 @@ using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using TipMolde.Models;
 using TipMolde.Services;
+using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
-public partial class MaquinaDetalheViewModel : ObservableObject
+/// <summary>
+/// Apresenta o detalhe operacional de uma maquina e permite completar contexto industrial pendente.
+/// </summary>
+public partial class MaquinaDetalheViewModel : PaginatedViewModel
 {
+    private const int PecasPageSize = 5;
     private readonly MaquinasService _maquinasService;
     private readonly IndustrialProducaoService _industrialProducaoService;
     private readonly PecasService _pecasService;
@@ -15,6 +20,15 @@ public partial class MaquinaDetalheViewModel : ObservableObject
     private readonly UtilizadoresService _utilizadoresService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de detalhe de maquina.
+    /// </summary>
+    /// <param name="maquinasService">Servico usado para carregar os dados base da maquina.</param>
+    /// <param name="industrialProducaoService">Servico usado para consultar e completar eventos industriais.</param>
+    /// <param name="pecasService">Servico usado para pesquisar pecas elegiveis para associacao.</param>
+    /// <param name="sessaoPersistidaService">Servico usado para identificar a sessao atual.</param>
+    /// <param name="utilizadoresService">Servico usado para resolver o utilizador autenticado.</param>
+    /// <param name="dialogService">Servico usado para apresentar mensagens de sucesso ou erro.</param>
     public MaquinaDetalheViewModel(
         MaquinasService maquinasService,
         IndustrialProducaoService industrialProducaoService,
@@ -29,6 +43,16 @@ public partial class MaquinaDetalheViewModel : ObservableObject
         _sessaoPersistidaService = sessaoPersistidaService;
         _utilizadoresService = utilizadoresService;
         _dialogService = dialogService;
+        PageSize = PecasPageSize;
+
+        PropertyChanged += (_, args) =>
+        {
+            if (!string.Equals(args.PropertyName, nameof(IsLoading), StringComparison.Ordinal))
+                return;
+
+            OnPropertyChanged(nameof(CanCompletarContexto));
+            CompletarContextoCommand.NotifyCanExecuteChanged();
+        };
     }
 
     public ObservableCollection<ProducaoPecaDisponivelItem> PecasEncontradas { get; } = new();
@@ -52,21 +76,14 @@ public partial class MaquinaDetalheViewModel : ObservableObject
     private string pesquisaPeca = string.Empty;
 
     [ObservableProperty]
-    private bool isLoading;
-
-    [ObservableProperty]
     private bool isSearchingPecas;
 
     [ObservableProperty]
     private bool isSaving;
 
     [ObservableProperty]
-    private string errorMessage = string.Empty;
-
-    [ObservableProperty]
     private string infoMessage = string.Empty;
 
-    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
     public bool HasInfo => !string.IsNullOrWhiteSpace(InfoMessage);
     public bool HasMaquina => Maquina is not null;
     public bool HasEventoPendente => EventoPendente is not null;
@@ -131,21 +148,10 @@ public partial class MaquinaDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(UtilizadorAtualDisplay));
     }
 
-    partial void OnIsLoadingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanCompletarContexto));
-        CompletarContextoCommand.NotifyCanExecuteChanged();
-    }
-
     partial void OnIsSavingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCompletarContexto));
         CompletarContextoCommand.NotifyCanExecuteChanged();
-    }
-
-    partial void OnErrorMessageChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasError));
     }
 
     partial void OnInfoMessageChanged(string value)
@@ -153,6 +159,11 @@ public partial class MaquinaDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(HasInfo));
     }
 
+    /// <summary>
+    /// Carrega a maquina, o evento pendente e as pecas disponiveis para completar contexto.
+    /// </summary>
+    /// <param name="maquinaId">Identificador da maquina a apresentar.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(int maquinaId)
     {
         IsLoading = true;
@@ -166,7 +177,8 @@ public partial class MaquinaDetalheViewModel : ObservableObject
 
             await LoadUtilizadorAtualAsync();
             await LoadEventoPendenteAsync(maquinaId);
-            await PesquisarPecasAsync();
+            Page = 1;
+            await LoadPecasPageCoreAsync();
         }
         catch (Exception ex)
         {
@@ -193,33 +205,16 @@ public partial class MaquinaDetalheViewModel : ObservableObject
         await LoadAsync(Maquina.Maquina_id);
     }
 
+    protected override async Task LoadPageAsync()
+    {
+        await ExecutePagedLoadAsync(LoadPecasPageCoreAsync);
+    }
+
     [RelayCommand]
     private async Task PesquisarPecasAsync()
     {
-        IsSearchingPecas = true;
-        ErrorMessage = string.Empty;
-
-        try
-        {
-            var pagina = await _pecasService.GetFilaTrabalhoAsync(1, 20, PesquisaPeca, "Peca");
-            PecasEncontradas.Clear();
-
-            if (pagina?.Items is not null)
-            {
-                foreach (var peca in pagina.Items)
-                    PecasEncontradas.Add(peca);
-            }
-
-            OnPropertyChanged(nameof(HasPecasEncontradas));
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = ex.Message;
-        }
-        finally
-        {
-            IsSearchingPecas = false;
-        }
+        Page = 1;
+        await LoadPageAsync();
     }
 
     [RelayCommand]
@@ -294,5 +289,45 @@ public partial class MaquinaDetalheViewModel : ObservableObject
 
         if (EventoPendente is null)
             InfoMessage = "Neste momento nao existe nenhum RUNNING pendente para esta maquina.";
+    }
+
+    private async Task LoadPecasPageCoreAsync()
+    {
+        IsSearchingPecas = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var pagina = await _pecasService.GetFilaTrabalhoAsync(Page, PageSize, PesquisaPeca, "Peca");
+
+            PecasEncontradas.Clear();
+
+            if (pagina?.Items is not null)
+            {
+                foreach (var peca in pagina.Items)
+                    PecasEncontradas.Add(peca);
+            }
+
+            var totalItems = pagina?.TotalItems ?? 0;
+            var totalPages = pagina?.TotalPages ?? 1;
+            UpdatePagination(totalItems, totalPages);
+
+            if (SelectedPeca is not null && !PecasEncontradas.Any(peca => peca.PecaId == SelectedPeca.PecaId))
+                SelectedPeca = null;
+
+            OnPropertyChanged(nameof(HasPecasEncontradas));
+        }
+        catch (Exception ex)
+        {
+            PecasEncontradas.Clear();
+            UpdatePagination(0, 1);
+            SelectedPeca = null;
+            OnPropertyChanged(nameof(HasPecasEncontradas));
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSearchingPecas = false;
+        }
     }
 }

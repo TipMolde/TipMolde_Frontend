@@ -3,13 +3,28 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Encapsula os pedidos HTTP de registo temporal em projetos.
+/// </summary>
 public sealed class RegistosTempoProjetoService : ApiServiceBase
 {
+    /// <summary>
+    /// Construtor do servico de registos de tempo de projeto.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP configurado com o endpoint base da API.</param>
     public RegistosTempoProjetoService(HttpClient httpClient)
         : base(httpClient)
     {
     }
 
+    /// <summary>
+    /// Lista o historico temporal de um projeto para um autor.
+    /// </summary>
+    /// <param name="projetoId">Identificador do projeto.</param>
+    /// <param name="autorId">Identificador do autor.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com historico temporal ou nulo quando a API nao devolve sucesso.</returns>
     public async Task<PagedResult<RegistoTempoProjetoDto>?> GetHistoricoAsync(int projetoId, int autorId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync(
@@ -21,6 +36,13 @@ public sealed class RegistosTempoProjetoService : ApiServiceBase
         return await DeserializeAsync<PagedResult<RegistoTempoProjetoDto>>(response);
     }
 
+    /// <summary>
+    /// Cria um novo registo temporal para um projeto.
+    /// </summary>
+    /// <param name="projetoId">Identificador do projeto.</param>
+    /// <param name="autorId">Identificador do autor do registo.</param>
+    /// <param name="estadoTempo">Estado temporal a registar.</param>
+    /// <returns>DTO do registo criado.</returns>
     public async Task<RegistoTempoProjetoDto?> CreateAsync(int projetoId, int autorId, string estadoTempo)
     {
         var payload = new

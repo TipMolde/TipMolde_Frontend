@@ -4,13 +4,30 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Encapsula os pedidos HTTP e operacoes locais da feature de revisoes.
+/// </summary>
+/// <remarks>
+/// Suporta criacao de revisoes, resposta do cliente com ou sem anexo
+/// e descarga de anexos para armazenamento local.
+/// </remarks>
 public sealed class RevisoesService : ApiServiceBase
 {
+    /// <summary>
+    /// Construtor do servico de revisoes.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP configurado com o endpoint base da API.</param>
     public RevisoesService(HttpClient httpClient)
         : base(httpClient)
     {
     }
 
+    /// <summary>
+    /// Cria uma nova revisao para um projeto.
+    /// </summary>
+    /// <param name="projetoId">Identificador do projeto.</param>
+    /// <param name="descricaoAlteracoes">Descricao das alteracoes submetidas a revisao.</param>
+    /// <returns>DTO da revisao criada.</returns>
     public async Task<RevisaoDto?> CreateAsync(int projetoId, string descricaoAlteracoes)
     {
         var payload = new
@@ -25,6 +42,14 @@ public sealed class RevisoesService : ApiServiceBase
         return await DeserializeAsync<RevisaoDto>(response);
     }
 
+    /// <summary>
+    /// Regista a resposta textual do cliente a uma revisao.
+    /// </summary>
+    /// <param name="revisaoId">Identificador da revisao.</param>
+    /// <param name="aprovado">Indica se a revisao foi aprovada.</param>
+    /// <param name="feedbackTexto">Feedback textual opcional.</param>
+    /// <param name="feedbackImagemPath">Caminho opcional de imagem associado ao feedback.</param>
+    /// <returns>Tarefa assincrona da atualizacao da resposta.</returns>
     public async Task UpdateRespostaClienteAsync(
         int revisaoId,
         bool aprovado,
@@ -42,6 +67,14 @@ public sealed class RevisoesService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel registar a resposta da revisao {revisaoId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Regista a resposta do cliente a uma revisao com anexo local.
+    /// </summary>
+    /// <param name="revisaoId">Identificador da revisao.</param>
+    /// <param name="aprovado">Indica se a revisao foi aprovada; deve ser false quando existe anexo.</param>
+    /// <param name="feedbackTexto">Feedback textual opcional.</param>
+    /// <param name="attachmentPath">Caminho absoluto do anexo selecionado.</param>
+    /// <returns>Tarefa assincrona da atualizacao da resposta.</returns>
     public async Task UpdateRespostaClienteComAnexoAsync(
         int revisaoId,
         bool aprovado,
@@ -72,6 +105,11 @@ public sealed class RevisoesService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel registar a resposta da revisao {revisaoId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Descarrega um anexo de revisao para armazenamento local.
+    /// </summary>
+    /// <param name="attachmentPath">Caminho relativo ou absoluto do anexo no backend.</param>
+    /// <returns>Caminho local do ficheiro descarregado.</returns>
     public async Task<string> DownloadAnexoAsync(string attachmentPath)
     {
         if (string.IsNullOrWhiteSpace(attachmentPath))

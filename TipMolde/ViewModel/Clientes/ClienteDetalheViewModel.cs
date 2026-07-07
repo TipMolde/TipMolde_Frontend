@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Apresenta o detalhe de um cliente e o historico paginado das encomendas associadas.
+/// </summary>
 public partial class ClienteDetalheViewModel : PaginatedViewModel
 {
     private const int EstadoTodasIndex = 0;
@@ -19,6 +22,10 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
     private readonly List<EncomendaResumoDto> _todasEncomendas = [];
     private string _appliedSearchTerm = string.Empty;
 
+    /// <summary>
+    /// Construtor do view model de detalhe de cliente.
+    /// </summary>
+    /// <param name="clientesService">Servico usado para carregar cliente e encomendas associadas.</param>
     public ClienteDetalheViewModel(ClientesService clientesService)
     {
         _clientesService = clientesService;
@@ -113,6 +120,9 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(TelefoneDisplay));
     }
 
+    /// <summary>
+    /// Garante que o filtro de estado arranca com um valor valido.
+    /// </summary>
     public void EnsureDefaultEstadoFilter()
     {
         if (SelectedEstadoFilterIndex >= 0)
@@ -121,6 +131,11 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
         SelectedEstadoFilterIndex = EstadoTodasIndex;
     }
 
+    /// <summary>
+    /// Carrega o detalhe do cliente e inicializa a listagem de encomendas.
+    /// </summary>
+    /// <param name="id">Identificador do cliente a carregar.</param>
+    /// <returns>Tarefa assincrona do carregamento inicial.</returns>
     public async Task LoadAsync(int id)
     {
         Cliente_id = id;
@@ -160,6 +175,10 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
         }
     }
 
+    /// <summary>
+    /// Aplica a pesquisa atual sobre as encomendas do cliente.
+    /// </summary>
+    /// <returns>Tarefa assincrona do recarregamento da lista.</returns>
     [RelayCommand]
     private async Task PesquisarAsync()
     {
@@ -167,6 +186,10 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
         await ResetToFirstPageAndReloadAsync();
     }
 
+    /// <summary>
+    /// Limpa a pesquisa atual e recarrega a lista completa.
+    /// </summary>
+    /// <returns>Tarefa assincrona do recarregamento da lista.</returns>
     [RelayCommand]
     private async Task LimparPesquisaAsync()
     {
@@ -184,6 +207,11 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
         await ShellNavigationService.GoBackAsync();
     }
 
+    /// <summary>
+    /// Abre o detalhe da encomenda selecionada.
+    /// </summary>
+    /// <param name="encomenda">Encomenda selecionada pelo utilizador.</param>
+    /// <returns>Tarefa assincrona da navegacao para o detalhe.</returns>
     [RelayCommand]
     private async Task AbrirEncomendaAsync(EncomendaResumoDto? encomenda)
     {

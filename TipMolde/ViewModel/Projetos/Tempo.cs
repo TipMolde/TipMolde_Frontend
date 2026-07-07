@@ -4,8 +4,15 @@ using TipMolde.ViewModel.Helpers;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o fluxo de registo temporal do detalhe de projeto.
+/// </summary>
 public partial class ProjetoDetalheViewModel
 {
+    /// <summary>
+    /// Regista um novo estado temporal para o projeto atual.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de registo temporal.</returns>
     [RelayCommand]
     private async Task RegistarTempoAsync()
     {

@@ -6,6 +6,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o formulario de criacao manual de pecas associadas a um molde.
+/// </summary>
 public partial class AdicionarPecaViewModel : ObservableObject
 {
     private readonly PecasService _pecasService;
@@ -14,6 +17,13 @@ public partial class AdicionarPecaViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de criacao de pecas.
+    /// </summary>
+    /// <param name="pecasService">Servico usado para persistir a nova peca.</param>
+    /// <param name="fasesProducaoService">Servico usado para carregar fases de producao selecionaveis.</param>
+    /// <param name="authorizationService">Servico usado para validar permissoes de gestao de pecas.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
     public AdicionarPecaViewModel(
         PecasService pecasService,
         FasesProducaoService fasesProducaoService,
@@ -97,6 +107,12 @@ public partial class AdicionarPecaViewModel : ObservableObject
 
     partial void OnIsSavingChanged(bool value) => NotifyCanCreateStateChanged();
 
+    /// <summary>
+    /// Inicializa o formulario com o molde de destino e carrega o contexto auxiliar.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde onde a peca sera criada.</param>
+    /// <param name="numeroMolde">Numero funcional do molde.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(int moldeId, string? numeroMolde)
     {
         await EnsurePermissionsLoadedAsync();

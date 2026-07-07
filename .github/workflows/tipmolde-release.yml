@@ -40,14 +40,18 @@ jobs:
 
       - name: Decode PFX certificate
         shell: pwsh
+        env:
+          WINDOWS_PFX_BASE64: ${{ secrets.WINDOWS_PFX_BASE64 }}
         run: |
           $certPath = Join-Path $env:GITHUB_WORKSPACE 'windows-cert.pfx'
-          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String("${{ secrets.WINDOWS_PFX_BASE64 }}"))
+          [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WINDOWS_PFX_BASE64))
 
       - name: Import signing certificate
         shell: pwsh
+        env:
+          WINDOWS_PFX_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
         run: |
-          certutil -user -q -p "${{ secrets.WINDOWS_PFX_PASSWORD }}" -importpfx windows-cert.pfx NoRoot
+          certutil -user -q -p "$env:WINDOWS_PFX_PASSWORD" -importpfx windows-cert.pfx NoRoot
 
       - name: Publish Windows package
         shell: pwsh
@@ -101,12 +105,16 @@ jobs:
 
       - name: Decode keystore
         shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           $keystorePath = Join-Path $env:GITHUB_WORKSPACE 'android.keystore'
-          [IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String("${{ secrets.ANDROID_KEYSTORE_BASE64 }}"))
+          [IO.File]::WriteAllBytes($keystorePath, [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
 
       - name: Build Android package
         shell: pwsh
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           dotnet build "$env:PROJECT_PATH" `
             -c "$env:BUILD_CONFIGURATION" `
@@ -114,8 +122,8 @@ jobs:
             -p:AndroidKeyStore=true `
             -p:AndroidSigningKeyStore="$env:GITHUB_WORKSPACE/android.keystore" `
             -p:AndroidSigningKeyAlias="$env:ANDROID_KEY_ALIAS" `
-            -p:AndroidSigningKeyPass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" `
-            -p:AndroidSigningStorePass="${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" `
+            -p:AndroidSigningKeyPass="$env:ANDROID_KEYSTORE_PASSWORD" `
+            -p:AndroidSigningStorePass="$env:ANDROID_KEYSTORE_PASSWORD" `
             -p:AndroidPackageFormats=apk `
             --no-restore
 

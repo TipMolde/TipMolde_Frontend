@@ -6,6 +6,10 @@ namespace TipMolde.Services;
 /// Centraliza o calculo temporario e o rebalanceamento das prioridades globais dos moldes
 /// com base nas encomendas ainda em aberto.
 /// </summary>
+/// <remarks>
+/// Mantem o mesmo criterio de ordenacao entre preview no frontend e
+/// persistencia final no backend para evitar divergencias operacionais.
+/// </remarks>
 public sealed class GlobalMoldePriorityService
 {
     private readonly EncomendasService _encomendasService;
@@ -13,6 +17,7 @@ public sealed class GlobalMoldePriorityService
     /// <summary>
     /// Construtor do servico de prioridades globais dos moldes.
     /// </summary>
+    /// <param name="encomendasService">Servico usado para consultar e atualizar associacoes encomenda-molde.</param>
     public GlobalMoldePriorityService(EncomendasService encomendasService)
     {
         _encomendasService = encomendasService;
@@ -22,6 +27,8 @@ public sealed class GlobalMoldePriorityService
     /// Calcula prioridades estimadas para moldes ainda nao gravados, misturando-os com os moldes
     /// das encomendas abertas para manter a mesma ordenacao global.
     /// </summary>
+    /// <param name="drafts">Colecao de moldes ainda em rascunho a integrar na ordenacao.</param>
+    /// <returns>Dicionario indexado pela chave de rascunho com a prioridade calculada.</returns>
     public async Task<IReadOnlyDictionary<string, int>> CalculateDraftPrioritiesAsync(
         IEnumerable<GlobalMoldeDraftPriorityItem> drafts)
     {
@@ -46,6 +53,7 @@ public sealed class GlobalMoldePriorityService
     /// <summary>
     /// Reaplica as prioridades globais aos moldes existentes nas encomendas abertas.
     /// </summary>
+    /// <returns>Tarefa assincrona do rebalanceamento global.</returns>
     public async Task RebalanceAsync()
     {
         var existingAssociations = await GetOpenEncomendaMoldesAsync();
@@ -68,6 +76,7 @@ public sealed class GlobalMoldePriorityService
     /// <summary>
     /// Carrega todos os moldes associados a encomendas nao concluidas nem canceladas.
     /// </summary>
+    /// <returns>Colecao consolidada de moldes abertos usada no calculo de prioridade.</returns>
     public async Task<IReadOnlyList<OpenEncomendaMoldePriorityItem>> GetOpenEncomendaMoldesAsync()
     {
         var encomendas = await GetAllOpenEncomendasAsync();

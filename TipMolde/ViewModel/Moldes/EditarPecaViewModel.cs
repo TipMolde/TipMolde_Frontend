@@ -6,6 +6,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a edicao de uma peca existente associada a um molde.
+/// </summary>
 public partial class EditarPecaViewModel : ObservableObject
 {
     private readonly PecasService _pecasService;
@@ -14,6 +17,13 @@ public partial class EditarPecaViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de edicao de pecas.
+    /// </summary>
+    /// <param name="pecasService">Servico usado para carregar e guardar a peca.</param>
+    /// <param name="fasesProducaoService">Servico usado para carregar fases de producao disponiveis.</param>
+    /// <param name="authorizationService">Servico usado para validar permissoes de gestao de pecas.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
     public EditarPecaViewModel(
         PecasService pecasService,
         FasesProducaoService fasesProducaoService,
@@ -133,6 +143,12 @@ public partial class EditarPecaViewModel : ObservableObject
         SaveCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// Carrega os dados da peca e prepara o formulario de edicao.
+    /// </summary>
+    /// <param name="pecaId">Identificador da peca a editar.</param>
+    /// <param name="numeroMolde">Numero funcional do molde associado.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(int pecaId, string? numeroMolde)
     {
         await EnsurePermissionsLoadedAsync();

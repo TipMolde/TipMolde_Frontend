@@ -81,6 +81,10 @@ namespace TipMolde.Services
         /// <summary>
         /// Cria um resultado de sucesso.
         /// </summary>
+        /// <param name="baseUrl">URL base usada na validacao.</param>
+        /// <param name="message">Mensagem resumida do resultado.</param>
+        /// <param name="timestampUtc">Timestamp devolvido pela API quando disponivel.</param>
+        /// <returns>Resultado positivo da verificacao de conectividade.</returns>
         public static ApiConnectionResult Success(
             string baseUrl,
             string message,
@@ -90,6 +94,9 @@ namespace TipMolde.Services
         /// <summary>
         /// Cria um resultado de falha.
         /// </summary>
+        /// <param name="baseUrl">URL base usada na tentativa.</param>
+        /// <param name="message">Mensagem resumida do erro encontrado.</param>
+        /// <returns>Resultado negativo da verificacao de conectividade.</returns>
         public static ApiConnectionResult Failure(
             string baseUrl,
             string message) =>

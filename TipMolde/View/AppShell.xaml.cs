@@ -3,6 +3,13 @@ using TipMolde.Services;
 
 namespace TipMolde.View;
 
+/// <summary>
+/// Define a shell principal e as regras de navegacao autenticada do frontend.
+/// </summary>
+/// <remarks>
+/// Centraliza o registo de rotas, a composicao do flyout consoante permissao
+/// e a protecao de navegacao por feature antes de abrir cada area funcional.
+/// </remarks>
 public partial class AppShell : Shell
 {
     private static readonly IReadOnlyDictionary<string, AppFeature> RootRoutePermissions =
@@ -26,6 +33,11 @@ public partial class AppShell : Shell
     private readonly ResponsiveLayoutService _responsiveLayoutService;
     private bool _isNavigationRefreshRunning;
 
+    /// <summary>
+    /// Construtor da shell principal da aplicacao.
+    /// </summary>
+    /// <param name="authorizationService">Servico que valida as permissoes da role atual.</param>
+    /// <param name="responsiveLayoutService">Servico que determina o comportamento adaptativo da shell.</param>
     public AppShell(
         AuthorizationService authorizationService,
         ResponsiveLayoutService responsiveLayoutService)
@@ -65,6 +77,10 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(RegistoProducaoPage), typeof(RegistoProducaoPage));
     }
 
+    /// <summary>
+    /// Recalcula a visibilidade das entradas de navegacao conforme a role atual.
+    /// </summary>
+    /// <returns>Tarefa assincrona da atualizacao do menu.</returns>
     public async Task RefreshNavigationAsync()
     {
         if (_isNavigationRefreshRunning)
@@ -92,6 +108,9 @@ public partial class AppShell : Shell
         }
     }
 
+    /// <summary>
+    /// Mostra apenas a area de autenticacao enquanto nao existe sessao valida.
+    /// </summary>
     public void ShowAuthenticationOnly()
     {
         AutenticacaoShellItem.FlyoutItemIsVisible = true;
@@ -108,11 +127,17 @@ public partial class AppShell : Shell
         DefinicoesShellItem.FlyoutItemIsVisible = false;
     }
 
+    /// <summary>
+    /// Mostra apenas a rota de aterragem autenticada antes de expandir o restante menu.
+    /// </summary>
     public void ShowAuthenticatedLandingOnly()
     {
         ShowDashboardRouteOnly();
     }
 
+    /// <summary>
+    /// Mostra apenas o dashboard como destino autenticado inicial.
+    /// </summary>
     public void ShowDashboardRouteOnly()
     {
         AutenticacaoShellItem.FlyoutItemIsVisible = true;
@@ -129,6 +154,9 @@ public partial class AppShell : Shell
         DefinicoesShellItem.FlyoutItemIsVisible = false;
     }
 
+    /// <summary>
+    /// Esconde a entrada de autenticacao apos o utilizador entrar na area autenticada.
+    /// </summary>
     public void HideAuthenticationItem()
     {
         AutenticacaoShellItem.FlyoutItemIsVisible = false;

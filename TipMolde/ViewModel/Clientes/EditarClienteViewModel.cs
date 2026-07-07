@@ -5,11 +5,19 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o formulario de edicao de clientes.
+/// </summary>
 public partial class EditarClienteViewModel : ObservableObject
 {
     private readonly ClientesService _clientesService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de edicao de clientes.
+    /// </summary>
+    /// <param name="clientesService">Servico usado para carregar e atualizar clientes.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
     public EditarClienteViewModel(
         ClientesService clientesService,
         IDialogService dialogService)
@@ -55,6 +63,11 @@ public partial class EditarClienteViewModel : ObservableObject
         OnPropertyChanged(nameof(HasError));
     }
 
+    /// <summary>
+    /// Carrega os dados do cliente a editar.
+    /// </summary>
+    /// <param name="clienteId">Identificador do cliente.</param>
+    /// <returns>Tarefa assincrona do carregamento inicial.</returns>
     public async Task LoadAsync(int clienteId)
     {
         Cliente_id = clienteId;
@@ -90,6 +103,10 @@ public partial class EditarClienteViewModel : ObservableObject
         await ShellNavigationService.GoBackAsync();
     }
 
+    /// <summary>
+    /// Valida o formulario e guarda as alteracoes do cliente.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de gravacao.</returns>
     [RelayCommand]
     private async Task Save()
     {

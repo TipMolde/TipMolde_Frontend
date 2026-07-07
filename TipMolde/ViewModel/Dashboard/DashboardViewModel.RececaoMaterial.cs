@@ -6,6 +6,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o fluxo de rececao de material dentro do dashboard.
+/// </summary>
 public partial class DashboardViewModel
 {
     partial void OnCanUseRececaoMaterialChanged(bool value)
@@ -50,6 +53,10 @@ public partial class DashboardViewModel
         _ = LoadPecasPendentesRececaoAsync(value.MoldeId);
     }
 
+    /// <summary>
+    /// Regista a chegada de material para as pecas selecionadas do molde atual.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de rececao.</returns>
     [RelayCommand(CanExecute = nameof(CanRegistarChegadaMaterial))]
     private async Task RegistarChegadaMaterialAsync()
     {

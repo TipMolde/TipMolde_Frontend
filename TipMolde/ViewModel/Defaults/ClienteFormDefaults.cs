@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace TipMolde.ViewModel.Defaults;
 
+/// <summary>
+/// Centraliza normalizacao e validacao dos formularios de cliente.
+/// </summary>
 public static class ClienteFormDefaults
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
@@ -12,11 +15,21 @@ public static class ClienteFormDefaults
     private static readonly Regex TelefoneRegex = new(@"^\+?\d+$", RegexOptions.Compiled, RegexTimeout);
     private static readonly Regex PaisCaracteresRegex = new(@"^[\p{L}]+(?:[ '\-][\p{L}]+)*$", RegexOptions.Compiled, RegexTimeout);
 
+    /// <summary>
+    /// Normaliza um campo opcional removendo espacos redundantes.
+    /// </summary>
+    /// <param name="value">Valor recebido do formulario.</param>
+    /// <returns>Valor limpo ou nulo quando o input vem vazio.</returns>
     public static string? NormalizeOptional(string value)
     {
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    /// <summary>
+    /// Valida o nome introduzido para o cliente.
+    /// </summary>
+    /// <param name="nome">Nome a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateNome(string nome)
     {
         return nome.Length < 3 || nome.Length > 100
@@ -24,6 +37,11 @@ public static class ClienteFormDefaults
             : null;
     }
 
+    /// <summary>
+    /// Valida o NIF introduzido para o cliente.
+    /// </summary>
+    /// <param name="nif">NIF a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateNif(string nif)
     {
         if (nif.Length != 9 || !nif.All(char.IsDigit))
@@ -32,6 +50,11 @@ public static class ClienteFormDefaults
         return null;
     }
 
+    /// <summary>
+    /// Valida a sigla funcional do cliente.
+    /// </summary>
+    /// <param name="sigla">Sigla a validar.</param>
+    /// <returns>Mensagem de erro quando invalida; nulo quando o valor e aceite.</returns>
     public static string? ValidateSigla(string sigla)
     {
         return sigla.Length < 2 || sigla.Length > 10
@@ -39,6 +62,11 @@ public static class ClienteFormDefaults
             : null;
     }
 
+    /// <summary>
+    /// Valida o pais introduzido para o cliente.
+    /// </summary>
+    /// <param name="pais">Pais a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidatePais(string? pais)
     {
         if (pais is null)
@@ -57,6 +85,11 @@ public static class ClienteFormDefaults
         return null;
     }
 
+    /// <summary>
+    /// Valida o email do cliente.
+    /// </summary>
+    /// <param name="email">Email a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateEmail(string? email)
     {
         if (email is null)
@@ -71,6 +104,11 @@ public static class ClienteFormDefaults
         return null;
     }
 
+    /// <summary>
+    /// Valida o telefone do cliente.
+    /// </summary>
+    /// <param name="telefone">Telefone a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateTelefone(string? telefone)
     {
         if (telefone is null)

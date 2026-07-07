@@ -5,6 +5,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a edicao de uma maquina existente, incluindo permissoes e transicoes de estado.
+/// </summary>
 public partial class EditarMaquinaViewModel : ObservableObject
 {
     private readonly MaquinasService _maquinasService;
@@ -12,6 +15,12 @@ public partial class EditarMaquinaViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de edicao de maquinas.
+    /// </summary>
+    /// <param name="maquinasService">Servico usado para persistir alteracoes da maquina.</param>
+    /// <param name="authorizationService">Servico usado para validar permissoes do utilizador atual.</param>
+    /// <param name="dialogService">Servico usado para apresentar mensagens de feedback.</param>
     public EditarMaquinaViewModel(
         MaquinasService maquinasService,
         AuthorizationService authorizationService,
@@ -172,6 +181,16 @@ public partial class EditarMaquinaViewModel : ObservableObject
         SaveCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// Inicializa o formulario com os dados da maquina a editar.
+    /// </summary>
+    /// <param name="maquinaId">Identificador interno da maquina.</param>
+    /// <param name="numero">Numero operacional apresentado ao utilizador.</param>
+    /// <param name="nomeModelo">Nome ou modelo configurado para a maquina.</param>
+    /// <param name="faseDedicada">Descricao da fase de producao dedicada.</param>
+    /// <param name="estadoAtual">Estado atual registado para a maquina.</param>
+    /// <param name="ipAddress">Endereco IP configurado para a ligacao industrial.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(
         int maquinaId,
         int numero,

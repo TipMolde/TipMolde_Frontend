@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a listagem, criacao e edicao operacional de maquinas e fases dedicadas.
+/// </summary>
 public partial class MaquinasViewModel : SearchableViewModel
 {
     private const string SuccessTitle = "Sucesso";
@@ -30,6 +33,14 @@ public partial class MaquinasViewModel : SearchableViewModel
     private bool _maquinasLoaded;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model da pagina de maquinas.
+    /// </summary>
+    /// <param name="maquinasService">Servico usado para consultar e alterar maquinas.</param>
+    /// <param name="fasesProducaoService">Servico usado para obter as fases de producao disponiveis.</param>
+    /// <param name="authorizationService">Servico usado para validar permissoes funcionais.</param>
+    /// <param name="dialogService">Servico usado para apresentar confirmacoes e mensagens de erro.</param>
+    /// <param name="navigationService">Servico usado para navegacao programatica entre paginas.</param>
     public MaquinasViewModel(
         MaquinasService maquinasService,
         FasesProducaoService fasesProducaoService,
@@ -44,7 +55,7 @@ public partial class MaquinasViewModel : SearchableViewModel
         _navigationService = navigationService;
         _pesquisarCommand = new AsyncRelayCommand(PesquisarAsync);
         _limparPesquisaCommand = new AsyncRelayCommand(LimparPesquisaAsync, () => HasSearch);
-        PageSize = 8;
+        PageSize = 5;
 
         PropertyChanged += (_, e) =>
         {
@@ -277,6 +288,10 @@ public partial class MaquinasViewModel : SearchableViewModel
         GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
     }
 
+    /// <summary>
+    /// Carrega permissoes, fases e a listagem de maquinas para apresentacao inicial.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync()
     {
         try
@@ -483,7 +498,7 @@ public partial class MaquinasViewModel : SearchableViewModel
     [RelayCommand]
     private async Task AbrirDetalhesAsync(MaquinaItem? maquina)
     {
-        if (maquina is null)
+        if (maquina is null || !maquina.HasIpAddress)
             return;
 
         await _navigationService.GoToAsync(nameof(MaquinaDetalhePage), new Dictionary<string, object>

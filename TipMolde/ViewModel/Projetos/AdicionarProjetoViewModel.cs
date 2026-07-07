@@ -6,6 +6,9 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o formulario de criacao de projetos de desenho.
+/// </summary>
 public partial class AdicionarProjetoViewModel : ObservableObject
 {
     private readonly MoldesService _moldesService;
@@ -14,6 +17,9 @@ public partial class AdicionarProjetoViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private bool _permissionsLoaded;
 
+    /// <summary>
+    /// Construtor do view model de criacao de projetos.
+    /// </summary>
     public AdicionarProjetoViewModel(
         MoldesService moldesService,
         ProjetosService projetosService,

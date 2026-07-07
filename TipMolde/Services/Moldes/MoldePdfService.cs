@@ -3,10 +3,28 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Gera um PDF simples com o resumo do ciclo de vida de um molde.
+/// </summary>
+/// <remarks>
+/// Este helper constroi manualmente um PDF leve para exportacao local
+/// sem depender de bibliotecas externas no frontend MAUI.
+/// </remarks>
 public static class MoldePdfService
 {
     private const string LineStep = "0 -18 Td";
 
+    /// <summary>
+    /// Gera e guarda um PDF com o resumo operacional do ciclo de vida do molde.
+    /// </summary>
+    /// <param name="numero">Numero funcional do molde.</param>
+    /// <param name="nome">Nome descritivo do molde.</param>
+    /// <param name="descricao">Descricao funcional do molde.</param>
+    /// <param name="tipoPedido">Tipo de pedido associado ao molde.</param>
+    /// <param name="numeroCavidades">Numero de cavidades do molde.</param>
+    /// <param name="dashboard">Resumo estatistico usado no conteudo do PDF.</param>
+    /// <param name="directory">Diretorio opcional de destino; quando omitido usa a pasta de dados da app.</param>
+    /// <returns>Caminho absoluto do ficheiro PDF gerado.</returns>
     public static async Task<string> GenerateCicloVidaPdfAsync(
         string numero,
         string nome,

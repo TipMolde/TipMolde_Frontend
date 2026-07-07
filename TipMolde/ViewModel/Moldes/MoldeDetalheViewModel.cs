@@ -12,6 +12,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Apresenta o detalhe completo de um molde, incluindo ficha tecnica, pecas, projetos e revisoes.
+/// </summary>
 public partial class MoldeDetalheViewModel : PaginatedViewModel
 {
     private const string ValorNaoDefinido = "Nao definido";
@@ -34,6 +37,21 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     private bool _suspendSelectedProjetoLoad;
     private int? _currentUserId;
 
+    /// <summary>
+    /// Construtor do view model de detalhe de molde.
+    /// </summary>
+    /// <param name="moldesService">Servico usado para carregar o molde e respetivo dashboard.</param>
+    /// <param name="projetosService">Servico usado para consultar projetos associados ao molde.</param>
+    /// <param name="revisoesService">Servico usado para consultar e criar revisoes.</param>
+    /// <param name="registosTempoProjetoService">Servico usado para consultar registos de tempo de desenho.</param>
+    /// <param name="registosProducaoService">Servico usado para consultar tempos acumulados das pecas.</param>
+    /// <param name="pecasService">Servico usado para gerir pecas do molde.</param>
+    /// <param name="authorizationService">Servico usado para validar permissoes do utilizador atual.</param>
+    /// <param name="sessaoPersistidaService">Servico usado para obter a sessao autenticada.</param>
+    /// <param name="destinationFolderPickerService">Servico usado para escolher pastas de exportacao.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
+    /// <param name="filePickerService">Servico usado para selecionar ficheiros associados ao molde.</param>
+    /// <param name="navigationService">Servico usado para navegacao programatica entre paginas.</param>
     public MoldeDetalheViewModel(
         MoldesService moldesService,
         ProjetosService projetosService,
@@ -315,6 +333,11 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(TempoResumoDisplay));
     }
 
+    /// <summary>
+    /// Carrega o molde, o dashboard de ciclo de vida, as pecas e o contexto de projeto associado.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde a apresentar.</param>
+    /// <returns>Tarefa assincrona da operacao de carregamento.</returns>
     public async Task LoadAsync(int moldeId)
     {
         MoldeId = moldeId;
@@ -421,6 +444,10 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         }
     }
 
+    /// <summary>
+    /// Recarrega a lista de pecas e o respetivo total de tempo acumulado.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de atualizacao.</returns>
     public async Task RefreshPecasAsync()
     {
         if (MoldeId <= 0)
@@ -441,6 +468,10 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         }
     }
 
+    /// <summary>
+    /// Recarrega o contexto do projeto atualmente selecionado.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de atualizacao.</returns>
     public async Task RefreshProjetoContextoAsync()
     {
         if (SelectedProjeto is null)

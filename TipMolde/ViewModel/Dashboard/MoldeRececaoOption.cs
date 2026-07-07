@@ -1,5 +1,8 @@
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Representa um molde elegivel para o fluxo de rececao de material no dashboard.
+/// </summary>
 public sealed class MoldeRececaoOption
 {
     public int MoldeId { get; init; }

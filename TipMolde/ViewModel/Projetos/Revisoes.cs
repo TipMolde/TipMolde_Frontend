@@ -4,8 +4,15 @@ using TipMolde.Services;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o fluxo de revisoes do detalhe de projeto.
+/// </summary>
 public partial class ProjetoDetalheViewModel
 {
+    /// <summary>
+    /// Cria uma nova revisao para o projeto atual.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de criacao.</returns>
     [RelayCommand]
     private async Task CriarRevisaoAsync()
     {
@@ -56,6 +63,11 @@ public partial class ProjetoDetalheViewModel
         }
     }
 
+    /// <summary>
+    /// Regista a resposta do cliente a uma revisao.
+    /// </summary>
+    /// <param name="revisao">Revisao selecionada para resposta.</param>
+    /// <returns>Tarefa assincrona da operacao de resposta.</returns>
     [RelayCommand]
     private async Task ResponderRevisaoAsync(RevisaoDto? revisao)
     {
@@ -145,6 +157,11 @@ public partial class ProjetoDetalheViewModel
         }
     }
 
+    /// <summary>
+    /// Descarrega ou abre o anexo associado a uma revisao.
+    /// </summary>
+    /// <param name="revisao">Revisao cujo anexo deve ser tratado.</param>
+    /// <returns>Tarefa assincrona da operacao sobre o anexo.</returns>
     [RelayCommand]
     private async Task AbrirAnexoAsync(RevisaoDto? revisao)
     {

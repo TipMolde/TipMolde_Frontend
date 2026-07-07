@@ -2,6 +2,9 @@
 
 namespace TipMolde.ViewModel.Defaults;
 
+/// <summary>
+/// Centraliza valores padrao e validacoes dos formularios de utilizador.
+/// </summary>
 internal static class UtilizadorDefaults
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(250);
@@ -25,6 +28,11 @@ internal static class UtilizadorDefaults
         "GESTOR_PRODUCAO"
     };
 
+    /// <summary>
+    /// Valida a password introduzida para um utilizador.
+    /// </summary>
+    /// <param name="password">Password a validar.</param>
+    /// <returns>Mensagem de erro quando invalida; nulo quando o valor e aceite.</returns>
     public static string? ValidatePassword(string password)
     {
         if (password.Length < 8)
@@ -45,6 +53,11 @@ internal static class UtilizadorDefaults
         return null;
     }
 
+    /// <summary>
+    /// Valida o nome introduzido para um utilizador.
+    /// </summary>
+    /// <param name="nome">Nome a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateNome(string nome)
     {
         if (string.IsNullOrWhiteSpace(nome))
@@ -61,6 +74,11 @@ internal static class UtilizadorDefaults
         return null;
     }
 
+    /// <summary>
+    /// Valida o email introduzido para um utilizador.
+    /// </summary>
+    /// <param name="email">Email a validar.</param>
+    /// <returns>Mensagem de erro quando invalido; nulo quando o valor e aceite.</returns>
     public static string? ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))

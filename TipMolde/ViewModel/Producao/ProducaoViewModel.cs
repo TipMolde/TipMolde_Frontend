@@ -8,6 +8,9 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere a fila operacional de pecas disponiveis para producao.
+/// </summary>
 public partial class ProducaoViewModel : SearchableViewModel
 {
     private const string SearchModeMolde = "Molde";
@@ -23,6 +26,9 @@ public partial class ProducaoViewModel : SearchableViewModel
     private readonly INavigationService _navigationService;
     private List<FaseProducaoItem> _todasFases = [];
 
+    /// <summary>
+    /// Construtor do view model da pagina de producao.
+    /// </summary>
     public ProducaoViewModel(
         FasesProducaoService fasesProducaoService,
         PecasService pecasService,

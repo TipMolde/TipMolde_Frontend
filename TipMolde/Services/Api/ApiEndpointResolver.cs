@@ -14,6 +14,17 @@ namespace TipMolde.Services
         private const string BaseUrlVariableName = "TIPMOLDE_API_BASE_URL";
         private const string DefaultEnvironmentName = "Production";
 
+        /// <summary>
+        /// Resolve a configuracao final do endpoint da API para a plataforma atual.
+        /// </summary>
+        /// <remarks>
+        /// Fluxo critico:
+        /// 1. Resolve o ambiente corrente.
+        /// 2. Carrega configuracao embebida base e por ambiente.
+        /// 3. Da prioridade a variaveis de ambiente explicitas.
+        /// 4. So permite fallback local controlado em desenvolvimento.
+        /// </remarks>
+        /// <returns>Opcoes finais da API prontas para injeccao no frontend.</returns>
         public static ApiOptions Resolve()
         {
             var environmentName = ResolveEnvironmentName();

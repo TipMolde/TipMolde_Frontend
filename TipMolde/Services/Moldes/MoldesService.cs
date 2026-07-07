@@ -5,13 +5,29 @@ using TipMolde.Models;
 
 namespace TipMolde.Services;
 
+/// <summary>
+/// Encapsula os pedidos HTTP da feature de moldes no frontend.
+/// </summary>
+/// <remarks>
+/// Centraliza consulta, criacao, atualizacao e enriquecimento de moldes,
+/// incluindo imagem de capa e dados de dashboard do ciclo de vida.
+/// </remarks>
 public sealed class MoldesService : ApiServiceBase
 {
+    /// <summary>
+    /// Construtor do servico de moldes.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP configurado com o endpoint base da API.</param>
     public MoldesService(HttpClient httpClient)
         : base(httpClient)
     {
     }
 
+    /// <summary>
+    /// Obtem um molde pelo identificador.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <returns>DTO do molde ou nulo quando nao e encontrado.</returns>
     public async Task<MoldeDto?> GetByIdAsync(int moldeId)
     {
         using var response = await HttpClient.GetAsync($"api/moldes/{moldeId}");
@@ -26,6 +42,12 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<MoldeDto>(response);
     }
 
+    /// <summary>
+    /// Lista moldes de forma paginada.
+    /// </summary>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com moldes ou nulo quando a API nao devolve sucesso.</returns>
     public async Task<PagedResult<MoldeDto>?> GetAllAsync(int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync($"api/moldes?page={page}&pageSize={pageSize}");
@@ -40,6 +62,13 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<PagedResult<MoldeDto>>(response);
     }
 
+    /// <summary>
+    /// Lista moldes que ja estao associados a encomendas.
+    /// </summary>
+    /// <param name="searchTerm">Termo opcional para filtrar moldes associados.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com moldes associados a encomendas ou nulo quando a API falha.</returns>
     public async Task<PagedResult<MoldeDto>?> GetComEncomendaAsync(string? searchTerm, int page, int pageSize)
     {
         var endpoint = $"api/moldes/com-encomenda?page={page}&pageSize={pageSize}";
@@ -61,6 +90,13 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<PagedResult<MoldeDto>>(response);
     }
 
+    /// <summary>
+    /// Lista moldes pertencentes a uma encomenda.
+    /// </summary>
+    /// <param name="encomendaId">Identificador da encomenda.</param>
+    /// <param name="page">Pagina atual a consultar.</param>
+    /// <param name="pageSize">Quantidade de itens por pagina.</param>
+    /// <returns>Resultado paginado com moldes da encomenda ou nulo quando a API falha.</returns>
     public async Task<PagedResult<MoldeDto>?> GetByEncomendaIdAsync(int encomendaId, int page, int pageSize)
     {
         using var response = await HttpClient.GetAsync(
@@ -76,6 +112,11 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<PagedResult<MoldeDto>>(response);
     }
 
+    /// <summary>
+    /// Obtem o resumo do dashboard de ciclo de vida de um molde.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <returns>DTO do dashboard do molde ou nulo quando a API nao devolve sucesso.</returns>
     public async Task<MoldeCicloVidaDashboardDto?> GetDashboardCicloVidaAsync(int moldeId)
     {
         using var response = await HttpClient.GetAsync($"api/moldes/{moldeId}/dashboard-ciclo-vida");
@@ -93,6 +134,27 @@ public sealed class MoldesService : ApiServiceBase
     /// <summary>
     /// Cria um novo molde com especificacoes tecnicas e imagem opcional.
     /// </summary>
+    /// <param name="numero">Numero funcional do molde.</param>
+    /// <param name="numeroMoldeCliente">Numero do molde no contexto do cliente.</param>
+    /// <param name="nome">Nome do molde.</param>
+    /// <param name="descricao">Descricao funcional do molde.</param>
+    /// <param name="numeroCavidades">Numero de cavidades.</param>
+    /// <param name="tipoPedido">Tipo de pedido associado ao molde.</param>
+    /// <param name="largura">Largura tecnica do molde.</param>
+    /// <param name="comprimento">Comprimento tecnico do molde.</param>
+    /// <param name="altura">Altura tecnica do molde.</param>
+    /// <param name="pesoEstimado">Peso estimado do molde.</param>
+    /// <param name="tipoInjecao">Tipo de injecao configurado.</param>
+    /// <param name="sistemaInjecao">Sistema de injecao configurado.</param>
+    /// <param name="contracao">Valor de contracao configurado.</param>
+    /// <param name="acabamentoPeca">Acabamento previsto para a peca.</param>
+    /// <param name="cor">Cor funcional do molde.</param>
+    /// <param name="materialMacho">Material do macho.</param>
+    /// <param name="materialCavidade">Material da cavidade.</param>
+    /// <param name="materialMovimentos">Material dos movimentos.</param>
+    /// <param name="materialInjecao">Material de injecao.</param>
+    /// <param name="imagemCapaPath">Caminho local opcional da imagem de capa.</param>
+    /// <returns>DTO do molde criado.</returns>
     public async Task<MoldeDto?> CreateAsync(
         string numero,
         string? numeroMoldeCliente,
@@ -157,6 +219,31 @@ public sealed class MoldesService : ApiServiceBase
         return await DeserializeAsync<MoldeDto>(response);
     }
 
+    /// <summary>
+    /// Atualiza os dados editaveis de um molde existente.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde a atualizar.</param>
+    /// <param name="numero">Novo numero funcional do molde.</param>
+    /// <param name="numeroMoldeCliente">Novo numero no contexto do cliente.</param>
+    /// <param name="nome">Novo nome do molde.</param>
+    /// <param name="imagemCapaPath">Novo caminho de imagem de capa persistido no backend.</param>
+    /// <param name="descricao">Nova descricao funcional.</param>
+    /// <param name="numeroCavidades">Novo numero de cavidades.</param>
+    /// <param name="tipoPedido">Novo tipo de pedido.</param>
+    /// <param name="largura">Nova largura tecnica.</param>
+    /// <param name="comprimento">Novo comprimento tecnico.</param>
+    /// <param name="altura">Nova altura tecnica.</param>
+    /// <param name="pesoEstimado">Novo peso estimado.</param>
+    /// <param name="tipoInjecao">Novo tipo de injecao.</param>
+    /// <param name="sistemaInjecao">Novo sistema de injecao.</param>
+    /// <param name="contracao">Novo valor de contracao.</param>
+    /// <param name="acabamentoPeca">Novo acabamento da peca.</param>
+    /// <param name="cor">Nova cor funcional.</param>
+    /// <param name="materialMacho">Novo material do macho.</param>
+    /// <param name="materialCavidade">Novo material da cavidade.</param>
+    /// <param name="materialMovimentos">Novo material dos movimentos.</param>
+    /// <param name="materialInjecao">Novo material de injecao.</param>
+    /// <returns>Tarefa assincrona da atualizacao.</returns>
     public async Task UpdateAsync(
         int moldeId,
         string? numero,
@@ -208,6 +295,12 @@ public sealed class MoldesService : ApiServiceBase
         await EnsureSuccessAsync(response, $"Nao foi possivel atualizar o molde {moldeId}. Estado: {(int)response.StatusCode}");
     }
 
+    /// <summary>
+    /// Atualiza a imagem de capa de um molde.
+    /// </summary>
+    /// <param name="moldeId">Identificador do molde.</param>
+    /// <param name="imagemCapaPath">Caminho absoluto da nova imagem de capa.</param>
+    /// <returns>DTO do molde atualizado com a nova imagem.</returns>
     public async Task<MoldeDto?> UpdateImagemCapaAsync(int moldeId, string imagemCapaPath)
     {
         if (string.IsNullOrWhiteSpace(imagemCapaPath))

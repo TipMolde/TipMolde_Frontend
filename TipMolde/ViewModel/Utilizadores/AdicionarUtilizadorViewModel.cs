@@ -6,11 +6,19 @@ using TipMolde.ViewModel.Defaults;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Gere o formulario de criacao de utilizadores.
+/// </summary>
 public partial class AdicionarUtilizadorViewModel : ObservableObject
 {
     private readonly UtilizadoresService _utilizadoresService;
     private readonly IDialogService _dialogService;
 
+    /// <summary>
+    /// Construtor do view model de criacao de utilizadores.
+    /// </summary>
+    /// <param name="utilizadoresService">Servico usado para persistir novos utilizadores.</param>
+    /// <param name="dialogService">Servico usado para apresentar feedback ao utilizador.</param>
     public AdicionarUtilizadorViewModel(
         UtilizadoresService utilizadoresService,
         IDialogService dialogService)
@@ -53,6 +61,10 @@ public partial class AdicionarUtilizadorViewModel : ObservableObject
         await ShellNavigationService.GoBackAsync();
     }
 
+    /// <summary>
+    /// Valida o formulario e cria um novo utilizador.
+    /// </summary>
+    /// <returns>Tarefa assincrona da operacao de criacao.</returns>
     [RelayCommand]
     private async Task Create()
     {

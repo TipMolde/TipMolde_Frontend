@@ -4,8 +4,15 @@ using TipMolde.View;
 
 namespace TipMolde.ViewModel;
 
+/// <summary>
+/// Concentra o comportamento de planificacao semanal do dashboard.
+/// </summary>
 public partial class DashboardViewModel
 {
+    /// <summary>
+    /// Seleciona um dia da planificacao para mostrar os moldes desse intervalo.
+    /// </summary>
+    /// <param name="dia">Dia selecionado no calendario.</param>
     partial void OnSelectedPlanificacaoDiaChanged(DashboardPlanificacaoDiaItem? value)
     {
         MoldesDiaSelecionado.Clear();
@@ -49,6 +56,10 @@ public partial class DashboardViewModel
         AtualizarPlanificacao();
     }
 
+    /// <summary>
+    /// Seleciona explicitamente um dia da planificacao.
+    /// </summary>
+    /// <param name="dia">Dia a focar no painel lateral.</param>
     [RelayCommand]
     private void SelecionarPlanificacaoDia(DashboardPlanificacaoDiaItem? dia)
     {
@@ -58,6 +69,9 @@ public partial class DashboardViewModel
         SelectedPlanificacaoDia = dia;
     }
 
+    /// <summary>
+    /// Fecha o detalhe do dia atualmente selecionado.
+    /// </summary>
     [RelayCommand]
     private void FecharPlanificacaoDia()
     {
@@ -96,6 +110,11 @@ public partial class DashboardViewModel
             NumeroSemanasPlanificacao++;
     }
 
+    /// <summary>
+    /// Abre o detalhe de um molde selecionado na grelha de planificacao.
+    /// </summary>
+    /// <param name="item">Molde selecionado no contexto de planificacao.</param>
+    /// <returns>Tarefa assincrona da navegacao para o detalhe do molde.</returns>
     [RelayCommand]
     private async Task AbrirMoldePlanificacaoAsync(FilaGlobalMoldeItemDto? item)
     {
