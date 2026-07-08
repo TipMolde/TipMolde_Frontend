@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -27,12 +28,7 @@ public partial class AdicionarPecaPage : ContentPage, IQueryAttributable
 
     private async Task CarregarContextoAsync(object rawMoldeId, object? rawNumeroMolde)
     {
-        int? moldeId = rawMoldeId switch
-        {
-            int id => id,
-            string text when int.TryParse(text, out var parsedId) => parsedId,
-            _ => null
-        };
+        var moldeId = QueryAttributeHelper.ParseInt(rawMoldeId);
 
         if (!moldeId.HasValue || _lastMoldeId == moldeId.Value)
             return;

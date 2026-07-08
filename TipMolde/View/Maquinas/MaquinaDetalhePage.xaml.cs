@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -20,12 +21,7 @@ public partial class MaquinaDetalhePage : ContentPage, IQueryAttributable
         if (!query.TryGetValue("maquina_id", out var rawMaquinaId))
             return;
 
-        var maquinaId = rawMaquinaId switch
-        {
-            int value => value,
-            string value when int.TryParse(value, out var parsed) => parsed,
-            _ => 0
-        };
+        var maquinaId = QueryAttributeHelper.ParseInt(rawMaquinaId) ?? 0;
 
         if (maquinaId <= 0 || _lastMaquinaId == maquinaId)
             return;

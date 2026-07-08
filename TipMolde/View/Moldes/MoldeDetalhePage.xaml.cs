@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -28,12 +29,7 @@ public partial class MoldeDetalhePage : ContentPage, IQueryAttributable
 
     private async Task CarregarMoldeAsync(object rawValue)
     {
-        int? moldeId = rawValue switch
-        {
-            int id => id,
-            string text when int.TryParse(text, out var parsedId) => parsedId,
-            _ => null
-        };
+        var moldeId = QueryAttributeHelper.ParseInt(rawValue);
 
         if (!moldeId.HasValue || _lastMoldeId == moldeId.Value)
             return;

@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -26,12 +27,7 @@ public partial class EncomendaDetalhePage : ContentPage, IQueryAttributable
 
     private async Task CarregarEncomendaAsync(object rawValue)
     {
-        int? encomendaId = rawValue switch
-        {
-            int id => id,
-            string text when int.TryParse(text, out var parsedId) => parsedId,
-            _ => null
-        };
+        var encomendaId = QueryAttributeHelper.ParseInt(rawValue);
 
         if (!encomendaId.HasValue || _lastEncomendaId == encomendaId.Value)
             return;

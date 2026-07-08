@@ -138,6 +138,55 @@ public class ClienteDetalheViewModelTests
         sut.Encomendas.Should().BeEmpty();
     }
 
+    [Test(Description = "T8CLIDET - O detalhe deve apresentar valores por omissao quando os campos opcionais do cliente nao existem.")]
+    public async Task LoadAsync_Should_ExposeFallbackDisplays_When_OptionalFieldsAreMissing()
+    {
+        var httpClient = CreateHttpClient(request =>
+        {
+            if (request.RequestUri?.PathAndQuery == "/api/clientes/10/encomendas")
+            {
+                return CreateJsonResponse(
+                    HttpStatusCode.OK,
+                    new ClienteComEncomendasDto
+                    {
+                        Cliente_id = 10,
+                        Nome = "Cliente Sem Dados",
+                        Sigla = string.Empty,
+                        Pais = string.Empty,
+                        Email = " ",
+                        Telefone = string.Empty,
+                        NIF = string.Empty,
+                        Encomendas = []
+                    });
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+
+        var sut = new ClienteDetalheViewModel(new ClientesService(httpClient));
+
+        await sut.LoadAsync(10);
+
+        sut.SiglaDisplay.Should().Be("Nao definido");
+        sut.PaisDisplay.Should().Be("Nao definido");
+        sut.EmailDisplay.Should().Be("Nao definido");
+        sut.TelefoneDisplay.Should().Be("Nao definido");
+        sut.NifDisplay.Should().Be("Nao definido");
+    }
+
+    [Test(Description = "T9CLIDET - Um salto para pagina invalida deve devolver erro sem alterar a pagina atual.")]
+    public async Task GoToPageCommand_Should_SetValidationError_When_PageExceedsTotalPages()
+    {
+        await _sut.LoadAsync(9);
+        _sut.PageInput = "99";
+
+        await _sut.GoToPageCommand.ExecuteAsync(null);
+
+        _sut.Page.Should().Be(1);
+        _sut.ErrorMessage.Should().Be("A pagina nao pode ser maior que 2.");
+        _sut.Encomendas.Should().HaveCount(5);
+    }
+
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch

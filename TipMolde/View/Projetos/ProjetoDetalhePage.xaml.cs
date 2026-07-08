@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -26,13 +27,7 @@ public partial class ProjetoDetalhePage : ContentPage, IQueryAttributable
 
     private async Task CarregarContextoAsync(object rawProjetoId)
     {
-        int? projetoId = rawProjetoId switch
-        {
-            int id => id,
-            string text when int.TryParse(Uri.UnescapeDataString(text), out var parsedId) => parsedId,
-            string text when int.TryParse(text, out var parsedPlainId) => parsedPlainId,
-            _ => null
-        };
+        var projetoId = QueryAttributeHelper.ParseInt(rawProjetoId, allowUriDecoding: true);
 
         if (!projetoId.HasValue || _lastProjetoId == projetoId.Value)
             return;

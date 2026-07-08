@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -39,19 +40,8 @@ public partial class EditarMaquinaPage : ContentPage, IQueryAttributable
         object? rawEstadoAtual,
         object? rawIpAddress)
     {
-        int? maquinaId = rawMaquinaId switch
-        {
-            int id => id,
-            string text when int.TryParse(text, out var parsedId) => parsedId,
-            _ => null
-        };
-
-        int? numero = rawNumero switch
-        {
-            int value => value,
-            string text when int.TryParse(text, out var parsedValue) => parsedValue,
-            _ => null
-        };
+        var maquinaId = QueryAttributeHelper.ParseInt(rawMaquinaId);
+        var numero = QueryAttributeHelper.ParseInt(rawNumero);
 
         if (!maquinaId.HasValue || !numero.HasValue || _lastMaquinaId == maquinaId.Value)
             return;

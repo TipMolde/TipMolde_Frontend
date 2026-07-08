@@ -81,6 +81,20 @@ public class ClientesViewModelTests
             request.Path == "/api/clientes/search/by-name?searchTerm=Molde&page=1&pageSize=2");
     }
 
+    [Test(Description = "T3BCLI - A pesquisa deve regressar a primeira pagina mesmo quando parte de uma pagina posterior.")]
+    public async Task PesquisarCommand_Should_ResetPageToFirst_When_SearchStartsFromSecondPage()
+    {
+        _sut.Page = 2;
+        _sut.EnsureDefaultSearchMode();
+        _sut.SearchTerm = "TM";
+
+        await _sut.PesquisarCommand.ExecuteAsync(null);
+
+        _sut.Page.Should().Be(1);
+        _requests.Should().Contain(request =>
+            request.Path == "/api/clientes/search/by-sigla?searchTerm=TM&page=1&pageSize=2");
+    }
+
     [Test(Description = "T4CLI - Ao eliminar o ultimo item da pagina, o frontend deve recuar uma pagina e recarregar a lista.")]
     public async Task DeleteCommand_Should_MoveBackOnePage_When_LastItemOfCurrentPageIsRemoved()
     {
@@ -94,6 +108,89 @@ public class ClientesViewModelTests
         _sut.Clientes.Select(item => item.Cliente_id).Should().ContainInOrder(1, 2);
         _requests.Should().Contain(request => request.Method == HttpMethod.Delete && request.Path == "/api/clientes/3");
         _dialogService.Verify(service => service.ShowSuccessAsync("Sucesso", "O cliente foi eliminado com sucesso."), Times.Once);
+    }
+
+    [Test(Description = "T5CLI - Um erro da API ao carregar clientes deve limpar a lista e expor a mensagem funcional.")]
+    public async Task LoadClientesAsync_Should_SetErrorAndClearItems_When_ServiceReturnsNull()
+    {
+        var httpClient = CreateHttpClient(request =>
+        {
+            if (request.RequestUri?.PathAndQuery == "/api/users/me")
+            {
+                return CreateJsonResponse(
+                    HttpStatusCode.OK,
+                    new UtilizadorDto { User_id = 1, Nome = "Admin", Email = "admin@tipmolde.pt", Role = "ADMIN" });
+            }
+
+            if (request.RequestUri?.PathAndQuery == "/api/clientes?page=1&pageSize=2")
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        }, out _);
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", CreateJwtToken(1));
+
+        var sut = new ClientesViewModel(
+            new ClientesService(httpClient),
+            _dialogService.Object,
+            new AuthorizationService(new SessaoPersistidaService(httpClient), new UtilizadoresService(httpClient)))
+        {
+            PageSize = 2
+        };
+
+        await sut.LoadClientesAsync();
+
+        sut.ErrorMessage.Should().Be("Nao foi possivel carregar os clientes.");
+        sut.Clientes.Should().BeEmpty();
+        sut.TotalItems.Should().Be(0);
+        sut.TotalPages.Should().Be(1);
+    }
+
+    [Test(Description = "T6CLI - Um gestor comercial deve conseguir ver a lista, mas sem permissao para eliminar clientes.")]
+    public async Task LoadClientesAsync_Should_DisableDeletion_When_RoleIsCommercialManager()
+    {
+        var httpClient = CreateHttpClient(request =>
+        {
+            if (request.RequestUri?.PathAndQuery == "/api/users/me")
+            {
+                return CreateJsonResponse(
+                    HttpStatusCode.OK,
+                    new UtilizadorDto
+                    {
+                        User_id = 8,
+                        Nome = "Gestor Comercial",
+                        Email = "comercial@tipmolde.pt",
+                        Role = "GESTOR_COMERCIAL"
+                    });
+            }
+
+            if (request.RequestUri?.PathAndQuery == "/api/clientes?page=1&pageSize=2")
+            {
+                return CreateJsonResponse(
+                    HttpStatusCode.OK,
+                    CreateClientPage(1, 2, 2, [CreateClient(1, "Tip Molde", "TM"), CreateClient(2, "Cliente XPTO", "CX")]));
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        }, out _);
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", CreateJwtToken(8));
+
+        var sut = new ClientesViewModel(
+            new ClientesService(httpClient),
+            _dialogService.Object,
+            new AuthorizationService(new SessaoPersistidaService(httpClient), new UtilizadoresService(httpClient)))
+        {
+            PageSize = 2
+        };
+
+        await sut.LoadClientesAsync();
+
+        sut.CanDeleteClients.Should().BeFalse();
+        sut.Clientes.Should().HaveCount(2);
+        sut.ErrorMessage.Should().BeEmpty();
     }
 
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request)

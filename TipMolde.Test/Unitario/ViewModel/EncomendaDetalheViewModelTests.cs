@@ -157,6 +157,77 @@ public class EncomendaDetalheViewModelTests
         sut.HasNoMoldes.Should().BeTrue();
     }
 
+    [Test(Description = "T8ENCDET - Uma encomenda concluida deve ficar em modo de consulta, sem operacoes de cancelamento ou gestao.")]
+    public async Task LoadAsync_Should_DisableActions_When_EncomendaIsConcluded()
+    {
+        _state.OrderState = "CONCLUIDA";
+
+        await _sut.LoadAsync(40);
+
+        _sut.CanCancelEncomenda.Should().BeFalse();
+        _sut.CanGerirMoldes.Should().BeFalse();
+        _sut.Moldes.Should().OnlyContain(item => item.CanGerirMolde == false);
+    }
+
+    [Test(Description = "T9ENCDET - Se o utilizador desistir da confirmacao, a encomenda nao deve ser cancelada nem alterada.")]
+    public async Task CancelarEncomendaCommand_Should_NotChangeState_When_UserDoesNotConfirm()
+    {
+        _dialogService.Setup(service => service.ConfirmAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .ReturnsAsync(false);
+
+        await _sut.LoadAsync(40);
+
+        await _sut.CancelarEncomendaCommand.ExecuteAsync(null);
+
+        _sut.Estado.Should().Be("EM_PRODUCAO");
+        _state.CancelStatePatched.Should().BeFalse();
+        _dialogService.Verify(service => service.ShowSuccessAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Test(Description = "T10ENCDET - Uma falha ao atualizar o prazo do molde deve mostrar erro e evitar o sucesso visual.")]
+    public async Task GuardarPrazoMoldeCommand_Should_SetError_When_BackendFails()
+    {
+        var state = new ScenarioState();
+        var httpClient = CreateHttpClient(request =>
+        {
+            if (request.RequestUri?.PathAndQuery == "/api/encomenda-moldes/400" &&
+                request.Method == HttpMethod.Put)
+            {
+                return new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    Content = new StringContent(
+                        """{"detail":"Nao foi possivel atualizar o prazo do molde."}""",
+                        Encoding.UTF8,
+                        "application/json")
+                };
+            }
+
+            return HandleRequest(request, state);
+        });
+
+        var encomendasService = new EncomendasService(httpClient);
+        var sut = new EncomendaDetalheViewModel(
+            encomendasService,
+            new MoldesService(httpClient),
+            new ClientesService(httpClient),
+            new GlobalMoldePriorityService(encomendasService),
+            _dialogService.Object,
+            _navigationService.Object);
+
+        await sut.LoadAsync(40);
+        var molde = sut.Moldes.Single(item => item.EncomendaMoldeId == 400);
+        molde.DataEntregaPrevista = new DateTime(2026, 7, 22);
+
+        await sut.GuardarPrazoMoldeCommand.ExecuteAsync(molde);
+
+        sut.ErrorMessage.Should().Be("Nao foi possivel atualizar o prazo do molde.");
+        _dialogService.Verify(service => service.ShowSuccessAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     private static HttpResponseMessage HandleRequest(HttpRequestMessage request, ScenarioState state)
     {
         var path = request.RequestUri?.PathAndQuery ?? string.Empty;

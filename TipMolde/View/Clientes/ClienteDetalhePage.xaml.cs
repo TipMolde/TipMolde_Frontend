@@ -1,4 +1,5 @@
 using TipMolde.Diagnostics;
+using TipMolde.Helper;
 using TipMolde.ViewModel;
 
 namespace TipMolde.View;
@@ -30,12 +31,7 @@ public partial class ClienteDetalhePage : ContentPage, IQueryAttributable
 
     private async Task CarregarClienteAsync(object rawValue)
     {
-        int? cliente_id = rawValue switch
-        {
-            int id => id,
-            string text when int.TryParse(text, out var parsedId) => parsedId,
-            _ => null
-        };
+        var cliente_id = QueryAttributeHelper.ParseInt(rawValue);
 
         if (cliente_id.HasValue)
             await _viewModel.LoadAsync(cliente_id.Value);

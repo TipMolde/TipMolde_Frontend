@@ -11,6 +11,8 @@ namespace TipMolde.Test.Unitario.Service;
 [Category("Unit")]
 public class RevisoesServiceTests
 {
+    private static readonly HttpRequestOptionsKey<string> BodyOptionKey = new("RecordedBody");
+
     [Test(Description = "T1FRT - O servico deve enviar feedback textual e imagem no payload da resposta do cliente.")]
     public async Task UpdateRespostaClienteAsync_Should_PostFeedbackImagemPath_When_Provided()
     {
@@ -32,9 +34,7 @@ public class RevisoesServiceTests
         requests[0].Method.Should().Be(HttpMethod.Put);
         requests[0].RequestUri!.PathAndQuery.Should().Be("/api/revisoes/42/resposta-cliente");
 
-        var requestBody = requests[0].Properties.TryGetValue("Body", out var bodyValue)
-            ? bodyValue as string ?? string.Empty
-            : string.Empty;
+        var requestBody = GetRecordedBody(requests[0]);
         requestBody.Should().Contain("\"aprovado\":false");
         requestBody.Should().Contain("\"feedbackTexto\":\"Desenho precisa de ajuste\"");
         requestBody.Should().Contain("\"feedbackImagemPath\":\"Storage\\\\Uploads\\\\feedback\\\\rev-42.png\"");
@@ -103,11 +103,20 @@ public class RevisoesServiceTests
             CancellationToken cancellationToken)
         {
             Requests.Add(request);
-            request.Properties["Body"] = request.Content is null
-                ? string.Empty
-                : await request.Content.ReadAsStringAsync(cancellationToken);
+            request.Options.Set(
+                BodyOptionKey,
+                request.Content is null
+                    ? string.Empty
+                    : await request.Content.ReadAsStringAsync(cancellationToken));
 
             return _responder(request);
         }
+    }
+
+    private static string GetRecordedBody(HttpRequestMessage request)
+    {
+        return request.Options.TryGetValue(BodyOptionKey, out string? body)
+            ? body ?? string.Empty
+            : string.Empty;
     }
 }
