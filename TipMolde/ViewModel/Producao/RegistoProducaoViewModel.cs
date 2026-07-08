@@ -195,8 +195,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
     partial void OnIsLoadingChanged(bool value)
     {
         GuardarCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+        NotifyOcorrenciaStateChanged();
     }
 
     partial void OnIsSavingChanged(bool value)
@@ -206,29 +205,17 @@ public partial class RegistoProducaoViewModel : ObservableObject
 
     partial void OnIsOcorrenciaFormVisibleChanged(bool value)
     {
-        OnPropertyChanged(nameof(OcorrenciaToggleButtonText));
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+        NotifyOcorrenciaStateChanged(includeToggleButtonText: true);
     }
 
     partial void OnIsSavingOcorrenciaChanged(bool value)
     {
-        OnPropertyChanged(nameof(SaveOcorrenciaButtonText));
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+        NotifyOcorrenciaStateChanged(includeSaveButtonText: true);
     }
 
-    partial void OnOcorrenciaChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnOcorrenciaChanged(string value) => NotifyOcorrenciaStateChanged();
 
-    partial void OnCorrecaoChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnCorrecaoChanged(string value) => NotifyOcorrenciaStateChanged();
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
 
@@ -236,8 +223,7 @@ public partial class RegistoProducaoViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(GestorProducaoDisplay));
         GuardarCommand.NotifyCanExecuteChanged();
-        OnPropertyChanged(nameof(CanEnviarOcorrencia));
-        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
+        NotifyOcorrenciaStateChanged();
     }
 
     partial void OnGestorProducaoNomeChanged(string value) => OnPropertyChanged(nameof(GestorProducaoDisplay));
@@ -1055,18 +1041,6 @@ public partial class RegistoProducaoViewModel : ObservableObject
         return minutes <= 0 ? $"{totalHours}h" : $"{totalHours}h {minutes:00}m";
     }
 
-    private async Task RecarregarContextoAtualAsync()
-    {
-        if (PecaContexto is null)
-            return;
-
-        var pecaAtualizada = await BuildContextFromPecaIdAsync(PecaContexto.PecaId, PecaContexto);
-        PecaContexto = pecaAtualizada;
-
-        AtualizarFases();
-        AtualizarHistorico();
-    }
-
     private RegistoProducaoHistoricoItem CreateHistoricoItem(RegistoProducaoDto registo)
     {
         var fase = _todasFases.FirstOrDefault(item => item.FasesProducao_id == registo.FaseId);
@@ -1099,5 +1073,19 @@ public partial class RegistoProducaoViewModel : ObservableObject
             return "Escolhe a fase seguinte para onde a peca vai depois de concluida.";
 
         return "A proxima fase so e pedida quando concluires a fase atual.";
+    }
+
+    private void NotifyOcorrenciaStateChanged(
+        bool includeToggleButtonText = false,
+        bool includeSaveButtonText = false)
+    {
+        if (includeToggleButtonText)
+            OnPropertyChanged(nameof(OcorrenciaToggleButtonText));
+
+        if (includeSaveButtonText)
+            OnPropertyChanged(nameof(SaveOcorrenciaButtonText));
+
+        OnPropertyChanged(nameof(CanEnviarOcorrencia));
+        EnviarOcorrenciaCommand.NotifyCanExecuteChanged();
     }
 }

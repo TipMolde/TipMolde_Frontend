@@ -102,16 +102,12 @@ public partial class EncomendaDetalheViewModel : ObservableObject
 
     partial void OnIsLoadingChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanGerirMoldes));
-        UpdateMoldeAvailability();
+        NotifyEstadoOperacionalChanged();
     }
 
     partial void OnIsCancellingChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanGerirMoldes));
-        UpdateMoldeAvailability();
+        NotifyEstadoOperacionalChanged();
     }
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNomeClienteChanged(string value) => OnPropertyChanged(nameof(NomeClienteDisplay));
@@ -122,9 +118,7 @@ public partial class EncomendaDetalheViewModel : ObservableObject
     partial void OnEstadoChanged(string value)
     {
         OnPropertyChanged(nameof(EstadoDisplay));
-        OnPropertyChanged(nameof(CanCancelEncomenda));
-        OnPropertyChanged(nameof(CanGerirMoldes));
-        UpdateMoldeAvailability();
+        NotifyEstadoOperacionalChanged();
     }
     partial void OnQuantidadeTotalPrevistaChanged(int value) => OnPropertyChanged(nameof(QuantidadeTotalPrevista));
 
@@ -361,6 +355,13 @@ public partial class EncomendaDetalheViewModel : ObservableObject
         OnPropertyChanged(nameof(HasMoldes));
         OnPropertyChanged(nameof(HasNoMoldes));
         OnPropertyChanged(nameof(TotalMoldesAssociados));
+        UpdateMoldeAvailability();
+    }
+
+    private void NotifyEstadoOperacionalChanged()
+    {
+        OnPropertyChanged(nameof(CanCancelEncomenda));
+        OnPropertyChanged(nameof(CanGerirMoldes));
         UpdateMoldeAvailability();
     }
 

@@ -67,12 +67,9 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             if (string.Equals(e.PropertyName, nameof(IsLoading), StringComparison.Ordinal))
             {
-                OnPropertyChanged(nameof(CanAdicionarMaquina));
-                ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-                OnPropertyChanged(nameof(CanAdicionarFase));
-                ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
-                OnPropertyChanged(nameof(CanGuardarEdicao));
-                GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
+                NotifyCanAdicionarMaquinaChanged();
+                NotifyCanAdicionarFaseChanged();
+                NotifyCanGuardarEdicaoChanged();
             }
         };
     }
@@ -188,53 +185,24 @@ public partial class MaquinasViewModel : SearchableViewModel
     public string EstadoAtualEdicaoDisplay => MaquinaEmEdicao?.EstadoDisplay ?? "Sem estado";
     public string TransicoesPermitidasDisplay => BuildTransicoesPermitidasDisplay();
 
-    partial void OnNovoMaquinaIdChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNovoMaquinaIdChanged(string value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnNovoNumeroChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNovoNumeroChanged(string value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnNovoNomeModeloChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNovoNomeModeloChanged(string value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnSelectedEstadoMaquinaOptionChanged(EstadoMaquinaOption? value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedEstadoMaquinaOptionChanged(EstadoMaquinaOption? value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnSelectedFaseDedicadaOptionChanged(FaseDedicadaOption? value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedFaseDedicadaOptionChanged(FaseDedicadaOption? value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnIsSavingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingChanged(bool value) => NotifyCanAdicionarMaquinaChanged();
 
-    partial void OnIsSavingEdicaoChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanGuardarEdicao));
-        GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingEdicaoChanged(bool value) => NotifyCanGuardarEdicaoChanged();
 
     partial void OnSelectedFaseNomeOptionChanged(FaseNomeOption? value)
     {
         FasesErrorMessage = string.Empty;
-        OnPropertyChanged(nameof(CanAdicionarFase));
-        ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
+        NotifyCanAdicionarFaseChanged();
     }
 
     partial void OnNovaDescricaoFaseChanged(string value)
@@ -242,11 +210,7 @@ public partial class MaquinasViewModel : SearchableViewModel
         FasesErrorMessage = string.Empty;
     }
 
-    partial void OnIsSavingFaseChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanAdicionarFase));
-        ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingFaseChanged(bool value) => NotifyCanAdicionarFaseChanged();
 
     partial void OnFasesErrorMessageChanged(string value)
     {
@@ -256,15 +220,13 @@ public partial class MaquinasViewModel : SearchableViewModel
     partial void OnCanCreateMachineChanged(bool value)
     {
         OnPropertyChanged(nameof(HasMachineManagementShortcuts));
-        OnPropertyChanged(nameof(CanAdicionarMaquina));
-        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
+        NotifyCanAdicionarMaquinaChanged();
     }
 
     partial void OnCanManageProductionPhasesChanged(bool value)
     {
         OnPropertyChanged(nameof(HasMachineManagementShortcuts));
-        OnPropertyChanged(nameof(CanAdicionarFase));
-        ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
+        NotifyCanAdicionarFaseChanged();
 
         if (!value)
             IsFasesProducaoVisible = false;
@@ -275,21 +237,12 @@ public partial class MaquinasViewModel : SearchableViewModel
         OnPropertyChanged(nameof(MaquinaEmEdicaoDisplay));
         OnPropertyChanged(nameof(EstadoAtualEdicaoDisplay));
         OnPropertyChanged(nameof(TransicoesPermitidasDisplay));
-        OnPropertyChanged(nameof(CanGuardarEdicao));
-        GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
+        NotifyCanGuardarEdicaoChanged();
     }
 
-    partial void OnEditarIpAddressChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanGuardarEdicao));
-        GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnEditarIpAddressChanged(string value) => NotifyCanGuardarEdicaoChanged();
 
-    partial void OnSelectedEditEstadoMaquinaOptionChanged(EstadoMaquinaOption? value)
-    {
-        OnPropertyChanged(nameof(CanGuardarEdicao));
-        GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedEditEstadoMaquinaOptionChanged(EstadoMaquinaOption? value) => NotifyCanGuardarEdicaoChanged();
 
     /// <summary>
     /// Carrega permissoes, fases e a listagem de maquinas para apresentacao inicial.
@@ -914,6 +867,24 @@ public partial class MaquinasViewModel : SearchableViewModel
         return string.IsNullOrWhiteSpace(value)
             ? string.Empty
             : value.Trim().ToUpperInvariant();
+    }
+
+    private void NotifyCanAdicionarMaquinaChanged()
+    {
+        OnPropertyChanged(nameof(CanAdicionarMaquina));
+        ConfirmarAdicionarMaquinaCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyCanAdicionarFaseChanged()
+    {
+        OnPropertyChanged(nameof(CanAdicionarFase));
+        ConfirmarAdicionarFaseCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyCanGuardarEdicaoChanged()
+    {
+        OnPropertyChanged(nameof(CanGuardarEdicao));
+        GuardarEdicaoMaquinaCommand.NotifyCanExecuteChanged();
     }
 }
 

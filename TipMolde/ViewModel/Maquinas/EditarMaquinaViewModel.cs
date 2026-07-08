@@ -109,31 +109,27 @@ public partial class EditarMaquinaViewModel : ObservableObject
     partial void OnCanEditMachineAdministrativeFieldsChanged(bool value)
     {
         OnPropertyChanged(nameof(IsStateOnlyEditMode));
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
+        NotifyCanSaveChanged();
     }
 
     partial void OnCanEditMachineStateChanged(bool value)
     {
         OnPropertyChanged(nameof(IsStateOnlyEditMode));
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
+        NotifyCanSaveChanged();
     }
 
     partial void OnNumeroChanged(int value)
     {
         OnPropertyChanged(nameof(NumeroDisplay));
         OnPropertyChanged(nameof(MaquinaDisplay));
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
+        NotifyCanSaveChanged();
     }
 
     partial void OnNomeModeloChanged(string value)
     {
         OnPropertyChanged(nameof(NomeModeloDisplay));
         OnPropertyChanged(nameof(MaquinaDisplay));
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
+        NotifyCanSaveChanged();
     }
 
     partial void OnFaseDedicadaChanged(string value) => OnPropertyChanged(nameof(FaseDedicadaDisplay));
@@ -142,51 +138,22 @@ public partial class EditarMaquinaViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(EstadoAtualDisplay));
         OnPropertyChanged(nameof(TransicoesPermitidasDisplay));
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
+        NotifyCanSaveChanged();
     }
 
-    partial void OnIpAddressChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIpAddressChanged(string value) => NotifyCanSaveChanged();
 
-    partial void OnSelectedEstadoMaquinaOptionChanged(EstadoMaquinaOption? value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnSelectedEstadoMaquinaOptionChanged(EstadoMaquinaOption? value) => NotifyCanSaveChanged();
 
-    partial void OnIsLoadingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsLoadingChanged(bool value) => NotifyCanSaveChanged();
 
-    partial void OnIsSavingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingChanged(bool value) => NotifyCanSaveChanged();
 
-    partial void OnNumeroOriginalChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNumeroOriginalChanged(int value) => NotifyCanSaveChanged();
 
-    partial void OnNomeModeloOriginalChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnNomeModeloOriginalChanged(string value) => NotifyCanSaveChanged();
 
-    partial void OnIpAddressOriginalChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIpAddressOriginalChanged(string value) => NotifyCanSaveChanged();
 
     /// <summary>
     /// Inicializa o formulario com os dados da maquina a editar.
@@ -402,5 +369,11 @@ public partial class EditarMaquinaViewModel : ObservableObject
         return string.IsNullOrWhiteSpace(value)
             ? string.Empty
             : value.Trim().ToUpperInvariant();
+    }
+
+    private void NotifyCanSaveChanged()
+    {
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 }

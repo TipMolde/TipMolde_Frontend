@@ -24,18 +24,18 @@ public partial class ProjetoDetalheViewModel
             {
                 await EnsureCurrentUserAsync();
 
-                var projeto = await _projetosService.GetWithRevisoesAsync(projetoId);
-                if (projeto is null)
+                var projetoCarregado = await _projetosService.GetWithRevisoesAsync(projetoId);
+                if (projetoCarregado is null)
                 {
                     ErrorMessage = "Nao foi possivel carregar o projeto.";
                     ClearContext();
                     return;
                 }
 
-                Projeto = projeto;
+                Projeto = projetoCarregado;
 
                 Revisoes.Clear();
-                foreach (var revisao in projeto.Revisoes.OrderByDescending(item => item.NumRevisao))
+                foreach (var revisao in projetoCarregado.Revisoes.OrderByDescending(item => item.NumRevisao))
                     Revisoes.Add(revisao);
 
                 RegistosTempo.Clear();

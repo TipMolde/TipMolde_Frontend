@@ -186,8 +186,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
     partial void OnSelectedFornecedorChanged(FornecedorDto? value)
     {
-        OnPropertyChanged(nameof(CanCreatePedido));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
     }
 
     partial void OnIsFornecedoresVisibleChanged(bool value)
@@ -200,91 +199,44 @@ public partial class PedidosMaterialViewModel : ObservableObject
         OnPropertyChanged(nameof(IsEditingFornecedor));
         OnPropertyChanged(nameof(FornecedoresFormTitle));
         OnPropertyChanged(nameof(FornecedoresActionText));
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
+        NotifyCanSalvarFornecedorChanged();
     }
 
-    partial void OnFornecedorNomeChanged(string value)
-    {
-        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
-            FornecedoresErrorMessage = string.Empty;
+    partial void OnFornecedorNomeChanged(string value) => NotifyCanSalvarFornecedorChanged(clearValidationError: true);
 
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
+    partial void OnFornecedorNifChanged(string value) => NotifyCanSalvarFornecedorChanged(clearValidationError: true);
 
-    partial void OnFornecedorNifChanged(string value)
-    {
-        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
-            FornecedoresErrorMessage = string.Empty;
+    partial void OnFornecedorMoradaChanged(string value) => NotifyCanSalvarFornecedorChanged(clearValidationError: true);
 
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
+    partial void OnFornecedorEmailChanged(string value) => NotifyCanSalvarFornecedorChanged(clearValidationError: true);
 
-    partial void OnFornecedorMoradaChanged(string value)
-    {
-        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
-            FornecedoresErrorMessage = string.Empty;
+    partial void OnFornecedorTelefoneChanged(string value) => NotifyCanSalvarFornecedorChanged(clearValidationError: true);
 
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
-
-    partial void OnFornecedorEmailChanged(string value)
-    {
-        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
-            FornecedoresErrorMessage = string.Empty;
-
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
-
-    partial void OnFornecedorTelefoneChanged(string value)
-    {
-        if (!string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
-            FornecedoresErrorMessage = string.Empty;
-
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
-
-    partial void OnIsSavingFornecedorChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-    }
+    partial void OnIsSavingFornecedorChanged(bool value) => NotifyCanSalvarFornecedorChanged();
 
     partial void OnIsLoadingChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCreatePedido));
-        OnPropertyChanged(nameof(CanLoadMorePecas));
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
-        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
+        NotifyCanSalvarFornecedorChanged();
     }
 
     partial void OnIsLoadingPecasChanged(bool value)
     {
         OnPropertyChanged(nameof(HasNoPecas));
-        OnPropertyChanged(nameof(CanCreatePedido));
-        OnPropertyChanged(nameof(CanLoadMorePecas));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
-        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
     }
 
     partial void OnIsSavingChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCreatePedido));
-        OnPropertyChanged(nameof(CanLoadMorePecas));
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
-        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
+        NotifyCanSalvarFornecedorChanged();
     }
 
     partial void OnErrorMessageChanged(string value)
     {
         OnPropertyChanged(nameof(HasError));
-        OnPropertyChanged(nameof(CanCreatePedido));
-        OnPropertyChanged(nameof(CanSalvarFornecedor));
-        OnPropertyChanged(nameof(CanConfirmarResumoPedido));
-        OnPropertyChanged(nameof(CanLoadMorePecas));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
-        ConfirmarResumoPedidoCommand.NotifyCanExecuteChanged();
-        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
+        NotifyCanSalvarFornecedorChanged();
     }
 
     partial void OnFornecedoresErrorMessageChanged(string value)
@@ -294,12 +246,7 @@ public partial class PedidosMaterialViewModel : ObservableObject
 
     partial void OnIsPedidoResumoVisibleChanged(bool value)
     {
-        OnPropertyChanged(nameof(CanCreatePedido));
-        OnPropertyChanged(nameof(CanConfirmarResumoPedido));
-        OnPropertyChanged(nameof(CanLoadMorePecas));
-        CriarPedidoCommand.NotifyCanExecuteChanged();
-        ConfirmarResumoPedidoCommand.NotifyCanExecuteChanged();
-        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+        NotifyPedidoWorkflowStateChanged();
     }
 
     partial void OnPecaSearchTermChanged(string value)
@@ -605,6 +552,24 @@ public partial class PedidosMaterialViewModel : ObservableObject
             await LoadPecasAsync(resetPaging: true);
         else
             ClearPecasDisponiveis();
+    }
+
+    private void NotifyPedidoWorkflowStateChanged()
+    {
+        OnPropertyChanged(nameof(CanCreatePedido));
+        OnPropertyChanged(nameof(CanConfirmarResumoPedido));
+        OnPropertyChanged(nameof(CanLoadMorePecas));
+        CriarPedidoCommand.NotifyCanExecuteChanged();
+        ConfirmarResumoPedidoCommand.NotifyCanExecuteChanged();
+        CarregarMaisPecasCommand.NotifyCanExecuteChanged();
+    }
+
+    private void NotifyCanSalvarFornecedorChanged(bool clearValidationError = false)
+    {
+        if (clearValidationError && !string.IsNullOrWhiteSpace(FornecedoresErrorMessage))
+            FornecedoresErrorMessage = string.Empty;
+
+        OnPropertyChanged(nameof(CanSalvarFornecedor));
     }
 
     private async Task RefreshFornecedoresAsync(int? selectedFornecedorId = null)

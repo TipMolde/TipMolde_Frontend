@@ -40,7 +40,7 @@ public partial class AutenticacaoViewModel : ObservableObject
         _authorizationService = authorizationService;
         _sessaoPersistidaService = sessaoPersistidaService;
         _navigationService = navigationService;
-        RememberSession = SessaoPersistidaService.ShouldRememberSession;
+        RememberSession = _sessaoPersistidaService.ShouldRememberSession;
     }
 
     [ObservableProperty]

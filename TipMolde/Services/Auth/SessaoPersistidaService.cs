@@ -19,6 +19,8 @@ public sealed class SessaoPersistidaService
     private const string AuthTokenExpiresAtKey = "auth_token_expires_at";
 
     private readonly HttpClient _httpClient;
+    private IPreferences? _preferences;
+    private ISecureStorage? _secureStorage;
 
     /// <summary>
     /// Construtor do servico de sessao persistida.
@@ -30,9 +32,25 @@ public sealed class SessaoPersistidaService
     }
 
     /// <summary>
+    /// Construtor alternativo para testes e cenarios com armazenamento injetado.
+    /// </summary>
+    /// <param name="httpClient">Cliente HTTP cuja autenticacao deve acompanhar o estado da sessao.</param>
+    /// <param name="preferences">Armazenamento simples de preferencias.</param>
+    /// <param name="secureStorage">Armazenamento seguro de segredos.</param>
+    public SessaoPersistidaService(
+        HttpClient httpClient,
+        IPreferences preferences,
+        ISecureStorage secureStorage)
+    {
+        _httpClient = httpClient;
+        _preferences = preferences;
+        _secureStorage = secureStorage;
+    }
+
+    /// <summary>
     /// Indica se o utilizador escolheu manter a sessao entre arranques da aplicacao.
     /// </summary>
-    public static bool ShouldRememberSession => Preferences.Default.Get(RememberSessionKey, false);
+    public bool ShouldRememberSession => PreferencesStore.Get(RememberSessionKey, false);
 
     /// <summary>
     /// Guarda a sessao autenticada e atualiza o cliente HTTP ativo.
@@ -43,7 +61,7 @@ public sealed class SessaoPersistidaService
     /// <returns>Tarefa assincrona que representa a gravacao da sessao.</returns>
     public async Task SaveSessionAsync(string token, DateTimeOffset expiresAt, bool rememberSession)
     {
-        Preferences.Default.Set(RememberSessionKey, rememberSession);
+        PreferencesStore.Set(RememberSessionKey, rememberSession);
 
         if (!rememberSession)
         {
@@ -51,13 +69,13 @@ public sealed class SessaoPersistidaService
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", token);
 
-            SecureStorage.Default.Remove(AuthTokenKey);
-            Preferences.Default.Remove(AuthTokenExpiresAtKey);
+            SecureStorageStore.Remove(AuthTokenKey);
+            PreferencesStore.Remove(AuthTokenExpiresAtKey);
             return;
         }
 
-        await SecureStorage.Default.SetAsync(AuthTokenKey, token);
-        Preferences.Default.Set(AuthTokenExpiresAtKey, expiresAt.UtcDateTime.ToString("O"));
+        await SecureStorageStore.SetAsync(AuthTokenKey, token);
+        PreferencesStore.Set(AuthTokenExpiresAtKey, expiresAt.UtcDateTime.ToString("O"));
 
         _httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", token);
@@ -75,8 +93,8 @@ public sealed class SessaoPersistidaService
             return false;
         }
 
-        var token = await SecureStorage.Default.GetAsync(AuthTokenKey);
-        var expiresAtRaw = Preferences.Default.Get(AuthTokenExpiresAtKey, string.Empty);
+        var token = await SecureStorageStore.GetAsync(AuthTokenKey);
+        var expiresAtRaw = PreferencesStore.Get(AuthTokenExpiresAtKey, string.Empty);
 
         if (string.IsNullOrWhiteSpace(token) ||
             !DateTimeOffset.TryParseExact(
@@ -105,9 +123,9 @@ public sealed class SessaoPersistidaService
     {
         ClearHttpAuthorization();
 
-        SecureStorage.Default.Remove(AuthTokenKey);
-        Preferences.Default.Remove(AuthTokenExpiresAtKey);
-        Preferences.Default.Remove(RememberSessionKey);
+        SecureStorageStore.Remove(AuthTokenKey);
+        PreferencesStore.Remove(AuthTokenExpiresAtKey);
+        PreferencesStore.Remove(RememberSessionKey);
 
         return Task.CompletedTask;
     }
@@ -116,6 +134,10 @@ public sealed class SessaoPersistidaService
     {
         _httpClient.DefaultRequestHeaders.Authorization = null;
     }
+
+    private IPreferences PreferencesStore => _preferences ??= Preferences.Default;
+
+    private ISecureStorage SecureStorageStore => _secureStorage ??= SecureStorage.Default;
 
     /// <summary>
     /// Tenta obter o identificador do utilizador atual a partir do token em memoria.

@@ -101,47 +101,19 @@ public partial class EditarPecaViewModel : ObservableObject
 
     partial void OnErrorMessageChanged(string value) => OnPropertyChanged(nameof(HasError));
     partial void OnNumeroMoldeChanged(string value) => OnPropertyChanged(nameof(NumeroMoldeDisplay));
-    partial void OnCanManagePiecesChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnCanManagePiecesChanged(bool value) => NotifyCanSaveChanged();
 
-    partial void OnPecaIdChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnPecaIdChanged(int value) => NotifyCanSaveChanged();
 
-    partial void OnDesignacaoChanged(string value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnDesignacaoChanged(string value) => NotifyCanSaveChanged();
 
-    partial void OnPrioridadeChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnPrioridadeChanged(int value) => NotifyCanSaveChanged();
 
-    partial void OnQuantidadeChanged(int value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnQuantidadeChanged(int value) => NotifyCanSaveChanged();
 
-    partial void OnIsLoadingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsLoadingChanged(bool value) => NotifyCanSaveChanged();
 
-    partial void OnIsSavingChanged(bool value)
-    {
-        OnPropertyChanged(nameof(CanSave));
-        SaveCommand.NotifyCanExecuteChanged();
-    }
+    partial void OnIsSavingChanged(bool value) => NotifyCanSaveChanged();
 
     /// <summary>
     /// Carrega os dados da peca e prepara o formulario de edicao.
@@ -294,5 +266,11 @@ public partial class EditarPecaViewModel : ObservableObject
 
         foreach (var fase in pagina.Items.OrderBy(item => item.FasesProducao_id))
             FasesProducao.Add(fase);
+    }
+
+    private void NotifyCanSaveChanged()
+    {
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
     }
 }

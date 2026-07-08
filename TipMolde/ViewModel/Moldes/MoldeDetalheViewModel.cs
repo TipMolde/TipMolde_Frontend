@@ -34,8 +34,6 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
     private readonly IDialogService _dialogService;
     private readonly IFilePickerService _filePickerService;
     private readonly INavigationService _navigationService;
-    private readonly List<DesenhoMoldeItem> _todosMoldes = [];
-    private readonly List<DesenhoMoldeItem> _moldesFiltrados = [];
     private bool _roleLoaded;
     private bool _suspendSelectedProjetoLoad;
     private int? _currentUserId;
@@ -358,7 +356,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
 
                 await Task.WhenAll(moldeTask, dashboardTask, projetosTask);
                 var molde = await moldeTask;
-                var dashboard = await dashboardTask;
+                var dashboardCicloVida = await dashboardTask;
                 var projetos = await projetosTask;
 
                 if (molde is null)
@@ -397,7 +395,7 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
                 MaterialCavidade = molde.MaterialCavidade ?? string.Empty;
                 MaterialMovimentos = molde.MaterialMovimentos ?? string.Empty;
                 MaterialInjecao = molde.MaterialInjecao ?? string.Empty;
-                Dashboard = dashboard;
+                Dashboard = dashboardCicloVida;
                 Page = 1;
 
                 await LoadPecasAsync();
@@ -1193,28 +1191,6 @@ public partial class MoldeDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(ProjetoAtivoCaminhoDisplay));
         OnPropertyChanged(nameof(RevisoesResumoDisplay));
         OnPropertyChanged(nameof(TempoResumoDisplay));
-        OnPropertyChanged(nameof(TempoTotalDisplay));
-        OnPropertyChanged(nameof(TempoTotalPecasDisplay));
-        OnPropertyChanged(nameof(TempoSessaoAtivaDisplay));
-    }
-
-    private void RefreshPropriedadesSecundarias()
-    {
-        OnPropertyChanged(nameof(HasMoldes));
-        OnPropertyChanged(nameof(HasPecas));
-        OnPropertyChanged(nameof(HasProjetos));
-        OnPropertyChanged(nameof(HasRevisoes));
-        OnPropertyChanged(nameof(HasRegistosTempo));
-        OnPropertyChanged(nameof(CanAddPeca));
-        OnPropertyChanged(nameof(EmptyProjetosMessage));
-        OnPropertyChanged(nameof(EmptyProjetosMessageDisplay));
-        OnPropertyChanged(nameof(EmptyRevisoesMessage));
-        OnPropertyChanged(nameof(EmptyTempoMessage));
-        OnPropertyChanged(nameof(ProjetoSectionDescription));
-        OnPropertyChanged(nameof(TempoResumoDisplay));
-        OnPropertyChanged(nameof(ProjetoAtivoResumoDisplay));
-        OnPropertyChanged(nameof(ProjetoAtivoCaminhoDisplay));
-        OnPropertyChanged(nameof(RevisoesResumoDisplay));
         OnPropertyChanged(nameof(TempoTotalDisplay));
         OnPropertyChanged(nameof(TempoTotalPecasDisplay));
         OnPropertyChanged(nameof(TempoSessaoAtivaDisplay));

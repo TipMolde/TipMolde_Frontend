@@ -164,8 +164,7 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
 
     partial void OnIsLoadingDataChanged(bool value)
     {
-        if (value == IsLoadingData)
-            UpdateCanCreateState();
+        UpdateCanCreateState();
     }
 
     /// <summary>
@@ -195,7 +194,7 @@ public partial class AdicionarEncomendaViewModel : ObservableObject
             foreach (var cliente in _todosClientes)
                 ClientesDisponiveis.Add(cliente);
 
-            SelectedClienteOption ??= ClientesDisponiveis.FirstOrDefault();
+            SelectedClienteOption ??= ClientesDisponiveis.Count > 0 ? ClientesDisponiveis[0] : null;
 
             _todosMoldes.Clear();
             foreach (var molde in moldes.OrderBy(molde => molde.Nome).ThenBy(molde => molde.Numero))

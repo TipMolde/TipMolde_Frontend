@@ -55,16 +55,12 @@ public partial class FopGeralViewModel : PaginatedViewModel
 
     partial void OnDataInicioChanged(DateTime value)
     {
-        OnPropertyChanged(nameof(PeriodoDisplay));
-        OnPropertyChanged(nameof(CanExportExcel));
-        ExportarExcelCommand.NotifyCanExecuteChanged();
+        NotifyPeriodoChanged();
     }
 
     partial void OnDataFimChanged(DateTime value)
     {
-        OnPropertyChanged(nameof(PeriodoDisplay));
-        OnPropertyChanged(nameof(CanExportExcel));
-        ExportarExcelCommand.NotifyCanExecuteChanged();
+        NotifyPeriodoChanged();
     }
 
     partial void OnIsExportingExcelChanged(bool value)
@@ -164,5 +160,12 @@ public partial class FopGeralViewModel : PaginatedViewModel
             UpdatePagination(pagina.TotalItems, pagina.TotalPages);
             OnPropertyChanged(nameof(HasLinhas));
         });
+    }
+
+    private void NotifyPeriodoChanged()
+    {
+        OnPropertyChanged(nameof(PeriodoDisplay));
+        OnPropertyChanged(nameof(CanExportExcel));
+        ExportarExcelCommand.NotifyCanExecuteChanged();
     }
 }

@@ -102,6 +102,116 @@ public class UtilizadoresServiceTests
         exception.Which.Message.Should().Be("Falha na listagem de utilizadores.");
     }
 
+    [Test(Description = "T5FRT - O servico deve pesquisar utilizadores com o termo escapado no endpoint correto.")]
+    public async Task SearchAsync_Should_UseSearchEndpoint_When_SearchTermContainsSpaces()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => CreateJsonResponse(
+                HttpStatusCode.OK,
+                new PagedResult<UtilizadorDto>
+                {
+                    Items = [BuildUtilizadorDto()],
+                    Page = 1,
+                    PageSize = 5,
+                    TotalItems = 1
+                }),
+            out var requests);
+        var sut = new UtilizadoresService(httpClient);
+
+        // ACT
+        var result = await sut.SearchAsync("Ana Silva", 2, 5);
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result!.Items.Should().ContainSingle();
+        requests.Should().ContainSingle();
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/users/search?searchTerm=Ana%20Silva&page=2&pageSize=5");
+    }
+
+    [Test(Description = "T6FRT - O servico deve repor a password com o payload esperado.")]
+    public async Task ResetUtilizadorPasswordAsync_Should_PutExpectedPayload_When_RequestIsSuccessful()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.NoContent),
+            out var requests);
+        var sut = new UtilizadoresService(httpClient);
+
+        // ACT
+        await sut.ResetUtilizadorPasswordAsync(14, "Password123!");
+
+        // ASSERT
+        requests.Should().ContainSingle();
+        requests[0].Method.Should().Be(HttpMethod.Put);
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/users/14/password/reset");
+        var requestBody = await requests[0].Content!.ReadAsStringAsync();
+        requestBody.Should().Contain("\"newPassword\":\"Password123!\"");
+    }
+
+    [Test(Description = "T7FRT - O servico deve alterar a password do utilizador autenticado no endpoint esperado.")]
+    public async Task ChangeCurrentPasswordAsync_Should_PutExpectedPayload_When_RequestIsSuccessful()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.NoContent),
+            out var requests);
+        var sut = new UtilizadoresService(httpClient);
+
+        // ACT
+        await sut.ChangeCurrentPasswordAsync("Atual123!", "Nova123!");
+
+        // ASSERT
+        requests.Should().ContainSingle();
+        requests[0].Method.Should().Be(HttpMethod.Put);
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/users/me/password");
+        var requestBody = await requests[0].Content!.ReadAsStringAsync();
+        requestBody.Should().Contain("\"currentPassword\":\"Atual123!\"");
+        requestBody.Should().Contain("\"newPassword\":\"Nova123!\"");
+    }
+
+    [Test(Description = "T8FRT - O servico deve criar um novo utilizador com o payload esperado.")]
+    public async Task CreateAsync_Should_PostExpectedPayload_When_RequestIsSuccessful()
+    {
+        // ARRANGE
+        var httpClient = CreateHttpClient(
+            _ => new HttpResponseMessage(HttpStatusCode.Created),
+            out var requests);
+        var sut = new UtilizadoresService(httpClient);
+
+        // ACT
+        await sut.CreateAsync("Ana Silva", "ana@tipmolde.pt", "Password123!", "GESTOR_DESENHO");
+
+        // ASSERT
+        requests.Should().ContainSingle();
+        requests[0].Method.Should().Be(HttpMethod.Post);
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/users");
+        var requestBody = await requests[0].Content!.ReadAsStringAsync();
+        requestBody.Should().Contain("\"nome\":\"Ana Silva\"");
+        requestBody.Should().Contain("\"email\":\"ana@tipmolde.pt\"");
+        requestBody.Should().Contain("\"role\":\"GESTOR_DESENHO\"");
+    }
+
+    [Test(Description = "T9FRT - O servico deve devolver o utilizador autenticado quando o endpoint /me responde com sucesso.")]
+    public async Task GetCurrentUserAsync_Should_ReturnCurrentUser_When_RequestIsSuccessful()
+    {
+        // ARRANGE
+        var expectedUser = BuildUtilizadorDto();
+        var httpClient = CreateHttpClient(
+            _ => CreateJsonResponse(HttpStatusCode.OK, expectedUser),
+            out var requests);
+        var sut = new UtilizadoresService(httpClient);
+
+        // ACT
+        var result = await sut.GetCurrentUserAsync();
+
+        // ASSERT
+        result.Should().NotBeNull();
+        result.User_id.Should().Be(expectedUser.User_id);
+        requests.Should().ContainSingle();
+        requests[0].RequestUri!.PathAndQuery.Should().Be("/api/users/me");
+    }
+
     /// <summary>
     /// Cria um utilizador de teste para validar a desserializacao.
     /// </summary>
