@@ -18,6 +18,10 @@ public class MaquinaDetalheViewModelTests
     private Mock<IDialogService> _dialogService = null!;
     private MaquinaDetalheViewModel _sut = null!;
     private List<RecordedRequest> _requests = null!;
+    private List<IndustrialEventoDto> _eventosPendentes = null!;
+    private IndustrialSessaoAtivaDto? _sessaoAtiva;
+    private bool _contextoCompleto;
+    private bool _producaoConcluida;
 
     [SetUp]
     public void SetUp()
@@ -27,11 +31,68 @@ public class MaquinaDetalheViewModelTests
             .Setup(service => service.ShowSuccessAsync(It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
+        _eventosPendentes =
+        [
+            new IndustrialEventoDto
+            {
+                EventoMaquinaIndustrial_id = 91,
+                Maquina_id = 9,
+                EstadoMaquina = "RUNNING",
+                OccurredAt = new DateTime(2026, 7, 7, 8, 0, 0, DateTimeKind.Utc)
+            },
+            new IndustrialEventoDto
+            {
+                EventoMaquinaIndustrial_id = 92,
+                Maquina_id = 9,
+                EstadoMaquina = "RUNNING",
+                OccurredAt = new DateTime(2026, 7, 7, 9, 0, 0, DateTimeKind.Utc)
+            },
+            new IndustrialEventoDto
+            {
+                EventoMaquinaIndustrial_id = 93,
+                Maquina_id = 8,
+                EstadoMaquina = "RUNNING",
+                OccurredAt = new DateTime(2026, 7, 7, 7, 0, 0, DateTimeKind.Utc)
+            },
+            new IndustrialEventoDto
+            {
+                EventoMaquinaIndustrial_id = 94,
+                Maquina_id = 9,
+                EstadoMaquina = "STOPPED",
+                OccurredAt = new DateTime(2026, 7, 7, 6, 0, 0, DateTimeKind.Utc)
+            }
+        ];
+
+        _sessaoAtiva = new IndustrialSessaoAtivaDto
+        {
+            SessaoMaquinaIndustrial_id = 501,
+            Maquina_id = 9,
+            Operador_id = 7,
+            OperadorNome = "Gestor Producao",
+            Peca_id = 101,
+            NumeroPeca = "P-101",
+            DesignacaoPeca = "Base 101",
+            Molde_id = 9,
+            NumeroMolde = "M-901",
+            Fase_id = 3,
+            FaseNome = "MONTAGEM",
+            ProximaFasePlaneada_id = 4,
+            ProximaFasePlaneadaNome = "EROSAO",
+            EstadoSessao = "ATIVA",
+            UltimoEstadoMaquina = "RUNNING",
+            StartedAt = new DateTime(2026, 7, 7, 5, 50, 0, DateTimeKind.Utc),
+            LastSeenAt = new DateTime(2026, 7, 7, 6, 0, 0, DateTimeKind.Utc)
+        };
+
+        _contextoCompleto = false;
+        _producaoConcluida = false;
+
         var httpClient = CreateHttpClient(HandleRequest, out _requests);
         httpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", CreateJwtToken(userId: 7));
 
         _sut = new MaquinaDetalheViewModel(
+            new FasesProducaoService(httpClient),
             new MaquinasService(httpClient),
             new IndustrialProducaoService(httpClient),
             new PecasService(httpClient),
@@ -40,9 +101,9 @@ public class MaquinaDetalheViewModelTests
             _dialogService.Object);
     }
 
-    [Test(Description = "T1MDET - O detalhe da maquina deve carregar cinco pecas por pagina e resolver o RUNNING pendente mais antigo.")]
+    [Test(Description = "T1MDET - O detalhe deve priorizar STOPPED pendente, mostrar a sessao ativa e filtrar pecas pela fase dedicada.")]
     [Category("Smoke")]
-    public async Task LoadAsync_Should_LoadFirstFivePiecesAndOldestPendingRunningEvent()
+    public async Task LoadAsync_Should_PrioritizeStoppedPendingAndLoadActiveSession()
     {
         await _sut.LoadAsync(9);
 
@@ -51,49 +112,37 @@ public class MaquinaDetalheViewModelTests
         _sut.UtilizadorAtualId.Should().Be(7);
         _sut.UtilizadorAtualNome.Should().Be("Gestor Producao");
         _sut.EventoPendente.Should().NotBeNull();
-        _sut.EventoPendente!.EventoMaquinaIndustrial_id.Should().Be(91);
-        _sut.PecasEncontradas.Should().HaveCount(5);
-        _sut.PecasEncontradas.First().PecaId.Should().Be(101);
-        _sut.Page.Should().Be(1);
-        _sut.PageSize.Should().Be(5);
-        _sut.TotalPages.Should().Be(2);
-        _sut.CanGoNext.Should().BeTrue();
+        _sut.EventoPendente!.EventoMaquinaIndustrial_id.Should().Be(94);
+        _sut.HasEventoStoppedPendente.Should().BeTrue();
+        _sut.HasEventoRunningPendente.Should().BeFalse();
+        _sut.NeedsContextSelection.Should().BeFalse();
+        _sut.SelectedProximaFase.Should().NotBeNull();
+        _sut.SelectedProximaFase!.FasesProducao_id.Should().Be(4);
+        _sut.SessaoAtiva.Should().NotBeNull();
+        _sut.SessaoAtiva!.Peca_id.Should().Be(101);
+        _sut.PecasEncontradas.Should().BeEmpty();
+        _requests.Should().NotContain(request =>
+            request.Method == HttpMethod.Get &&
+            request.Path == "/api/pecas/fila-trabalho?page=1&pageSize=5&searchMode=Peca&faseId=3");
     }
 
-    [Test(Description = "T2MDET - Ao mudar de pagina, a selecao deve ser limpa quando a peca escolhida deixa de estar visivel.")]
-    public async Task NextPageCommand_Should_ClearSelection_When_SelectedPieceLeavesVisiblePage()
+    [Test(Description = "T2MDET - Ao completar contexto RUNNING, o frontend deve enviar gestor, peca e fase e recarregar a maquina como EM_USO.")]
+    public async Task CompletarContextoCommand_Should_PostSelectedPieceAndReloadMachineState()
     {
+        _eventosPendentes =
+        [
+            new IndustrialEventoDto
+            {
+                EventoMaquinaIndustrial_id = 91,
+                Maquina_id = 9,
+                EstadoMaquina = "RUNNING",
+                OccurredAt = new DateTime(2026, 7, 7, 8, 0, 0, DateTimeKind.Utc)
+            }
+        ];
+        _sessaoAtiva = null;
+
         await _sut.LoadAsync(9);
-        _sut.SelecionarPecaCommand.Execute(_sut.PecasEncontradas.First());
-
-        await _sut.NextPageCommand.ExecuteAsync(null);
-
-        _sut.Page.Should().Be(2);
-        _sut.PecasEncontradas.Should().HaveCount(2);
-        _sut.PecasEncontradas.Select(item => item.PecaId).Should().ContainInOrder(106, 107);
-        _sut.SelectedPeca.Should().BeNull();
-        _sut.HasSelectedPeca.Should().BeFalse();
-    }
-
-    [Test(Description = "T3MDET - A pesquisa de pecas deve repor a pagina e aplicar o filtro no backend.")]
-    public async Task PesquisarPecasCommand_Should_ResetToFirstPageAndApplyFilter()
-    {
-        await _sut.LoadAsync(9);
-        await _sut.NextPageCommand.ExecuteAsync(null);
-
-        _sut.PesquisaPeca = "Base";
-        await _sut.PesquisarPecasCommand.ExecuteAsync(null);
-
-        _sut.Page.Should().Be(1);
-        _sut.TotalPages.Should().Be(1);
-        _sut.PecasEncontradas.Should().HaveCount(2);
-        _sut.PecasEncontradas.Select(item => item.PecaId).Should().ContainInOrder(101, 106);
-    }
-
-    [Test(Description = "T4MDET - Ao completar contexto, o frontend deve enviar gestor, peca e fase e mostrar confirmacao.")]
-    public async Task CompletarContextoCommand_Should_PostSelectedPieceAndShowSuccess()
-    {
-        await _sut.LoadAsync(9);
+        _sut.NeedsContextSelection.Should().BeTrue();
         _sut.SelecionarPecaCommand.Execute(_sut.PecasEncontradas.First());
 
         await _sut.CompletarContextoCommand.ExecuteAsync(null);
@@ -110,29 +159,46 @@ public class MaquinaDetalheViewModelTests
         post.Body.Should().Contain("\"peca_id\":101");
         post.Body.Should().Contain("\"fase_id\":3");
         _sut.SelectedPeca.Should().BeNull();
+        _sut.Maquina!.Estado.Should().Be("EM_USO");
+        _sut.SessaoAtiva.Should().NotBeNull();
         _dialogService.Verify(service => service.ShowSuccessAsync(
             "Contexto registado",
             It.Is<string>(message => message.Contains("901") && message.Contains("P-101"))),
             Times.Once);
     }
 
-    private static HttpResponseMessage HandleRequest(HttpRequestMessage request)
+    [Test(Description = "T3MDET - Ao confirmar STOPPED como concluido, o frontend deve enviar a decisao e limpar a sessao ativa apos recarga.")]
+    public async Task ConfirmarConclusaoCommand_Should_PostDecisionAndClearActiveSession()
+    {
+        await _sut.LoadAsync(9);
+
+        await _sut.ConfirmarConclusaoCommand.ExecuteAsync(null);
+
+        _requests.Should().ContainSingle(request =>
+            request.Method == HttpMethod.Post &&
+            request.Path == "/api/industrial/eventos/94/confirmar-paragem");
+
+        var post = _requests.Single(request =>
+            request.Method == HttpMethod.Post &&
+            request.Path == "/api/industrial/eventos/94/confirmar-paragem");
+
+        post.Body.Should().Contain("\"trabalhoConcluido\":true");
+        post.Body.Should().Contain("\"proximaFase_id\":4");
+        _sut.EventoPendente.Should().BeNull();
+        _sut.SessaoAtiva.Should().BeNull();
+        _sut.Maquina!.Estado.Should().Be("DISPONIVEL");
+        _dialogService.Verify(service => service.ShowSuccessAsync(
+            "Producao concluida",
+            "O trabalho ativo da maquina foi concluido."),
+            Times.Once);
+    }
+
+    private HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch
         {
-            "/api/Maquina/9" => CreateJsonResponse(
-                HttpStatusCode.OK,
-                new MaquinaItem
-                {
-                    Maquina_id = 9,
-                    Numero = 901,
-                    NomeModelo = "Maq CNC 01",
-                    IpAddress = "192.168.0.9",
-                    Estado = "DISPONIVEL",
-                    FaseDedicada_id = 3,
-                    FaseDedicadaNome = "MONTAGEM",
-                    ProtocoloComunicacao = "OPC-UA"
-                }),
+            "/api/Maquina/9" => CreateJsonResponse(HttpStatusCode.OK, BuildMaquinaResponse()),
+            "/api/fases-producao?page=1&pageSize=100" => CreateJsonResponse(HttpStatusCode.OK, BuildFasesResponse()),
             "/api/users/7" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new UtilizadorDto
@@ -142,71 +208,158 @@ public class MaquinaDetalheViewModelTests
                     Email = "gestor@tipmolde.pt",
                     Role = "GESTOR_PRODUCAO"
                 }),
-            "/api/industrial/eventos/pendentes?page=1&pageSize=100" => CreateJsonResponse(
-                HttpStatusCode.OK,
-                new PagedResult<IndustrialEventoDto>
-                {
-                    Items =
-                    [
-                        new IndustrialEventoDto
-                        {
-                            EventoMaquinaIndustrial_id = 91,
-                            Maquina_id = 9,
-                            EstadoMaquina = "RUNNING",
-                            OccurredAt = new DateTime(2026, 7, 7, 8, 0, 0, DateTimeKind.Utc)
-                        },
-                        new IndustrialEventoDto
-                        {
-                            EventoMaquinaIndustrial_id = 92,
-                            Maquina_id = 9,
-                            EstadoMaquina = "RUNNING",
-                            OccurredAt = new DateTime(2026, 7, 7, 9, 0, 0, DateTimeKind.Utc)
-                        },
-                        new IndustrialEventoDto
-                        {
-                            EventoMaquinaIndustrial_id = 93,
-                            Maquina_id = 8,
-                            EstadoMaquina = "RUNNING",
-                            OccurredAt = new DateTime(2026, 7, 7, 7, 0, 0, DateTimeKind.Utc)
-                        },
-                        new IndustrialEventoDto
-                        {
-                            EventoMaquinaIndustrial_id = 94,
-                            Maquina_id = 9,
-                            EstadoMaquina = "STOPPED",
-                            OccurredAt = new DateTime(2026, 7, 7, 6, 0, 0, DateTimeKind.Utc)
-                        }
-                    ],
-                    Page = 1,
-                    PageSize = 100,
-                    TotalItems = 4
-                }),
-            "/api/pecas/fila-trabalho?page=1&pageSize=5&searchMode=Peca" => CreateJsonResponse(
+            "/api/industrial/maquinas/9/evento-pendente" => BuildEventoPendenteResponse(),
+            "/api/industrial/maquinas/9/sessao-ativa" => BuildSessaoAtivaResponse(),
+            "/api/pecas/fila-trabalho?page=1&pageSize=5&searchMode=Peca&faseId=3" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 CreatePecasPage(
                     page: 1,
                     pageSize: 5,
                     totalItems: 7,
                     [101, 102, 103, 104, 105])),
-            "/api/pecas/fila-trabalho?page=2&pageSize=5&searchMode=Peca" => CreateJsonResponse(
+            "/api/pecas/fila-trabalho?page=2&pageSize=5&searchMode=Peca&faseId=3" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 CreatePecasPage(
                     page: 2,
                     pageSize: 5,
                     totalItems: 7,
                     [106, 107])),
-            "/api/pecas/fila-trabalho?page=1&pageSize=5&searchMode=Peca&searchTerm=Base" => CreateJsonResponse(
+            "/api/pecas/fila-trabalho?page=1&pageSize=5&searchMode=Peca&searchTerm=Base&faseId=3" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 CreatePecasPage(
                     page: 1,
                     pageSize: 5,
                     totalItems: 2,
                     [101, 106])),
-            "/api/industrial/eventos/91/completar-contexto" => new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("{}", Encoding.UTF8, "application/json")
-            },
+            "/api/industrial/eventos/91/completar-contexto" => BuildCompletarContextoResponse(),
+            "/api/industrial/eventos/94/confirmar-paragem" => BuildConfirmarParagemResponse(),
             _ => new HttpResponseMessage(HttpStatusCode.NotFound)
+        };
+    }
+
+    private IReadOnlyList<IndustrialEventoDto> ResolveEventosPendentes()
+    {
+        if (_contextoCompleto || _producaoConcluida)
+            return [];
+
+        return _eventosPendentes;
+    }
+
+    private HttpResponseMessage BuildEventoPendenteResponse()
+    {
+        var evento = ResolveEventoPendente();
+        return evento is null
+            ? new HttpResponseMessage(HttpStatusCode.NotFound)
+            : CreateJsonResponse(HttpStatusCode.OK, evento);
+    }
+
+    private IndustrialEventoDto? ResolveEventoPendente()
+    {
+        if (_contextoCompleto || _producaoConcluida)
+            return null;
+
+        if (_sessaoAtiva is not null &&
+            string.Equals(_sessaoAtiva.EstadoSessao, "AGUARDAR_CONFIRMACAO_PARAGEM", StringComparison.OrdinalIgnoreCase))
+        {
+            return _eventosPendentes
+                .Where(evento => evento.Maquina_id == 9)
+                .Where(evento => string.Equals(evento.EstadoMaquina, "STOPPED", StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(evento => evento.OccurredAt)
+                .FirstOrDefault();
+        }
+
+        if (_sessaoAtiva is not null)
+            return null;
+
+        return _eventosPendentes
+            .Where(evento => evento.Maquina_id == 9)
+            .Where(evento => string.Equals(evento.EstadoMaquina, "RUNNING", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(evento => evento.OccurredAt)
+            .FirstOrDefault();
+    }
+
+    private MaquinaItem BuildMaquinaResponse()
+    {
+        return new MaquinaItem
+        {
+            Maquina_id = 9,
+            Numero = 901,
+            NomeModelo = "Maq CNC 01",
+            IpAddress = "192.168.0.9",
+            Estado = _contextoCompleto ? "EM_USO" : "DISPONIVEL",
+            FaseDedicada_id = 3,
+            FaseDedicadaNome = "MONTAGEM",
+            ProtocoloComunicacao = "OPC-UA"
+        };
+    }
+
+    private HttpResponseMessage BuildSessaoAtivaResponse()
+    {
+        if (_producaoConcluida)
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+
+        if (_contextoCompleto)
+        {
+            return CreateJsonResponse(
+                HttpStatusCode.OK,
+                _sessaoAtiva ?? new IndustrialSessaoAtivaDto
+                {
+                    SessaoMaquinaIndustrial_id = 501,
+                    Maquina_id = 9,
+                    Operador_id = 7,
+                    OperadorNome = "Gestor Producao",
+                    Peca_id = 101,
+                    NumeroPeca = "P-101",
+                    DesignacaoPeca = "Base 101",
+                    Molde_id = 9,
+                    NumeroMolde = "M-901",
+                    Fase_id = 3,
+                    FaseNome = "MONTAGEM",
+                    ProximaFasePlaneada_id = 4,
+                    ProximaFasePlaneadaNome = "EROSAO",
+                    EstadoSessao = "ATIVA",
+                    UltimoEstadoMaquina = "RUNNING",
+                    StartedAt = new DateTime(2026, 7, 7, 8, 0, 0, DateTimeKind.Utc),
+                    LastSeenAt = new DateTime(2026, 7, 7, 8, 1, 0, DateTimeKind.Utc)
+                });
+        }
+
+        return _sessaoAtiva is null
+            ? new HttpResponseMessage(HttpStatusCode.NotFound)
+            : CreateJsonResponse(HttpStatusCode.OK, _sessaoAtiva);
+    }
+
+    private HttpResponseMessage BuildCompletarContextoResponse()
+    {
+        _contextoCompleto = true;
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{}", Encoding.UTF8, "application/json")
+        };
+    }
+
+    private HttpResponseMessage BuildConfirmarParagemResponse()
+    {
+        _producaoConcluida = true;
+        return new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{}", Encoding.UTF8, "application/json")
+        };
+    }
+
+    private static PagedResult<FaseProducaoItem> BuildFasesResponse()
+    {
+        return new PagedResult<FaseProducaoItem>
+        {
+            Items =
+            [
+                new FaseProducaoItem { FasesProducao_id = 3, Nome = "MONTAGEM", Descricao = "Montagem" },
+                new FaseProducaoItem { FasesProducao_id = 4, Nome = "EROSAO", Descricao = "Erosao" },
+                new FaseProducaoItem { FasesProducao_id = 5, Nome = "POLIMENTO", Descricao = "Polimento" }
+            ],
+            Page = 1,
+            PageSize = 100,
+            TotalItems = 3
         };
     }
 
@@ -227,6 +380,8 @@ public class MaquinaDetalheViewModelTests
                     NomeMolde = "Molde CNC",
                     NumeroPeca = $"P-{pieceId}",
                     Designacao = pieceId is 101 or 106 ? $"Base {pieceId}" : $"Componente {pieceId}",
+                    ProximaFaseId = 3,
+                    ProximaFaseNome = "MONTAGEM",
                     FaseTrabalho = "MONTAGEM"
                 })
                 .ToList(),

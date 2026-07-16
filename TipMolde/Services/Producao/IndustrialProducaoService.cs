@@ -38,6 +38,44 @@ public sealed class IndustrialProducaoService : ApiServiceBase
     }
 
     /// <summary>
+    /// Obtem o evento pendente mais relevante para a maquina atual.
+    /// </summary>
+    /// <param name="maquinaId">Identificador da maquina.</param>
+    /// <returns>Evento pendente ou nulo quando nao existe acao manual.</returns>
+    public async Task<IndustrialEventoDto?> GetEventoPendenteMaquinaAsync(int maquinaId)
+    {
+        using var response = await HttpClient.GetAsync($"api/industrial/maquinas/{maquinaId}/evento-pendente");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar o evento pendente desta maquina.");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<IndustrialEventoDto>(response);
+    }
+
+    /// <summary>
+    /// Obtem a sessao industrial ativa de uma maquina.
+    /// </summary>
+    /// <param name="maquinaId">Identificador da maquina.</param>
+    /// <returns>Resumo da sessao ativa ou nulo quando a maquina nao tem contexto aberto.</returns>
+    public async Task<IndustrialSessaoAtivaDto?> GetSessaoAtivaAsync(int maquinaId)
+    {
+        using var response = await HttpClient.GetAsync($"api/industrial/maquinas/{maquinaId}/sessao-ativa");
+
+        await ThrowIfAuthorizationFailureAsync(
+            response,
+            "Nao tens permissao para consultar a sessao industrial ativa.");
+
+        if (!response.IsSuccessStatusCode)
+            return null;
+
+        return await DeserializeAsync<IndustrialSessaoAtivaDto>(response);
+    }
+
+    /// <summary>
     /// Completa manualmente o contexto de um evento industrial pendente.
     /// </summary>
     /// <param name="eventoId">Identificador do evento industrial.</param>
@@ -56,5 +94,23 @@ public sealed class IndustrialProducaoService : ApiServiceBase
 
         using var response = await HttpClient.PostAsJsonAsync($"api/industrial/eventos/{eventoId}/completar-contexto", payload);
         await EnsureSuccessAsync(response, $"Nao foi possivel completar o contexto do evento industrial {eventoId}. Estado: {(int)response.StatusCode}");
+    }
+
+    /// <summary>
+    /// Confirma se um evento STOPPED corresponde a pausa ou conclusao do trabalho.
+    /// </summary>
+    /// <param name="eventoId">Identificador do evento STOPPED pendente.</param>
+    /// <param name="trabalhoConcluido">True quando o trabalho terminou; false quando apenas pausou.</param>
+    /// <returns>Tarefa assincrona da confirmacao.</returns>
+    public async Task ConfirmarParagemAsync(int eventoId, bool trabalhoConcluido, int? proximaFaseId = null)
+    {
+        var payload = new
+        {
+            TrabalhoConcluido = trabalhoConcluido,
+            ProximaFase_id = trabalhoConcluido ? proximaFaseId : null
+        };
+
+        using var response = await HttpClient.PostAsJsonAsync($"api/industrial/eventos/{eventoId}/confirmar-paragem", payload);
+        await EnsureSuccessAsync(response, $"Nao foi possivel confirmar a paragem do evento industrial {eventoId}. Estado: {(int)response.StatusCode}");
     }
 }

@@ -141,12 +141,16 @@ public sealed class PecasService : ApiServiceBase
         int page,
         int pageSize,
         string? searchTerm,
-        string searchMode)
+        string searchMode,
+        int? faseId = null)
     {
         var query = $"api/pecas/fila-trabalho?page={page}&pageSize={pageSize}&searchMode={Uri.EscapeDataString(searchMode)}";
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
             query += $"&searchTerm={Uri.EscapeDataString(searchTerm.Trim())}";
+
+        if (faseId.HasValue)
+            query += $"&faseId={faseId.Value}";
 
         try
         {

@@ -13,12 +13,14 @@ namespace TipMolde.ViewModel;
 public partial class MaquinaDetalheViewModel : PaginatedViewModel
 {
     private const int PecasPageSize = 5;
+    private readonly FasesProducaoService _fasesProducaoService;
     private readonly MaquinasService _maquinasService;
     private readonly IndustrialProducaoService _industrialProducaoService;
     private readonly PecasService _pecasService;
     private readonly SessaoPersistidaService _sessaoPersistidaService;
     private readonly UtilizadoresService _utilizadoresService;
     private readonly IDialogService _dialogService;
+    private List<FaseProducaoItem> _todasFases = [];
 
     /// <summary>
     /// Construtor do view model de detalhe de maquina.
@@ -30,6 +32,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     /// <param name="utilizadoresService">Servico usado para resolver o utilizador autenticado.</param>
     /// <param name="dialogService">Servico usado para apresentar mensagens de sucesso ou erro.</param>
     public MaquinaDetalheViewModel(
+        FasesProducaoService fasesProducaoService,
         MaquinasService maquinasService,
         IndustrialProducaoService industrialProducaoService,
         PecasService pecasService,
@@ -37,6 +40,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         UtilizadoresService utilizadoresService,
         IDialogService dialogService)
     {
+        _fasesProducaoService = fasesProducaoService;
         _maquinasService = maquinasService;
         _industrialProducaoService = industrialProducaoService;
         _pecasService = pecasService;
@@ -51,11 +55,19 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
                 return;
 
             OnPropertyChanged(nameof(CanCompletarContexto));
+            OnPropertyChanged(nameof(CanIniciarConclusao));
+            OnPropertyChanged(nameof(CanConfirmarParagem));
+            OnPropertyChanged(nameof(CanConfirmarConclusao));
             CompletarContextoCommand.NotifyCanExecuteChanged();
+            ConfirmarPausaCommand.NotifyCanExecuteChanged();
+            PrepararConclusaoCommand.NotifyCanExecuteChanged();
+            CancelarConclusaoCommand.NotifyCanExecuteChanged();
+            ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
         };
     }
 
     public ObservableCollection<ProducaoPecaDisponivelItem> PecasEncontradas { get; } = new();
+    public ObservableCollection<FaseProducaoItem> ProximasFasesDisponiveis { get; } = new();
 
     [ObservableProperty]
     private MaquinaItem? maquina;
@@ -64,7 +76,13 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     private IndustrialEventoDto? eventoPendente;
 
     [ObservableProperty]
+    private IndustrialSessaoAtivaDto? sessaoAtiva;
+
+    [ObservableProperty]
     private ProducaoPecaDisponivelItem? selectedPeca;
+
+    [ObservableProperty]
+    private FaseProducaoItem? selectedProximaFase;
 
     [ObservableProperty]
     private int? utilizadorAtualId;
@@ -82,19 +100,34 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     private bool isSaving;
 
     [ObservableProperty]
+    private bool isConclusaoSelectionActive;
+
+    [ObservableProperty]
     private string infoMessage = string.Empty;
 
     public bool HasInfo => !string.IsNullOrWhiteSpace(InfoMessage);
     public bool HasMaquina => Maquina is not null;
     public bool HasEventoPendente => EventoPendente is not null;
+    public bool HasEventoRunningPendente => IsEventoRunning(EventoPendente);
+    public bool HasEventoStoppedPendente => IsEventoStopped(EventoPendente);
+    public bool NeedsContextSelection => HasEventoRunningPendente && !HasSessaoAtiva;
+    public bool HasAcaoPendente => NeedsContextSelection || HasEventoStoppedPendente;
+    public bool HasNoAcaoPendente => !HasAcaoPendente;
+    public bool HasSessaoAtiva => SessaoAtiva is not null;
     public bool HasPecasEncontradas => PecasEncontradas.Count > 0;
     public bool HasSelectedPeca => SelectedPeca is not null;
+    public bool CanIniciarConclusao => CanConfirmarParagem && !IsConclusaoSelectionActive;
+    public bool CanEscolherProximaFase => IsConclusaoSelectionActive && HasEventoStoppedPendente && ProximasFasesDisponiveis.Count > 0;
     public bool CanCompletarContexto => !IsLoading
                                         && !IsSaving
                                         && Maquina is not null
-                                        && EventoPendente is not null
+                                        && NeedsContextSelection
                                         && SelectedPeca is not null
                                         && UtilizadorAtualId.HasValue;
+    public bool CanConfirmarParagem => !IsLoading
+                                       && !IsSaving
+                                       && HasEventoStoppedPendente;
+    public bool CanConfirmarConclusao => IsConclusaoSelectionActive && CanConfirmarParagem && SelectedProximaFase is not null;
 
     public string MaquinaTitulo => Maquina is null
         ? "Maquina"
@@ -105,12 +138,20 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         : "Utilizador atual indisponivel";
 
     public string EventoPendenteDisplay => EventoPendente is null
-        ? "Sem pedido pendente para completar contexto."
+        ? "Sem evento pendente para esta maquina."
         : $"{EventoPendente.EstadoMaquinaDisplay} recebido em {EventoPendente.OccurredAtDisplay}";
 
     public string SelectedPecaDisplay => SelectedPeca is null
         ? "Nenhuma peca selecionada"
         : $"{SelectedPeca.NumeroPecaDisplay} - {SelectedPeca.DesignacaoDisplay}";
+
+    public string SessaoAtivaDisplay => SessaoAtiva is null
+        ? "Sem peca ativa."
+        : $"{SessaoAtiva.PecaResumoDisplay} em {SessaoAtiva.FaseDisplay}";
+
+    public string ProximaFasePlaneadaDisplay => SelectedProximaFase?.NomeDisplay
+        ?? SessaoAtiva?.ProximaFasePlaneadaDisplay
+        ?? "Sem fase planeada";
 
     partial void OnMaquinaChanged(MaquinaItem? value)
     {
@@ -123,9 +164,36 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     partial void OnEventoPendenteChanged(IndustrialEventoDto? value)
     {
         OnPropertyChanged(nameof(HasEventoPendente));
+        OnPropertyChanged(nameof(HasEventoRunningPendente));
+        OnPropertyChanged(nameof(HasEventoStoppedPendente));
+        OnPropertyChanged(nameof(NeedsContextSelection));
+        OnPropertyChanged(nameof(HasAcaoPendente));
+        OnPropertyChanged(nameof(HasNoAcaoPendente));
         OnPropertyChanged(nameof(EventoPendenteDisplay));
+        OnPropertyChanged(nameof(CanIniciarConclusao));
+        OnPropertyChanged(nameof(CanEscolherProximaFase));
         OnPropertyChanged(nameof(CanCompletarContexto));
+        OnPropertyChanged(nameof(CanConfirmarParagem));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
         CompletarContextoCommand.NotifyCanExecuteChanged();
+        ConfirmarPausaCommand.NotifyCanExecuteChanged();
+        PrepararConclusaoCommand.NotifyCanExecuteChanged();
+        CancelarConclusaoCommand.NotifyCanExecuteChanged();
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSessaoAtivaChanged(IndustrialSessaoAtivaDto? value)
+    {
+        OnPropertyChanged(nameof(HasSessaoAtiva));
+        OnPropertyChanged(nameof(SessaoAtivaDisplay));
+        OnPropertyChanged(nameof(NeedsContextSelection));
+        OnPropertyChanged(nameof(HasAcaoPendente));
+        OnPropertyChanged(nameof(HasNoAcaoPendente));
+        OnPropertyChanged(nameof(ProximaFasePlaneadaDisplay));
+        OnPropertyChanged(nameof(CanCompletarContexto));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
+        CompletarContextoCommand.NotifyCanExecuteChanged();
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnSelectedPecaChanged(ProducaoPecaDisponivelItem? value)
@@ -134,6 +202,23 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         OnPropertyChanged(nameof(SelectedPecaDisplay));
         OnPropertyChanged(nameof(CanCompletarContexto));
         CompletarContextoCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnSelectedProximaFaseChanged(FaseProducaoItem? value)
+    {
+        OnPropertyChanged(nameof(ProximaFasePlaneadaDisplay));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
+    }
+
+    partial void OnIsConclusaoSelectionActiveChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanIniciarConclusao));
+        OnPropertyChanged(nameof(CanEscolherProximaFase));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
+        PrepararConclusaoCommand.NotifyCanExecuteChanged();
+        CancelarConclusaoCommand.NotifyCanExecuteChanged();
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnUtilizadorAtualIdChanged(int? value)
@@ -151,7 +236,14 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     partial void OnIsSavingChanged(bool value)
     {
         OnPropertyChanged(nameof(CanCompletarContexto));
+        OnPropertyChanged(nameof(CanIniciarConclusao));
+        OnPropertyChanged(nameof(CanConfirmarParagem));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
         CompletarContextoCommand.NotifyCanExecuteChanged();
+        ConfirmarPausaCommand.NotifyCanExecuteChanged();
+        PrepararConclusaoCommand.NotifyCanExecuteChanged();
+        CancelarConclusaoCommand.NotifyCanExecuteChanged();
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
     }
 
     partial void OnInfoMessageChanged(string value)
@@ -169,16 +261,18 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         IsLoading = true;
         ErrorMessage = string.Empty;
         InfoMessage = string.Empty;
+        IsConclusaoSelectionActive = false;
 
         try
         {
-            Maquina = await _maquinasService.GetByIdAsync(maquinaId)
-                ?? throw new InvalidOperationException($"Nao foi possivel carregar a maquina {maquinaId}.");
-
             await LoadUtilizadorAtualAsync();
-            await LoadEventoPendenteAsync(maquinaId);
+            await RefreshIndustrialStateAsync(maquinaId);
+            await LoadProximasFasesConclusaoAsync();
             Page = 1;
-            await LoadPecasPageCoreAsync();
+            if (NeedsContextSelection)
+                await LoadPecasPageCoreAsync();
+            else
+                ClearPecasEncontradas();
         }
         catch (Exception ex)
         {
@@ -187,6 +281,30 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Recarrega apenas o estado industrial visivel sem reiniciar a navegação da pagina.
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        if (Maquina is null || IsLoading || IsSaving || IsConclusaoSelectionActive)
+            return;
+
+        try
+        {
+            await RefreshIndustrialStateAsync(Maquina.Maquina_id);
+            await LoadProximasFasesConclusaoAsync();
+
+            if (NeedsContextSelection)
+                await LoadPecasPageCoreAsync();
+            else
+                ClearPecasEncontradas();
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
         }
     }
 
@@ -249,7 +367,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
                 $"A maquina {Maquina.NumeroDisplay} ficou associada a {SelectedPeca.NumeroPecaDisplay}.");
 
             SelectedPeca = null;
-            await LoadEventoPendenteAsync(Maquina.Maquina_id);
+            await LoadAsync(Maquina.Maquina_id);
         }
         catch (Exception ex)
         {
@@ -259,6 +377,34 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         {
             IsSaving = false;
         }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanConfirmarParagem))]
+    private async Task ConfirmarPausaAsync()
+    {
+        await ConfirmarParagemCoreAsync(false, "Paragem confirmada", "A maquina foi marcada como pausada.");
+    }
+
+    [RelayCommand(CanExecute = nameof(CanIniciarConclusao))]
+    private void PrepararConclusao()
+    {
+        IsConclusaoSelectionActive = true;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanConfirmarParagem))]
+    private void CancelarConclusao()
+    {
+        IsConclusaoSelectionActive = false;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanConfirmarConclusao))]
+    private async Task ConfirmarConclusaoAsync()
+    {
+        await ConfirmarParagemCoreAsync(
+            true,
+            "Producao concluida",
+            "O trabalho ativo da maquina foi concluido.",
+            SelectedProximaFase?.FasesProducao_id);
     }
 
     private async Task LoadUtilizadorAtualAsync()
@@ -275,30 +421,96 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
 
     private async Task LoadEventoPendenteAsync(int maquinaId)
     {
-        EventoPendente = null;
-        InfoMessage = string.Empty;
+        EventoPendente = await _industrialProducaoService.GetEventoPendenteMaquinaAsync(maquinaId);
+        InfoMessage = EventoPendente is null
+            ? "Neste momento nao existe nenhum evento RUNNING/STOPPED pendente para esta maquina."
+            : string.Empty;
+    }
 
-        var primeiraPagina = await _industrialProducaoService.GetEventosPendentesAsync(1, 100);
-        var eventos = primeiraPagina?.Items ?? [];
+    private async Task LoadSessaoAtivaAsync(int maquinaId)
+    {
+        SessaoAtiva = await _industrialProducaoService.GetSessaoAtivaAsync(maquinaId);
+    }
 
-        EventoPendente = eventos
-            .Where(e => e.Maquina_id == maquinaId)
-            .Where(e => string.Equals(e.EstadoMaquina, "RUNNING", StringComparison.OrdinalIgnoreCase))
-            .OrderBy(e => e.OccurredAt)
-            .FirstOrDefault();
+    private async Task RefreshIndustrialStateAsync(int maquinaId)
+    {
+        Maquina = await _maquinasService.GetByIdAsync(maquinaId)
+            ?? throw new InvalidOperationException($"Nao foi possivel carregar a maquina {maquinaId}.");
 
-        if (EventoPendente is null)
-            InfoMessage = "Neste momento nao existe nenhum RUNNING pendente para esta maquina.";
+        await LoadEventoPendenteAsync(maquinaId);
+        await LoadSessaoAtivaAsync(maquinaId);
+    }
+
+    private async Task LoadProximasFasesConclusaoAsync()
+    {
+        ProximasFasesDisponiveis.Clear();
+        SelectedProximaFase = null;
+
+        if (!HasEventoStoppedPendente || SessaoAtiva is null)
+        {
+            IsConclusaoSelectionActive = false;
+            OnPropertyChanged(nameof(CanIniciarConclusao));
+            OnPropertyChanged(nameof(CanEscolherProximaFase));
+            OnPropertyChanged(nameof(ProximaFasePlaneadaDisplay));
+            OnPropertyChanged(nameof(CanConfirmarConclusao));
+            PrepararConclusaoCommand.NotifyCanExecuteChanged();
+            CancelarConclusaoCommand.NotifyCanExecuteChanged();
+            ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
+            return;
+        }
+
+        _todasFases = await GetAllFasesAsync();
+        foreach (var fase in _todasFases)
+            ProximasFasesDisponiveis.Add(fase);
+
+        SelectedProximaFase = ProximasFasesDisponiveis.FirstOrDefault(item => item.FasesProducao_id == SessaoAtiva.ProximaFasePlaneada_id)
+            ?? ProximasFasesDisponiveis.FirstOrDefault(item => item.FasesProducao_id == SessaoAtiva.Fase_id)
+            ?? ProximasFasesDisponiveis.FirstOrDefault();
+
+        OnPropertyChanged(nameof(CanIniciarConclusao));
+        OnPropertyChanged(nameof(CanEscolherProximaFase));
+        OnPropertyChanged(nameof(ProximaFasePlaneadaDisplay));
+        OnPropertyChanged(nameof(CanConfirmarConclusao));
+        PrepararConclusaoCommand.NotifyCanExecuteChanged();
+        CancelarConclusaoCommand.NotifyCanExecuteChanged();
+        ConfirmarConclusaoCommand.NotifyCanExecuteChanged();
+    }
+
+    private async Task<List<FaseProducaoItem>> GetAllFasesAsync()
+    {
+        var primeiraPagina = await _fasesProducaoService.GetAllAsync(1, 100)
+            ?? throw new InvalidOperationException("Nao foi possivel carregar as fases de producao.");
+
+        var fases = primeiraPagina.Items.ToList();
+
+        for (var page = 2; page <= primeiraPagina.TotalPages; page++)
+        {
+            var pagina = await _fasesProducaoService.GetAllAsync(page, 100);
+            if (pagina?.Items is null)
+                continue;
+
+            fases.AddRange(pagina.Items);
+        }
+
+        return fases
+            .OrderBy(item => item.FasesProducao_id)
+            .ToList();
     }
 
     private async Task LoadPecasPageCoreAsync()
     {
+        if (!NeedsContextSelection)
+        {
+            ClearPecasEncontradas();
+            return;
+        }
+
         IsSearchingPecas = true;
         ErrorMessage = string.Empty;
 
         try
         {
-            var pagina = await _pecasService.GetFilaTrabalhoAsync(Page, PageSize, PesquisaPeca, "Peca");
+            var pagina = await _pecasService.GetFilaTrabalhoAsync(Page, PageSize, PesquisaPeca, "Peca", Maquina?.FaseDedicada_id);
 
             PecasEncontradas.Clear();
 
@@ -329,5 +541,56 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         {
             IsSearchingPecas = false;
         }
+    }
+
+    private void ClearPecasEncontradas()
+    {
+        PecasEncontradas.Clear();
+        UpdatePagination(0, 1);
+        SelectedPeca = null;
+        OnPropertyChanged(nameof(HasPecasEncontradas));
+    }
+
+    private async Task ConfirmarParagemCoreAsync(
+        bool trabalhoConcluido,
+        string tituloSucesso,
+        string mensagemSucesso,
+        int? proximaFaseId = null)
+    {
+        if (Maquina is null || EventoPendente is null)
+            return;
+
+        IsSaving = true;
+        ErrorMessage = string.Empty;
+        InfoMessage = string.Empty;
+
+        try
+        {
+            await _industrialProducaoService.ConfirmarParagemAsync(
+                EventoPendente.EventoMaquinaIndustrial_id,
+                trabalhoConcluido,
+                proximaFaseId);
+
+            await _dialogService.ShowSuccessAsync(tituloSucesso, mensagemSucesso);
+            await LoadAsync(Maquina.Maquina_id);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsSaving = false;
+        }
+    }
+
+    private static bool IsEventoRunning(IndustrialEventoDto? evento)
+    {
+        return string.Equals(evento?.EstadoMaquina, "RUNNING", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool IsEventoStopped(IndustrialEventoDto? evento)
+    {
+        return string.Equals(evento?.EstadoMaquina, "STOPPED", StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -140,108 +140,250 @@
                                        FontSize="20" />
                                 <Label Text="{Binding UtilizadorAtualDisplay, StringFormat='Gestor de producao: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                <Label Text="{Binding SelectedPecaDisplay, StringFormat='Peca: {0}'}"
+                                <Label Text="{Binding EventoPendenteDisplay, StringFormat='Acao pendente: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                             </VerticalStackLayout>
 
-                            <Grid ColumnDefinitions="*,Auto"
-                                  RowDefinitions="Auto,Auto"
-                                  ColumnSpacing="10"
-                                  RowSpacing="10">
-                                <Entry Text="{Binding PesquisaPeca, Mode=TwoWay}"
-                                       Placeholder="Pesquisar por numero ou nome da peca"
-                                       ReturnCommand="{Binding PesquisarPecasCommand}" />
-                                <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
-                                        Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
-                                        Text="Pesquisar"
-                                        Command="{Binding PesquisarPecasCommand}"
+                            <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                    StrokeThickness="1"
+                                    Padding="16"
+                                    IsVisible="{Binding HasSessaoAtiva}">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="18" />
+                                </Border.StrokeShape>
+
+                                <VerticalStackLayout Spacing="10">
+                                    <Label Text="{Binding SessaoAtiva.ContextoTituloDisplay}"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="16" />
+                                    <Label Text="{Binding SessaoAtiva.TelemetriaAvisoDisplay}"
+                                           IsVisible="{Binding SessaoAtiva.TelemetriaDesatualizada}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark=#FCA5A5}" />
+                                    <Grid ColumnDefinitions="*,*"
+                                          RowDefinitions="Auto,Auto,Auto"
+                                          ColumnSpacing="14"
+                                          RowSpacing="10">
+                                        <VerticalStackLayout Spacing="4">
+                                            <Label Text="Peca"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.PecaResumoDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Column="1"
+                                                             Spacing="4">
+                                            <Label Text="Molde"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.NumeroMoldeDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Row="1"
+                                                             Spacing="4">
+                                            <Label Text="Fase"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.FaseDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Row="1"
+                                                             Grid.Column="1"
+                                                             Spacing="4">
+                                            <Label Text="Sessao"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.EstadoSessaoDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Row="2"
+                                                             Spacing="4">
+                                            <Label Text="Ultimo estado da maquina"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.UltimoEstadoMaquinaDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+
+                                        <VerticalStackLayout Grid.Row="2"
+                                                             Grid.Column="1"
+                                                             Spacing="4">
+                                            <Label Text="Ultima atividade"
+                                                   FontFamily="OpenSansSemibold"
+                                                   FontSize="13" />
+                                            <Label Text="{Binding SessaoAtiva.LastSeenAtDisplay}"
+                                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                        </VerticalStackLayout>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </Border>
+
+                            <VerticalStackLayout Spacing="16"
+                                                 IsVisible="{Binding NeedsContextSelection}">
+                                <Label Text="{Binding SelectedPecaDisplay, StringFormat='Peca selecionada: {0}'}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                <Label Text="{Binding Maquina.FaseDedicadaDisplay, StringFormat='So sao apresentadas pecas cuja proxima fase e: {0}'}"
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+
+                                <Grid ColumnDefinitions="*,Auto"
+                                      RowDefinitions="Auto,Auto"
+                                      ColumnSpacing="10"
+                                      RowSpacing="10">
+                                    <Entry Text="{Binding PesquisaPeca, Mode=TwoWay}"
+                                           Placeholder="Pesquisar por numero ou nome da peca"
+                                           ReturnCommand="{Binding PesquisarPecasCommand}" />
+                                    <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
+                                            Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                                            Text="Pesquisar"
+                                            Command="{Binding PesquisarPecasCommand}"
+                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                            HeightRequest="42" />
+                                </Grid>
+
+                                <ActivityIndicator IsRunning="{Binding IsSearchingPecas}"
+                                                   IsVisible="{Binding IsSearchingPecas}"
+                                                   HorizontalOptions="Center" />
+
+                                <Label Text="Pesquisa uma peca por numero ou nome para a associar a esta maquina."
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
+                                       HorizontalOptions="Center"
+                                       Margin="0,20">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding HasPecasEncontradas}"
+                                                     Value="True">
+                                            <Setter Property="IsVisible" Value="False" />
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <VerticalStackLayout Spacing="10"
+                                                     BindableLayout.ItemsSource="{Binding PecasEncontradas}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:ProducaoPecaDisponivelItem">
+                                            <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
+                                                    Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
+                                                    StrokeThickness="1"
+                                                    Padding="14"
+                                                    Margin="0,0,0,10">
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle CornerRadius="16" />
+                                                </Border.StrokeShape>
+
+                                                <Grid ColumnDefinitions="*,Auto"
+                                                      RowDefinitions="Auto,Auto"
+                                                      ColumnSpacing="12"
+                                                      RowSpacing="10">
+                                                    <VerticalStackLayout Spacing="4">
+                                                        <Label Text="{Binding DesignacaoDisplay}"
+                                                               FontFamily="OpenSansSemibold"
+                                                               FontSize="16" />
+                                                        <Label Text="{Binding NumeroPecaDisplay, StringFormat='Numero: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        <Label Text="{Binding NumeroMoldeDisplay, StringFormat='Molde: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                        <Label Text="{Binding ProximaFaseDisplay, StringFormat='Proxima fase: {0}'}"
+                                                               TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                                    </VerticalStackLayout>
+
+                                                    <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
+                                                            Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                                                            Text="Selecionar"
+                                                            Command="{Binding BindingContext.SelecionarPecaCommand, Source={x:Reference PaginaMaquinaDetalhe}}"
+                                                            CommandParameter="{Binding .}"
+                                                            BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                                            TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                                            HeightRequest="40"
+                                                            HorizontalOptions="{OnIdiom Phone='Fill', Desktop='End'}"
+                                                            VerticalOptions="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+
+                                <shared:PaginationBarView Page="{Binding Page}"
+                                                          TotalPages="{Binding TotalPages}"
+                                                          PageInput="{Binding PageInput}"
+                                                          CanGoFirst="{Binding CanGoFirst}"
+                                                          CanGoPrevious="{Binding CanGoPrevious}"
+                                                          CanGoNext="{Binding CanGoNext}"
+                                                          CanGoLast="{Binding CanGoLast}"
+                                                          FirstPageCommand="{Binding FirstPageCommand}"
+                                                          PreviousPageCommand="{Binding PreviousPageCommand}"
+                                                          GoToPageCommand="{Binding GoToPageCommand}"
+                                                          NextPageCommand="{Binding NextPageCommand}"
+                                                          LastPageCommand="{Binding LastPageCommand}"
+                                                          IsVisible="{Binding HasPecasEncontradas}" />
+
+                                <Button Text="Confirmar gestor e peca"
+                                        Command="{Binding CompletarContextoCommand}"
+                                        IsEnabled="{Binding CanCompletarContexto}"
                                         BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
                                         TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
-                                        HeightRequest="42" />
-                            </Grid>
-
-                            <ActivityIndicator IsRunning="{Binding IsSearchingPecas}"
-                                               IsVisible="{Binding IsSearchingPecas}"
-                                               HorizontalOptions="Center" />
-
-                            <Label Text="Pesquisa uma peca por numero ou nome para a associar a esta maquina."
-                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
-                                   HorizontalOptions="Center"
-                                   Margin="0,20">
-                                <Label.Triggers>
-                                    <DataTrigger TargetType="Label"
-                                                 Binding="{Binding HasPecasEncontradas}"
-                                                 Value="True">
-                                        <Setter Property="IsVisible" Value="False" />
-                                    </DataTrigger>
-                                </Label.Triggers>
-                            </Label>
-
-                            <VerticalStackLayout Spacing="10"
-                                                 BindableLayout.ItemsSource="{Binding PecasEncontradas}">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="models:ProducaoPecaDisponivelItem">
-                                        <Border BackgroundColor="{AppThemeBinding Light=#F8FAFC, Dark=#111827}"
-                                                Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
-                                                StrokeThickness="1"
-                                                Padding="14"
-                                                Margin="0,0,0,10">
-                                            <Border.StrokeShape>
-                                                <RoundRectangle CornerRadius="16" />
-                                            </Border.StrokeShape>
-
-                                            <Grid ColumnDefinitions="*,Auto"
-                                                  RowDefinitions="Auto,Auto"
-                                                  ColumnSpacing="12"
-                                                  RowSpacing="10">
-                                                <VerticalStackLayout Spacing="4">
-                                                    <Label Text="{Binding DesignacaoDisplay}"
-                                                           FontFamily="OpenSansSemibold"
-                                                           FontSize="16" />
-                                                    <Label Text="{Binding NumeroPecaDisplay, StringFormat='Numero: {0}'}"
-                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                    <Label Text="{Binding NumeroMoldeDisplay, StringFormat='Molde: {0}'}"
-                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                    <Label Text="{Binding FaseTrabalhoDisplay, StringFormat='Fase: {0}'}"
-                                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                </VerticalStackLayout>
-
-                                                <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
-                                                        Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
-                                                        Text="Selecionar"
-                                                        Command="{Binding BindingContext.SelecionarPecaCommand, Source={x:Reference PaginaMaquinaDetalhe}}"
-                                                        CommandParameter="{Binding .}"
-                                                        BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
-                                                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                                                        HeightRequest="40"
-                                                        HorizontalOptions="{OnIdiom Phone='Fill', Desktop='End'}"
-                                                        VerticalOptions="Center" />
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
+                                        HeightRequest="46" />
                             </VerticalStackLayout>
 
-                            <shared:PaginationBarView Page="{Binding Page}"
-                                                      TotalPages="{Binding TotalPages}"
-                                                      PageInput="{Binding PageInput}"
-                                                      CanGoFirst="{Binding CanGoFirst}"
-                                                      CanGoPrevious="{Binding CanGoPrevious}"
-                                                      CanGoNext="{Binding CanGoNext}"
-                                                      CanGoLast="{Binding CanGoLast}"
-                                                      FirstPageCommand="{Binding FirstPageCommand}"
-                                                      PreviousPageCommand="{Binding PreviousPageCommand}"
-                                                      GoToPageCommand="{Binding GoToPageCommand}"
-                                                      NextPageCommand="{Binding NextPageCommand}"
-                                                      LastPageCommand="{Binding LastPageCommand}"
-                                                      IsVisible="{Binding HasPecasEncontradas}" />
+                            <VerticalStackLayout Spacing="14"
+                                                 IsVisible="{Binding HasEventoStoppedPendente}">
+                                <Label Text="A maquina enviou STOPPED. Indica se o trabalho terminou ou se foi apenas uma pausa."
+                                       TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                <VerticalStackLayout Spacing="8"
+                                                     IsVisible="{Binding CanEscolherProximaFase}">
+                                    <Label Text="Proxima fase da peca"
+                                           FontFamily="OpenSansSemibold"
+                                           FontSize="13" />
+                                    <Picker Title="Selecionar proxima fase"
+                                            ItemsSource="{Binding ProximasFasesDisponiveis}"
+                                            SelectedItem="{Binding SelectedProximaFase, Mode=TwoWay}"
+                                            ItemDisplayBinding="{Binding NomeDisplay}" />
+                                    <Label Text="{Binding ProximaFasePlaneadaDisplay, StringFormat='Fase selecionada: {0}'}"
+                                           TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
+                                </VerticalStackLayout>
+                                <Grid ColumnDefinitions="*,*"
+                                      ColumnSpacing="12">
+                                    <Button Text="Marcar pausa"
+                                            Command="{Binding ConfirmarPausaCommand}"
+                                            IsEnabled="{Binding CanConfirmarParagem}"
+                                            BackgroundColor="{AppThemeBinding Light=#E2E8F0, Dark=#1E293B}"
+                                            TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                            HeightRequest="46" />
+                                    <Button Grid.Column="1"
+                                            Text="Terminar trabalho"
+                                            Command="{Binding PrepararConclusaoCommand}"
+                                            IsEnabled="{Binding CanIniciarConclusao}"
+                                            IsVisible="{Binding CanIniciarConclusao}"
+                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                            HeightRequest="46" />
+                                    <Button Grid.Column="1"
+                                            Text="Confirmar conclusao"
+                                            Command="{Binding ConfirmarConclusaoCommand}"
+                                            IsEnabled="{Binding CanConfirmarConclusao}"
+                                            IsVisible="{Binding IsConclusaoSelectionActive}"
+                                            BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                            TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
+                                            HeightRequest="46" />
+                                </Grid>
+                                <Button Text="Cancelar conclusao"
+                                        Command="{Binding CancelarConclusaoCommand}"
+                                        IsVisible="{Binding IsConclusaoSelectionActive}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="{AppThemeBinding Light=#0F172A, Dark=White}"
+                                        BorderColor="{AppThemeBinding Light=#CBD5E1, Dark=#334155}"
+                                        BorderWidth="1"
+                                        HeightRequest="42" />
+                            </VerticalStackLayout>
 
-                            <Button Text="Confirmar gestor e peca"
-                                    Command="{Binding CompletarContextoCommand}"
-                                    IsEnabled="{Binding CanCompletarContexto}"
-                                    BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
-                                    TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
-                                    HeightRequest="46" />
+                            <Label Text="Nao existe nenhuma acao manual pendente para esta maquina."
+                                   IsVisible="{Binding HasNoAcaoPendente}"
+                                   TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
