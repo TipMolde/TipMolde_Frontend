@@ -78,8 +78,8 @@ public class MaquinaDetalheViewModelTests
             FaseNome = "MONTAGEM",
             ProximaFasePlaneada_id = 4,
             ProximaFasePlaneadaNome = "EROSAO",
-            EstadoSessao = "ATIVA",
-            UltimoEstadoMaquina = "RUNNING",
+            EstadoSessao = "AGUARDAR_CONFIRMACAO_PARAGEM",
+            UltimoEstadoMaquina = "STOPPED",
             StartedAt = new DateTime(2026, 7, 7, 5, 50, 0, DateTimeKind.Utc),
             LastSeenAt = new DateTime(2026, 7, 7, 6, 0, 0, DateTimeKind.Utc)
         };
@@ -172,6 +172,7 @@ public class MaquinaDetalheViewModelTests
     {
         await _sut.LoadAsync(9);
 
+        _sut.PrepararConclusaoCommand.Execute(null);
         await _sut.ConfirmarConclusaoCommand.ExecuteAsync(null);
 
         _requests.Should().ContainSingle(request =>
