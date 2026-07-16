@@ -154,9 +154,9 @@ public partial class MaquinasViewModel : SearchableViewModel
     public bool HasFasesProducao => FasesProducao.Count > 0;
     public bool HasMachineManagementShortcuts => CanCreateMachine || CanManageProductionPhases;
     public string EmptyMessage => string.IsNullOrWhiteSpace(_loadedSearchTerm)
-        ? "Nao existem maquinas registadas para apresentar."
+        ? "Não existem máquinas registadas para apresentar."
         : "Nenhuma maquina corresponde aos filtros atuais.";
-    public string EmptyFasesMessage => "Nao existem fases de producao registadas.";
+    public string EmptyFasesMessage => "Não existem fases de produção registadas.";
     public int TotalMaquinasDisponiveis => _maquinasFiltradas.Count(item => item.Disponivel);
     public int TotalMaquinasEmUso => _maquinasFiltradas.Count(item => item.EmUtilizacao);
     public int TotalMaquinasManutencao => _maquinasFiltradas.Count(item => item.EmManutencao);
@@ -180,7 +180,7 @@ public partial class MaquinasViewModel : SearchableViewModel
                                     && SelectedEditEstadoMaquinaOption is not null
                                     && HasMudancasEdicao();
     public string MaquinaEmEdicaoDisplay => MaquinaEmEdicao is null
-        ? "Sem maquina selecionada."
+        ? "Sem máquina selecionada."
         : $"{MaquinaEmEdicao.NumeroDisplay} - {MaquinaEmEdicao.NomeModeloDisplay}";
     public string EstadoAtualEdicaoDisplay => MaquinaEmEdicao?.EstadoDisplay ?? "Sem estado";
     public string TransicoesPermitidasDisplay => BuildTransicoesPermitidasDisplay();
@@ -345,7 +345,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
         if (SelectedFaseNomeOption is null)
         {
-            FasesErrorMessage = "Selecione o nome da fase de producao.";
+            FasesErrorMessage = "Selecione o nome da fase de produção.";
             return;
         }
 
@@ -360,7 +360,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             await _dialogService.ShowSuccessAsync(
                 SuccessTitle,
-                $"A fase de producao {SelectedFaseNomeOption.DisplayName} foi criada com sucesso.");
+                $"A fase de produção {SelectedFaseNomeOption.DisplayName} foi criada com sucesso.");
 
             ResetFormularioFase();
             await EnsureFasesLoadedAsync(forceReload: true);
@@ -384,7 +384,7 @@ public partial class MaquinasViewModel : SearchableViewModel
         if (fase is null || fase.FasesProducao_id <= 0)
             return;
 
-        var confirmar = await _dialogService.ConfirmDeleteAsync($"a fase de producao {fase.NomeDisplay}");
+        var confirmar = await _dialogService.ConfirmDeleteAsync($"a fase de produção {fase.NomeDisplay}");
         if (!confirmar)
             return;
 
@@ -396,7 +396,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             await _dialogService.ShowSuccessAsync(
                 SuccessTitle,
-                $"A fase de producao {fase.NomeDisplay} foi eliminada com sucesso.");
+                $"A fase de produção {fase.NomeDisplay} foi eliminada com sucesso.");
 
             await EnsureFasesLoadedAsync(forceReload: true);
         }
@@ -434,7 +434,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             await _dialogService.ShowSuccessAsync(
                 SuccessTitle,
-                $"A maquina {NovoNumero.Trim()} foi criada com sucesso.");
+                $"A máquina {NovoNumero.Trim()} foi criada com sucesso.");
 
             IsAddMaquinaVisible = false;
             ResetFormulario();
@@ -512,7 +512,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             await _dialogService.ShowSuccessAsync(
                 SuccessTitle,
-                $"A maquina {MaquinaEmEdicao.NumeroDisplay} foi atualizada com sucesso.");
+                $"A máquina {MaquinaEmEdicao.NumeroDisplay} foi atualizada com sucesso.");
 
             IsEditMaquinaVisible = false;
             ResetFormularioEdicao();
@@ -537,7 +537,7 @@ public partial class MaquinasViewModel : SearchableViewModel
         if (maquina is null || maquina.Maquina_id <= 0)
             return;
 
-        var confirmar = await _dialogService.ConfirmDeleteAsync($"a maquina {maquina.NumeroDisplay}");
+        var confirmar = await _dialogService.ConfirmDeleteAsync($"a máquina {maquina.NumeroDisplay}");
         if (!confirmar)
             return;
 
@@ -549,7 +549,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
             await _dialogService.ShowSuccessAsync(
                 SuccessTitle,
-                $"A maquina {maquina.NumeroDisplay} foi eliminada com sucesso.");
+                $"A máquina {maquina.NumeroDisplay} foi eliminada com sucesso.");
 
             await RefreshMaquinasAsync(forceReload: true, resetToFirstPage: false);
         }
@@ -566,7 +566,7 @@ public partial class MaquinasViewModel : SearchableViewModel
 
         var primeiraPagina = await _fasesProducaoService.GetAllAsync(1, 100);
         if (primeiraPagina is null)
-            throw new InvalidOperationException("Nao foi possivel carregar as fases de producao.");
+            throw new InvalidOperationException("Não foi possível carregar as fases de produção.");
 
         var fases = primeiraPagina.Items.ToList();
 
@@ -621,7 +621,7 @@ public partial class MaquinasViewModel : SearchableViewModel
                 var maquinas = await GetMaquinasAsync(_loadedSearchTerm);
                 if (maquinas is null)
                 {
-                    ErrorMessage = "Nao foi possivel carregar as maquinas.";
+                    ErrorMessage = "Não foi possível carregar as máquinas.";
                     _todasMaquinas.Clear();
                     _maquinasFiltradas.Clear();
                     _maquinasLoaded = false;
@@ -792,19 +792,19 @@ public partial class MaquinasViewModel : SearchableViewModel
     private string BuildValidationMessage()
     {
         if (!int.TryParse(NovoMaquinaId.Trim(), out var maquinaId) || maquinaId <= 0)
-            return "Indique um identificador interno valido para a maquina.";
+            return "Indique um identificador interno válido para a máquina.";
 
         if (!int.TryParse(NovoNumero.Trim(), out var numero) || numero <= 0)
-            return "Indique um numero fisico valido para a maquina.";
+            return "Indique um número físico válido para a máquina.";
 
         if (string.IsNullOrWhiteSpace(NovoNomeModelo))
-            return "Indique o nome ou modelo da maquina.";
+            return "Indique o nome ou modelo da máquina.";
 
         if (SelectedEstadoMaquinaOption is null)
-            return "Selecione o estado da maquina.";
+            return "Selecione o estado da máquina.";
 
         if (SelectedFaseDedicadaOption is null)
-            return "Selecione a fase dedicada da maquina.";
+            return "Selecione a fase dedicada da máquina.";
 
         return string.Empty;
     }

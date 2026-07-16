@@ -41,7 +41,7 @@ public sealed class MaquinaItem
 
     [JsonIgnore]
     public string FaseDedicadaDisplay => string.IsNullOrWhiteSpace(FaseDedicadaNome)
-        ? "Fase dedicada nao definida"
+        ? "Fase dedicada não definida"
         : FaseDedicadaNome.Replace('_', ' ');
 
     [JsonIgnore]
@@ -52,7 +52,7 @@ public sealed class MaquinaItem
 
     [JsonIgnore]
     public string ProtocoloComunicacaoDisplay => string.IsNullOrWhiteSpace(ProtocoloComunicacao)
-        ? "Protocolo nao detetado"
+        ? "Protocolo não detetado"
         : ProtocoloComunicacao;
 
     [JsonIgnore]

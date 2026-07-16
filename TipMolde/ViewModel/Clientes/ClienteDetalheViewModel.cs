@@ -82,7 +82,7 @@ public partial class ClienteDetalheViewModel : PaginatedViewModel
     public string EmailDisplay => string.IsNullOrWhiteSpace(Email) ? ValorNaoDefinido : Email;
     public string TelefoneDisplay => string.IsNullOrWhiteSpace(Telefone) ? ValorNaoDefinido : Telefone;
     public string EmptyEncomendasMessage => _todasEncomendas.Count == 0
-        ? "Este cliente ainda nao tem encomendas associadas."
+        ? "Este cliente ainda não tem encomendas associadas."
         : "Nenhuma encomenda corresponde aos filtros atuais.";
 
     partial void OnSearchTermChanged(string value)

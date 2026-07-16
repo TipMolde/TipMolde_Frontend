@@ -312,7 +312,7 @@
                                             <VerticalStackLayout Grid.Column="1"
                                                                  Spacing="10"
                                                                  VerticalOptions="Center">
-                                                <Button Text="Iniciar producao"
+                                                <Button Text="Iniciar produção"
                                                         Command="{Binding Source={x:Reference PaginaEncomendaDetalhe}, Path=BindingContext.IniciarProducaoMoldeCommand}"
                                                         CommandParameter="{Binding .}"
                                                         IsVisible="{Binding CanIniciarProducao}"

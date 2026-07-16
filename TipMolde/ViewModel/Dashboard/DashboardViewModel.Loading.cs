@@ -101,7 +101,7 @@ public partial class DashboardViewModel
 
         if (encomendasEmProducao.Count == 0)
         {
-            HeroErrorMessage = "Nao existem encomendas em producao para apresentar no dashboard.";
+            HeroErrorMessage = "Não existem encomendas em produção para apresentar no dashboard.";
             LimparDashboard();
             return;
         }
@@ -109,7 +109,7 @@ public partial class DashboardViewModel
         var melhorCandidato = EncontrarMoldeMaisProximo(encomendasEmProducao, filaGlobalMoldes);
         if (melhorCandidato is null)
         {
-            HeroErrorMessage = "Nao foi encontrada uma data de entrega valida para os moldes em producao.";
+            HeroErrorMessage = "Não foi encontrada uma data de entrega válida para os moldes em produção.";
             LimparDashboard();
             return;
         }

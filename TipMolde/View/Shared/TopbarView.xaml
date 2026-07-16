@@ -65,7 +65,7 @@
                     </HorizontalStackLayout>
                 </Border>
 
-                <Button Text="Terminar sessao"
+                <Button Text="Terminar sessão"
                         Command="{Binding ViewModel.LogoutCommand, Source={x:Reference Self}}"
                         BackgroundColor="Red"
                         TextColor="White"

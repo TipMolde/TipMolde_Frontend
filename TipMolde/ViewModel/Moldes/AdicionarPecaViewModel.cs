@@ -122,7 +122,7 @@ public partial class AdicionarPecaViewModel : ObservableObject
 
         if (!CanManagePieces)
         {
-            ErrorMessage = "Nao tens permissao para adicionar pecas.";
+            ErrorMessage = "Não tens permissão para adicionar peças.";
             return;
         }
 
@@ -188,10 +188,10 @@ public partial class AdicionarPecaViewModel : ObservableObject
     private string BuildValidationMessage()
     {
         if (!CanManagePieces)
-            return "Nao tens permissao para adicionar pecas.";
+            return "Não tens permissão para adicionar peças.";
 
         if (MoldeId <= 0)
-            return "Nao foi possivel identificar o molde para criar a peca.";
+            return "Não foi possível identificar o molde para criar a peça.";
 
         if (string.IsNullOrWhiteSpace(Designacao))
             return "Indique a designacao da peca.";

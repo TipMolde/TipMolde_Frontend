@@ -27,9 +27,9 @@ public abstract class ProjetoBaseDto
 
     public string NomeProjetoDisplay => string.IsNullOrWhiteSpace(NomeProjeto) ? "Projeto sem nome" : NomeProjeto;
     public string TipoProjetoDisplay => string.IsNullOrWhiteSpace(TipoProjeto) ? "Sem tipo" : TipoProjeto.Replace('_', ' ');
-    public string SoftwareUtilizadoDisplay => string.IsNullOrWhiteSpace(SoftwareUtilizado) ? "Software nao definido" : SoftwareUtilizado;
-    public string CaminhoPastaServidorDisplay => string.IsNullOrWhiteSpace(CaminhoPastaServidor) ? "Caminho nao definido" : CaminhoPastaServidor;
+    public string SoftwareUtilizadoDisplay => string.IsNullOrWhiteSpace(SoftwareUtilizado) ? "Software não definido" : SoftwareUtilizado;
+    public string CaminhoPastaServidorDisplay => string.IsNullOrWhiteSpace(CaminhoPastaServidor) ? "Caminho não definido" : CaminhoPastaServidor;
     public string MoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde)
-        ? "Molde nao definido"
+        ? "Molde não definido"
         : NumeroMolde;
 }

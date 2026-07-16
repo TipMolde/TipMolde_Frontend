@@ -75,11 +75,11 @@
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="8">
-                            <Label Text="Nome do servico"
+                            <Label Text="Nome do serviço"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
-                            <Picker Title="Selecionar nome do servico"
+                            <Picker Title="Selecionar nome do serviço"
                                     ItemsSource="{Binding NomeServicoOptions}"
                                     SelectedItem="{Binding SelectedNomeServicoOption, Mode=TwoWay}"
                                     ItemDisplayBinding="{Binding DisplayName}"
@@ -145,7 +145,7 @@
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
-                            <SearchBar Placeholder="Pesquisar molde por nome, numero ou descricao"
+                            <SearchBar Placeholder="Pesquisar molde por nome, número ou descrição"
                                        Text="{Binding MoldeSearchTerm}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
@@ -373,7 +373,7 @@
                                 </CollectionView>
                             </Border>
 
-                            <Label Text="Ainda nao existem moldes selecionados para configurar."
+                            <Label Text="Ainda não existem moldes selecionados para configurar."
                                    IsVisible="{Binding HasNoSelectedMoldes}"
                                    FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />

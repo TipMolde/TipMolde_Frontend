@@ -45,7 +45,7 @@ internal static class UtilizadorDefaults
             return "A password tem de incluir pelo menos uma letra minuscula.";
 
         if (!password.Any(char.IsDigit))
-            return "A password tem de incluir pelo menos um numero.";
+            return "A password tem de incluir pelo menos um número.";
 
         if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
             return "A password tem de incluir pelo menos um simbolo.";

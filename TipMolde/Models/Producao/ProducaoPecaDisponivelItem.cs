@@ -28,7 +28,7 @@ public sealed class ProducaoPecaDisponivelItem
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string NumeroEncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem numero" : NumeroEncomendaCliente;
-    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente nao definido" : NomeCliente;
+    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente não definido" : NomeCliente;
     public string DesignacaoDisplay => string.IsNullOrWhiteSpace(Designacao) ? "Peca sem designacao" : Designacao;
     public string NumeroPecaDisplay => string.IsNullOrWhiteSpace(NumeroPeca) ? "Sem numero" : NumeroPeca;
     public string EntregaDisplay => DataEntregaPrevista > DateTime.MinValue
@@ -36,7 +36,7 @@ public sealed class ProducaoPecaDisponivelItem
         : "Sem data";
     public string PrioridadeResumo => $"Molde P{PrioridadeMolde} | Peca P{PrioridadePeca}";
     public string EstadoAtualDisplay => string.IsNullOrWhiteSpace(UltimoEstadoGlobal)
-        ? "Sem historico de producao"
+        ? "Sem histórico de produção"
         : $"{UltimoEstadoGlobal.Replace('_', ' ')} em {UltimaFaseGlobal}";
     public string ProximaFaseDisplay => string.IsNullOrWhiteSpace(ProximaFaseNome) ? "Sem fase definida" : ProximaFaseNome;
     public string FaseTrabalhoDisplay => string.IsNullOrWhiteSpace(FaseTrabalho) ? ProximaFaseDisplay : FaseTrabalho;

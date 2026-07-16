@@ -26,7 +26,7 @@
                                 Wrap="Wrap"
                                 AlignItems="Center"
                                 JustifyContent="SpaceBetween">
-                        <Label Text="Podes abrir a fila global de moldes ou trabalhar diretamente a partir da fila de pecas disponiveis."
+                        <Label Text="Podes abrir a fila global de moldes ou trabalhar diretamente a partir da fila de peças disponíveis."
                                FlexLayout.Grow="1"
                                Margin="0,0,16,10"
                                VerticalOptions="Center"
@@ -71,10 +71,10 @@
                             <Grid ColumnDefinitions="*,Auto"
                                   ColumnSpacing="12">
                                 <VerticalStackLayout Spacing="4">
-                                    <Label Text="Lista de pecas disponiveis"
+                                    <Label Text="Lista de peças disponíveis"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="20" />
-                                    <Label Text="Ordenadas por prioridade de molde e depois por prioridade da peca."
+                                    <Label Text="Ordenadas por prioridade de molde e depois por prioridade da peça."
                                            FontSize="13"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
@@ -86,7 +86,7 @@
                             </Grid>
 
                             <VerticalStackLayout Spacing="10">
-                                <Label Text="Pesquisar producao"
+                                <Label Text="Pesquisar produção"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="14" />
 
@@ -99,7 +99,7 @@
                                             ItemsSource="{Binding SearchModes}"
                                             SelectedIndex="{Binding SelectedSearchModeIndex}" />
 
-                                    <SearchBar Placeholder="Pesquisar por molde, peca ou fase"
+                                    <SearchBar Placeholder="Pesquisar por molde, peça ou fase"
                                                FlexLayout.Grow="1"
                                                Margin="0,0,10,10"
                                                Text="{Binding SearchTerm}"
@@ -172,7 +172,7 @@
                                                     <Grid ColumnDefinitions="*,*,*"
                                                           ColumnSpacing="12">
                                                         <Label Grid.Column="0"
-                                                               Text="{Binding NumeroPecaDisplay, StringFormat='Numero peca: {0}'}"
+                                                               Text="{Binding NumeroPecaDisplay, StringFormat='Número peça: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                         <Label Grid.Column="1"
                                                                Text="{Binding Quantidade, StringFormat='Qtd: {0}'}"

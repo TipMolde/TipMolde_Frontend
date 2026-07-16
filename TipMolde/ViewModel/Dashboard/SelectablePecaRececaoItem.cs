@@ -32,9 +32,9 @@ public partial class SelectablePecaRececaoItem : ObservableObject
     [ObservableProperty]
     private bool isSelected;
 
-    public string NumeroPecaDisplay => string.IsNullOrWhiteSpace(NumeroPeca) ? "Sem numero" : NumeroPeca;
+    public string NumeroPecaDisplay => string.IsNullOrWhiteSpace(NumeroPeca) ? "Sem número" : NumeroPeca;
     public string DesignacaoDisplay => string.IsNullOrWhiteSpace(Designacao) ? NumeroPecaDisplay : Designacao;
-    public string MaterialDisplay => string.IsNullOrWhiteSpace(MaterialDesignacao) ? "Material nao definido" : MaterialDesignacao;
+    public string MaterialDisplay => string.IsNullOrWhiteSpace(MaterialDesignacao) ? "Material não definido" : MaterialDesignacao;
     public string QuantidadeDisplay => $"Qtd: {Quantidade}";
     public string PrioridadeDisplay => $"Prioridade {Prioridade}";
 }

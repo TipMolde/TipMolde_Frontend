@@ -73,7 +73,7 @@ public static class ClienteFormDefaults
             return null;
 
         if (pais.Length > 50)
-            return "O pais nao pode ter mais de 50 caracteres.";
+            return "O país não pode ter mais de 50 caracteres.";
 
         if (!PaisCaracteresRegex.IsMatch(pais))
             return "O pais so pode conter letras, espacos, apostrofos e hifens.";
@@ -96,10 +96,10 @@ public static class ClienteFormDefaults
             return null;
 
         if (email.Length > 100)
-            return "O email nao pode ter mais de 100 caracteres.";
+            return "O email não pode ter mais de 100 caracteres.";
 
         if (!EmailValidator.IsValid(email))
-            return "O email introduzido nao e valido.";
+            return "O email introduzido não é válido.";
 
         return null;
     }
@@ -118,7 +118,7 @@ public static class ClienteFormDefaults
             return "O telefone deve ter entre 7 e 15 caracteres, contando ja com o '+'.";
 
         if (!TelefoneRegex.IsMatch(telefone))
-            return "O telefone so pode conter digitos e um '+' opcional apenas no inicio.";
+            return "O telefone só pode conter dígitos e um '+' opcional apenas no início.";
 
         return null;
     }

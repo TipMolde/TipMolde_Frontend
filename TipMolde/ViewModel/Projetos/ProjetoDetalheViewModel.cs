@@ -91,15 +91,15 @@ public partial class ProjetoDetalheViewModel : ObservableObject
     public string ProjetoSubtituloDisplay => Projeto is null
         ? "Sem contexto carregado."
         : $"{Projeto.MoldeDisplay} | {Projeto.SoftwareUtilizadoDisplay} | {Projeto.TipoProjetoDisplay}";
-    public string ProjetoCaminhoDisplay => Projeto?.CaminhoPastaServidorDisplay ?? "Caminho nao definido";
+    public string ProjetoCaminhoDisplay => Projeto?.CaminhoPastaServidorDisplay ?? "Caminho não definido";
     public string RevisoesResumoDisplay => Projeto?.RevisoesResumoDisplay ?? "Sem revisoes associadas";
-    public string EmptyRevisoesMessage => "Ainda nao existem revisoes para este projeto.";
+    public string EmptyRevisoesMessage => "Ainda não existem revisões para este projeto.";
     public string EmptyTempoMessage => CanAccessTempo && _currentUserId.HasValue
-        ? "Ainda nao existem registos de tempo para este projeto."
+        ? "Ainda não existem registos de tempo para este projeto."
         : "Apenas o gestor de desenho ou o administrador pode consultar o historico de tempo.";
     public string TempoTotalDisplay => FormatDuration(TempoRegistadoTotal);
     public string TempoSessaoAtivaDisplay => string.IsNullOrWhiteSpace(TempoSessaoAtiva)
-        ? "Sem sessao ativa"
+        ? "Sem sessão ativa"
         : TempoSessaoAtiva;
 
     partial void OnProjetoChanged(ProjetoComRevisoesDto? value)

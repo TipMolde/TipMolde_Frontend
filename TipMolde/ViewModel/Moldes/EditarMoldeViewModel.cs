@@ -310,7 +310,7 @@ public partial class EditarMoldeViewModel : ObservableObject
             return "Indique o numero do molde.";
 
         if (NumeroCavidades <= 0)
-            return "Indique um numero valido de cavidades.";
+            return "Indique um número válido de cavidades.";
 
         if (string.IsNullOrWhiteSpace(Nome))
             return "Indique o nome do molde.";

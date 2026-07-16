@@ -11,8 +11,8 @@ public sealed class MoldeRececaoOption
     public DateTime DataEntregaPrevista { get; init; }
     public int Prioridade { get; init; }
 
-    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
-    public string EncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem numero" : NumeroEncomendaCliente;
+    public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem número" : NumeroMolde;
+    public string EncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Sem número" : NumeroEncomendaCliente;
     public string DataEntregaDisplay => DataEntregaPrevista > DateTime.MinValue
         ? DataEntregaPrevista.ToString("dd/MM/yyyy")
         : "Nao definida";

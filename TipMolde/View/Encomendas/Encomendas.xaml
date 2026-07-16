@@ -42,7 +42,7 @@
                                   ColumnSpacing="12">
 
                                 <SearchBar Grid.Column="0"
-                                           Placeholder="Pesquisar pelo numero da encomenda"
+                                           Placeholder="Pesquisar pelo número da encomenda"
                                            Text="{Binding SearchTerm}"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                            SearchCommand="{Binding PesquisarCommand}" />

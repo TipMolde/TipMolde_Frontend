@@ -138,7 +138,7 @@
                                 <Label Text="Contexto de trabalho"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="20" />
-                                <Label Text="{Binding UtilizadorAtualDisplay, StringFormat='Gestor de producao: {0}'}"
+                                <Label Text="{Binding UtilizadorAtualDisplay, StringFormat='Gestor de produção: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 <Label Text="{Binding EventoPendenteDisplay, StringFormat='Acao pendente: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
@@ -165,7 +165,7 @@
                                           ColumnSpacing="14"
                                           RowSpacing="10">
                                         <VerticalStackLayout Spacing="4">
-                                            <Label Text="Peca"
+                                            <Label Text="Peça"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13" />
                                             <Label Text="{Binding SessaoAtiva.PecaResumoDisplay}"
@@ -193,7 +193,7 @@
                                         <VerticalStackLayout Grid.Row="1"
                                                              Grid.Column="1"
                                                              Spacing="4">
-                                            <Label Text="Sessao"
+                                            <Label Text="Sessão"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13" />
                                             <Label Text="{Binding SessaoAtiva.EstadoSessaoDisplay}"
@@ -202,7 +202,7 @@
 
                                         <VerticalStackLayout Grid.Row="2"
                                                              Spacing="4">
-                                            <Label Text="Ultimo estado da maquina"
+                                            <Label Text="Último estado da máquina"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13" />
                                             <Label Text="{Binding SessaoAtiva.UltimoEstadoMaquinaDisplay}"
@@ -212,7 +212,7 @@
                                         <VerticalStackLayout Grid.Row="2"
                                                              Grid.Column="1"
                                                              Spacing="4">
-                                            <Label Text="Ultima atividade"
+                                            <Label Text="Última atividade"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13" />
                                             <Label Text="{Binding SessaoAtiva.LastSeenAtDisplay}"
@@ -224,10 +224,10 @@
 
                             <VerticalStackLayout Spacing="16"
                                                  IsVisible="{Binding NeedsContextSelection}">
-                                <Label Text="{Binding SelectedPecaDisplay, StringFormat='Peca selecionada: {0}'}"
+                                <Label Text="{Binding SelectedPecaDisplay, StringFormat='Peça selecionada: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
-                                <Label Text="{Binding Maquina.FaseDedicadaDisplay, StringFormat='So sao apresentadas pecas cuja proxima fase e: {0}'}"
+                                <Label Text="{Binding Maquina.FaseDedicadaDisplay, StringFormat='Só são apresentadas peças cuja próxima fase é: {0}'}"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
 
                                 <Grid ColumnDefinitions="*,Auto"
@@ -235,7 +235,7 @@
                                       ColumnSpacing="10"
                                       RowSpacing="10">
                                     <Entry Text="{Binding PesquisaPeca, Mode=TwoWay}"
-                                           Placeholder="Pesquisar por numero ou nome da peca"
+                                           Placeholder="Pesquisar por número ou nome da peça"
                                            ReturnCommand="{Binding PesquisarPecasCommand}" />
                                     <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
                                             Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
@@ -250,7 +250,7 @@
                                                    IsVisible="{Binding IsSearchingPecas}"
                                                    HorizontalOptions="Center" />
 
-                                <Label Text="Pesquisa uma peca por numero ou nome para a associar a esta maquina."
+                                <Label Text="Pesquisa uma peça por número ou nome para a associar a esta máquina."
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                        HorizontalOptions="Center"
                                        Margin="0,20">
@@ -284,11 +284,11 @@
                                                         <Label Text="{Binding DesignacaoDisplay}"
                                                                FontFamily="OpenSansSemibold"
                                                                FontSize="16" />
-                                                        <Label Text="{Binding NumeroPecaDisplay, StringFormat='Numero: {0}'}"
+                                                        <Label Text="{Binding NumeroPecaDisplay, StringFormat='Número: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                         <Label Text="{Binding NumeroMoldeDisplay, StringFormat='Molde: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
-                                                        <Label Text="{Binding ProximaFaseDisplay, StringFormat='Proxima fase: {0}'}"
+                                                        <Label Text="{Binding ProximaFaseDisplay, StringFormat='Próxima fase: {0}'}"
                                                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                                     </VerticalStackLayout>
 
@@ -322,7 +322,7 @@
                                                           LastPageCommand="{Binding LastPageCommand}"
                                                           IsVisible="{Binding HasPecasEncontradas}" />
 
-                                <Button Text="Confirmar gestor e peca"
+                                <Button Text="Confirmar gestor e peça"
                                         Command="{Binding CompletarContextoCommand}"
                                         IsEnabled="{Binding CanCompletarContexto}"
                                         BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"
@@ -332,11 +332,11 @@
 
                             <VerticalStackLayout Spacing="14"
                                                  IsVisible="{Binding HasEventoStoppedPendente}">
-                                <Label Text="A maquina enviou STOPPED. Indica se o trabalho terminou ou se foi apenas uma pausa."
+                                <Label Text="A máquina enviou STOPPED. Indica se o trabalho terminou ou se foi apenas uma pausa."
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 <VerticalStackLayout Spacing="8"
                                                      IsVisible="{Binding CanEscolherProximaFase}">
-                                    <Label Text="Proxima fase da peca"
+                                    <Label Text="Próxima fase da peça"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
                                     <Picker Title="Selecionar proxima fase"
@@ -363,7 +363,7 @@
                                             TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                             HeightRequest="46" />
                                     <Button Grid.Column="1"
-                                            Text="Confirmar conclusao"
+                                            Text="Confirmar conclusão"
                                             Command="{Binding ConfirmarConclusaoCommand}"
                                             IsEnabled="{Binding CanConfirmarConclusao}"
                                             IsVisible="{Binding IsConclusaoSelectionActive}"
@@ -371,7 +371,7 @@
                                             TextColor="{AppThemeBinding Light=White, Dark=#0F172A}"
                                             HeightRequest="46" />
                                 </Grid>
-                                <Button Text="Cancelar conclusao"
+                                <Button Text="Cancelar conclusão"
                                         Command="{Binding CancelarConclusaoCommand}"
                                         IsVisible="{Binding IsConclusaoSelectionActive}"
                                         BackgroundColor="Transparent"
@@ -381,7 +381,7 @@
                                         HeightRequest="42" />
                             </VerticalStackLayout>
 
-                            <Label Text="Nao existe nenhuma acao manual pendente para esta maquina."
+                            <Label Text="Não existe nenhuma ação manual pendente para esta máquina."
                                    IsVisible="{Binding HasNoAcaoPendente}"
                                    TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                         </VerticalStackLayout>

@@ -185,19 +185,19 @@ public partial class DashboardViewModel : ObservableObject
         ? "A registar chegada..."
         : "Registar chegada de material";
     public string SelectedMoldeRececaoResumo => SelectedMoldeRececao is null
-        ? "Seleciona um molde com pedido de material ativo para marcar as pecas que chegaram."
+        ? "Seleciona um molde com pedido de material ativo para marcar as peças que chegaram."
         : $"Encomenda {SelectedMoldeRececao.EncomendaDisplay} | entrega {SelectedMoldeRececao.DataEntregaDisplay}";
     public string PecasRececaoSelectionSummary
     {
         get
         {
             if (PecasPendentesRececao.Count == 0)
-                return "Nao existem pecas pendentes para este molde.";
+                return "Não existem peças pendentes para este molde.";
 
             var selecionadas = PecasPendentesRececao.Count(item => item.IsSelected);
             return selecionadas == 0
-                ? $"{PecasPendentesRececao.Count} peca(s) pendente(s). Seleciona as que chegaram."
-                : $"{selecionadas} de {PecasPendentesRececao.Count} peca(s) selecionada(s).";
+                ? $"{PecasPendentesRececao.Count} peça(s) pendente(s). Seleciona as que chegaram."
+                : $"{selecionadas} de {PecasPendentesRececao.Count} peça(s) selecionada(s).";
         }
     }
 

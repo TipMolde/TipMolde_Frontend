@@ -46,7 +46,7 @@ public partial class ProjetosViewModel : PaginatedViewModel
     public int TotalProjetos => _projetosFiltrados.Count;
     public int TotalMoldesAssociados => _projetosFiltrados.Select(item => item.Molde_id).Distinct().Count();
     public string EmptyMessage => string.IsNullOrWhiteSpace(SearchTerm)
-        ? "Ainda nao existem projetos de desenho registados."
+        ? "Ainda não existem projetos de desenho registados."
         : "Nenhum projeto corresponde aos filtros atuais.";
 
     partial void OnSearchTermChanged(string value)

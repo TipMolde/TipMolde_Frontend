@@ -19,8 +19,8 @@ public sealed class DesenhoMoldeItem
     public DateTime? DataEntregaPrevista { get; set; }
 
     public string NumeroEncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Encomenda sem numero" : NumeroEncomendaCliente;
-    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente nao definido" : NomeCliente;
-    public string NomeServicoDisplay => string.IsNullOrWhiteSpace(NomeServicoCliente) ? "Servico nao definido" : NomeServicoCliente;
+    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente não definido" : NomeCliente;
+    public string NomeServicoDisplay => string.IsNullOrWhiteSpace(NomeServicoCliente) ? "Serviço não definido" : NomeServicoCliente;
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string DescricaoMoldeDisplay => string.IsNullOrWhiteSpace(DescricaoMolde) ? "Sem descricao disponivel." : DescricaoMolde;

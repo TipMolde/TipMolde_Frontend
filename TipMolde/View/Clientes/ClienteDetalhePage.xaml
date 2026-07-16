@@ -129,7 +129,7 @@
                             <Grid ColumnDefinitions="*,170,Auto"
                                   ColumnSpacing="12">
                                 <SearchBar Grid.Column="0"
-                                           Placeholder="Nome do servico, numero ou responsavel"
+                                           Placeholder="Nome do serviço, número ou responsável"
                                            Text="{Binding SearchTerm}"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                            SearchCommand="{Binding PesquisarCommand}" />

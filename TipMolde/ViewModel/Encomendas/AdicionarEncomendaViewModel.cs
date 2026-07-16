@@ -625,7 +625,7 @@ public partial class SelectableMoldeItem : ObservableObject
     private DateTime dataEntregaPrevista = DateTime.Today.AddDays(7);
 
     public string NomeDisplay => string.IsNullOrWhiteSpace(Molde.Nome) ? "Molde sem nome" : Molde.Nome;
-    public string NumeroDisplay => string.IsNullOrWhiteSpace(Molde.Numero) ? "Sem numero" : Molde.Numero;
+    public string NumeroDisplay => string.IsNullOrWhiteSpace(Molde.Numero) ? "Sem número" : Molde.Numero;
     public string DescricaoDisplay => string.IsNullOrWhiteSpace(Molde.Descricao) ? "Sem descricao" : Molde.Descricao;
     public string ImagemCapaSource => Molde.ImagemCapaSource;
 

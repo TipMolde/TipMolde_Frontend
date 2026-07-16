@@ -130,7 +130,7 @@ public partial class EditarPecaViewModel : ObservableObject
 
         if (!CanManagePieces)
         {
-            ErrorMessage = "Nao tens permissao para editar pecas.";
+            ErrorMessage = "Não tens permissão para editar peças.";
             return;
         }
 
@@ -228,10 +228,10 @@ public partial class EditarPecaViewModel : ObservableObject
     private string BuildValidationMessage()
     {
         if (!CanManagePieces)
-            return "Nao tens permissao para editar pecas.";
+            return "Não tens permissão para editar peças.";
 
         if (PecaId <= 0)
-            return "Nao foi possivel identificar a peca a editar.";
+            return "Não foi possível identificar a peça a editar.";
 
         if (string.IsNullOrWhiteSpace(Designacao))
             return "Indique a designacao da peca.";

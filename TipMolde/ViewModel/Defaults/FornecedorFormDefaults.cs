@@ -73,7 +73,7 @@ public static class FornecedorFormDefaults
             return null;
 
         return email.Length > 100 || !EmailValidator.IsValid(email)
-            ? "O email introduzido para o fornecedor nao e valido."
+            ? "O email introduzido para o fornecedor não é válido."
             : null;
     }
 
@@ -88,7 +88,7 @@ public static class FornecedorFormDefaults
             return null;
 
         return telefone.Length < 7 || telefone.Length > 20 || !TelefoneRegex.IsMatch(telefone)
-            ? "O telefone do fornecedor deve conter apenas digitos e um '+' opcional no inicio."
+            ? "O telefone do fornecedor deve conter apenas dígitos e um '+' opcional no início."
             : null;
     }
 }

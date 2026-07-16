@@ -133,7 +133,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
         if (_currentUserId is null)
         {
-            await _dialogService.ShowErrorAsync("Erro", "Nao foi possivel identificar a conta autenticada.");
+            await _dialogService.ShowErrorAsync("Erro", "Não foi possível identificar a conta autenticada.");
             return;
         }
 
@@ -156,7 +156,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
         if (!new EmailAddressAttribute().IsValid(emailNormalizado))
         {
-            await _dialogService.ShowErrorAsync("Erro", "O email introduzido nao e valido.");
+            await _dialogService.ShowErrorAsync("Erro", "O email introduzido não é válido.");
             return;
         }
 
@@ -208,7 +208,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
         if (!string.Equals(novaPasswordNormalizada, confirmacaoPasswordNormalizada, StringComparison.Ordinal))
         {
-            await _dialogService.ShowErrorAsync("Erro", "A confirmacao da nova password nao corresponde.");
+            await _dialogService.ShowErrorAsync("Erro", "A confirmação da nova password não corresponde.");
             return;
         }
 
@@ -284,7 +284,7 @@ public partial class DefinicoesViewModel : ObservableObject
 
             if (_currentUserId is null)
             {
-                ErrorMessage = "Nao foi possivel identificar o utilizador autenticado.";
+                ErrorMessage = "Não foi possível identificar o utilizador autenticado.";
                 return;
             }
 

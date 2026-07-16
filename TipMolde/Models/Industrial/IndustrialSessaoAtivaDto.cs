@@ -88,7 +88,7 @@ public sealed class IndustrialSessaoAtivaDto
     public string ProximaFasePlaneadaDisplay => string.IsNullOrWhiteSpace(ProximaFasePlaneadaNome)
         ? "Sem fase planeada"
         : ProximaFasePlaneadaNome.Replace('_', ' ');
-    public string EstadoSessaoDisplay => string.IsNullOrWhiteSpace(EstadoSessao) ? "Sem sessao" : EstadoSessao.Replace('_', ' ');
+    public string EstadoSessaoDisplay => string.IsNullOrWhiteSpace(EstadoSessao) ? "Sem sessão" : EstadoSessao.Replace('_', ' ');
     public string UltimoEstadoBaseDisplay => string.IsNullOrWhiteSpace(UltimoEstadoMaquina) ? "Sem estado" : UltimoEstadoMaquina.Replace('_', ' ');
     public string UltimoEstadoMaquinaDisplay => TelemetriaDesatualizada
         ? $"Sem telemetria recente (ultimo estado conhecido: {UltimoEstadoBaseDisplay})"

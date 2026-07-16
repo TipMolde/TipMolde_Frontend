@@ -89,7 +89,7 @@ public partial class EditarMaquinaViewModel : ObservableObject
     private bool canEditMachineState;
 
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
-    public string NumeroDisplay => Numero <= 0 ? "Sem numero" : Numero.ToString();
+    public string NumeroDisplay => Numero <= 0 ? "Sem número" : Numero.ToString();
     public string NomeModeloDisplay => string.IsNullOrWhiteSpace(NomeModelo) ? "Maquina sem nome" : NomeModelo.Trim();
     public string FaseDedicadaDisplay => string.IsNullOrWhiteSpace(FaseDedicada) ? "Sem fase dedicada" : FaseDedicada;
     public string EstadoAtualDisplay => string.IsNullOrWhiteSpace(EstadoAtualOriginal) ? "Sem estado" : EstadoAtualOriginal.Replace('_', ' ');
@@ -196,7 +196,7 @@ public partial class EditarMaquinaViewModel : ObservableObject
 
         ErrorMessage = CanEditMachineState
             ? string.Empty
-            : "Nao tens permissao para editar esta maquina.";
+            : "Não tens permissão para editar esta máquina.";
     }
 
     [RelayCommand]
@@ -264,19 +264,19 @@ public partial class EditarMaquinaViewModel : ObservableObject
     private string BuildValidationMessage()
     {
         if (MaquinaId <= 0)
-            return "Nao foi possivel identificar a maquina a editar.";
+            return "Não foi possível identificar a máquina a editar.";
 
         if (!CanEditMachineState)
-            return "Nao tens permissao para editar esta maquina.";
+            return "Não tens permissão para editar esta máquina.";
 
         if (CanEditMachineAdministrativeFields && Numero <= 0)
-            return "Indique um numero valido para a maquina.";
+            return "Indique um número válido para a máquina.";
 
         if (CanEditMachineAdministrativeFields && string.IsNullOrWhiteSpace(NomeModelo))
-            return "Indique o nome ou modelo da maquina.";
+            return "Indique o nome ou modelo da máquina.";
 
         if (SelectedEstadoMaquinaOption is null)
-            return "Selecione um estado para a maquina.";
+            return "Selecione um estado para a máquina.";
 
         return string.Empty;
     }

@@ -39,7 +39,7 @@
                                     <Label Text="Fases Producao"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="20" />
-                                    <Label Text="Lista, adiciona e elimina fases de producao para o parque de maquinas."
+                                    <Label Text="Lista, adiciona e elimina fases de produção para o parque de máquinas."
                                            FontSize="13"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
@@ -162,12 +162,12 @@
                         </Border.StrokeShape>
 
                         <VerticalStackLayout Spacing="14">
-                            <Label Text="Pesquisar maquinas"
+                            <Label Text="Pesquisar máquinas"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="18" />
 
                             <VerticalStackLayout Spacing="10">
-                                <SearchBar Placeholder="Pesquisar por numero, modelo, fase, estado ou conexao"
+                                <SearchBar Placeholder="Pesquisar por número, modelo, fase, estado ou conexão"
                                            Text="{Binding SearchTerm}"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                            SearchCommand="{Binding PesquisarCommand}"
@@ -211,7 +211,7 @@
                         <VerticalStackLayout Spacing="14">
                             <Grid ColumnDefinitions="*,Auto"
                                   ColumnSpacing="12">
-                                <Label Text="Adicionar maquina"
+                                <Label Text="Adicionar máquina"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="20"
                                        VerticalOptions="Center" />
@@ -234,7 +234,7 @@
                                            FontSize="13" />
                                     <Entry Text="{Binding NovoMaquinaId}"
                                            Keyboard="Numeric"
-                                           Placeholder="Identificador da maquina" />
+                                           Placeholder="Identificador da máquina" />
                                 </VerticalStackLayout>
 
                                 <VerticalStackLayout Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
@@ -245,7 +245,7 @@
                                            FontSize="13" />
                                     <Entry Text="{Binding NovoNumero}"
                                            Keyboard="Numeric"
-                                           Placeholder="Numero visivel da maquina" />
+                                           Placeholder="Número visível da máquina" />
                                 </VerticalStackLayout>
                             </Grid>
 
@@ -258,7 +258,7 @@
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="IP da maquina"
+                                <Label Text="IP da máquina"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="13" />
                                 <Entry Text="{Binding NovoIpAddress}"
@@ -308,7 +308,7 @@
 
                                 <Button Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
                                         Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
-                                        Text="Guardar maquina"
+                                        Text="Guardar máquina"
                                         Command="{Binding ConfirmarAdicionarMaquinaCommand}"
                                         IsEnabled="{Binding CanAdicionarMaquina}"
                                         BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"

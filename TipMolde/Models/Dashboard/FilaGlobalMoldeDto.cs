@@ -44,10 +44,10 @@ public sealed class FilaGlobalMoldeItemDto
     public string NumeroMoldeDisplay => string.IsNullOrWhiteSpace(NumeroMolde) ? "Molde sem numero" : NumeroMolde;
     public string NomeMoldeDisplay => string.IsNullOrWhiteSpace(NomeMolde) ? "Molde sem nome" : NomeMolde;
     public string NumeroEncomendaDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente) ? "Encomenda sem numero" : NumeroEncomendaCliente;
-    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente nao definido" : NomeCliente;
+    public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente) ? "Cliente não definido" : NomeCliente;
     public string EstadoEncomendaDisplay => string.IsNullOrWhiteSpace(EstadoEncomenda) ? "Sem estado" : EstadoEncomenda.Replace('_', ' ');
     public string DataEntregaPrevistaDisplay => DataEntregaPrevista == default
-        ? "Data nao definida"
+        ? "Data não definida"
         : DataEntregaPrevista.ToString("dd/MM/yyyy");
     public string ImagemCapaSource => MoldeImageSourceHelper.Resolve(ImagemCapaPath);
     public bool IsEntregaPassada => DataEntregaPrevista.Date < DateTime.Today;

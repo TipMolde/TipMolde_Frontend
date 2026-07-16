@@ -120,7 +120,7 @@ public partial class App : Application
             {
                 await _appShell.CurrentPage.DisplayAlert(
                     "Erro no arranque",
-                    "Nao foi possivel concluir a inicializacao da aplicacao. Tenta iniciar sessao novamente.",
+                    "Não foi possível concluir a inicialização da aplicação. Tenta iniciar sessão novamente.",
                     "Fechar");
             }
         });

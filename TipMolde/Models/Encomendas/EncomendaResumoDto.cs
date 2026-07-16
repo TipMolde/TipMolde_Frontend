@@ -38,26 +38,26 @@ public sealed class EncomendaResumoDto
 
     [JsonIgnore]
     public string NumeroEncomendaClienteDisplay => string.IsNullOrWhiteSpace(NumeroEncomendaCliente)
-        ? "Sem numero de encomenda"
+        ? "Sem número de encomenda"
         : NumeroEncomendaCliente;
 
     [JsonIgnore]
     public string NomeClienteDisplay => string.IsNullOrWhiteSpace(NomeCliente)
-        ? "Cliente nao identificado"
+        ? "Cliente não identificado"
         : NomeCliente;
 
     [JsonIgnore]
     public string NomeServicoClienteDisplay => string.IsNullOrWhiteSpace(NomeServicoCliente)
-        ? "Servico nao definido"
+        ? "Serviço não definido"
         : NomeServicoCliente;
 
     [JsonIgnore]
     public string NomeResponsavelClienteDisplay => string.IsNullOrWhiteSpace(NomeResponsavelCliente)
-        ? "Responsavel nao definido"
+        ? "Responsável não definido"
         : NomeResponsavelCliente;
 
     [JsonIgnore]
     public string NumeroProjetoClienteDisplay => string.IsNullOrWhiteSpace(NumeroProjetoCliente)
-        ? "Projeto nao definido"
+        ? "Projeto não definido"
         : NumeroProjetoCliente;
 }

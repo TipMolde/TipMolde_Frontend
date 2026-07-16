@@ -13,7 +13,7 @@
                 Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                 Padding="24,18">
             <VerticalStackLayout Spacing="2">
-                <Label Text="Editar maquina"
+                <Label Text="Editar máquina"
                        FontFamily="OpenSansSemibold"
                        FontSize="24"
                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -35,12 +35,12 @@
                     </Border.StrokeShape>
 
                     <VerticalStackLayout Spacing="18">
-                        <Label Text="Configuracao da maquina"
+                        <Label Text="Configuração da máquina"
                                FontFamily="OpenSansSemibold"
                                FontSize="20"
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
 
-                        <Label Text="Como gestor de producao so podes atualizar o estado operacional da maquina."
+                        <Label Text="Como gestor de produção só podes atualizar o estado operacional da máquina."
                                IsVisible="{Binding IsStateOnlyEditMode}"
                                FontSize="12"
                                TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
@@ -85,7 +85,7 @@
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
                             <Entry Text="{Binding NomeModelo}"
-                                   Placeholder="Nome ou modelo da maquina"
+                                   Placeholder="Nome ou modelo da máquina"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}"
                                    ClearButtonVisibility="WhileEditing" />
                         </VerticalStackLayout>
@@ -101,7 +101,7 @@
 
                         <VerticalStackLayout Spacing="8"
                                              IsVisible="{Binding CanEditMachineAdministrativeFields}">
-                            <Label Text="IP da maquina"
+                                <Label Text="IP da máquina"
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />

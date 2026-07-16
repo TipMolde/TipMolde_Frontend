@@ -180,7 +180,7 @@ namespace TipMolde.Services
         {
             return DeviceInfo.Current.Platform == DevicePlatform.Android
                 ? "http://10.0.2.2:8080/"
-                : "http://localhost:8080/";
+                : "http://192.168.1.111:8080/";
         }
 
         private static void EnsureConfiguredUrlIsAllowed(string configuredBaseUrl, string environmentName)

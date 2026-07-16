@@ -13,7 +13,7 @@
                 Stroke="{AppThemeBinding Light={StaticResource CardBorderBrush}, Dark={StaticResource Gray600Brush}}"
                 Padding="24,18">
             <VerticalStackLayout Spacing="2">
-                <Label Text="Criar peca"
+                <Label Text="Criar peça"
                        FontFamily="OpenSansSemibold"
                        FontSize="24"
                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -35,7 +35,7 @@
                     </Border.StrokeShape>
 
                     <VerticalStackLayout Spacing="18">
-                        <Label Text="Dados da peca"
+                        <Label Text="Dados da peça"
                                FontFamily="OpenSansSemibold"
                                FontSize="20"
                                TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -43,7 +43,7 @@
                         <Grid ColumnDefinitions="*,*"
                               ColumnSpacing="16">
                             <VerticalStackLayout Spacing="8">
-                                <Label Text="Numero da peca"
+                                <Label Text="Número da peça"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="14"
                                        TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -95,7 +95,7 @@
                                    FontFamily="OpenSansSemibold"
                                    FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
-                            <Picker Title="Selecionar proxima fase"
+                            <Picker Title="Selecionar próxima fase"
                                     ItemsSource="{Binding FasesProducao}"
                                     SelectedItem="{Binding SelectedProximaFase, Mode=TwoWay}"
                                     ItemDisplayBinding="{Binding NomeDisplay}" />
@@ -184,7 +184,7 @@
                                     HeightRequest="44" />
 
                             <Button Grid.Column="1"
-                                    Text="Criar peca"
+                                    Text="Criar peça"
                                     Command="{Binding CreateCommand}"
                                     IsEnabled="{Binding CanCreate}"
                                     BackgroundColor="{AppThemeBinding Light=#0F172A, Dark=White}"

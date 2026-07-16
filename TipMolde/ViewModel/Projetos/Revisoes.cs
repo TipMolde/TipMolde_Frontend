@@ -78,7 +78,7 @@ public partial class ProjetoDetalheViewModel
         {
             await _dialogService.ShowInfoAsync(
                 "Revisao ja respondida",
-                "Esta revisao ja tem resposta registada e nao pode ser alterada.");
+                "Esta revisão já tem resposta registada e não pode ser alterada.");
             return;
         }
 
@@ -225,7 +225,7 @@ public partial class ProjetoDetalheViewModel
             return "Ja existe uma revisao em aberto para este projeto.";
 
         if (ultimaRevisao.Aprovado == true)
-            return "O cliente ja aprovou a ultima revisao, por isso nao e possivel criar outra.";
+            return "O cliente já aprovou a última revisão, por isso não é possível criar outra.";
 
         return "Nao e possivel criar uma nova revisao neste momento.";
     }

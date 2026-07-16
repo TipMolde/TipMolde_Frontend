@@ -42,7 +42,7 @@
                               ColumnSpacing="18"
                               RowSpacing="16">
                             <VerticalStackLayout Spacing="10">
-                                <Label Text="Trabalho de peca"
+                                <Label Text="Trabalho de peça"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="13"
                                        TextColor="#BFDBFE"
@@ -131,7 +131,7 @@
                                         <RoundRectangle CornerRadius="18" />
                                     </Border.StrokeShape>
                                     <VerticalStackLayout Spacing="4">
-                                        <Label Text="Tempo total de producao"
+                                        <Label Text="Tempo total de produção"
                                                FontFamily="OpenSansSemibold"
                                                TextColor="White" />
                                         <Label Text="{Binding TempoTotalProducaoDisplay}"
@@ -294,10 +294,10 @@
                             <Grid ColumnDefinitions="*,Auto"
                                   ColumnSpacing="12">
                                 <VerticalStackLayout Spacing="4">
-                                    <Label Text="Resumo da peca"
+                                    <Label Text="Resumo da peça"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="20" />
-                                    <Label Text="Dados base da peca que estao a ser trabalhados."
+                                    <Label Text="Dados base da peça que estão a ser trabalhados."
                                            FontSize="13"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                 </VerticalStackLayout>
@@ -379,7 +379,7 @@
                                 <Label Text="Novo registo"
                                        FontFamily="OpenSansSemibold"
                                        FontSize="20" />
-                                <Label Text="A fase em trabalho ja vem sugerida pela proxima fase da peca. Quando a concluires, escolhe o passo seguinte."
+                                <Label Text="A fase em trabalho já vem sugerida pela próxima fase da peça. Quando a concluires, escolhe o passo seguinte."
                                        FontSize="13"
                                        TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                             </VerticalStackLayout>
@@ -416,7 +416,7 @@
                                     <Label Text="Proxima fase seguinte"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Picker Title="Selecionar proxima fase"
+                                    <Picker Title="Selecionar próxima fase"
                                             ItemsSource="{Binding ProximasFasesDisponiveis}"
                                             SelectedItem="{Binding SelectedProximaFase, Mode=TwoWay}"
                                             ItemDisplayBinding="{Binding NomeDisplay}" />
@@ -429,7 +429,7 @@
                                     <Label Text="Maquina"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="13" />
-                                    <Picker Title="Selecionar maquina"
+                                    <Picker Title="Selecionar máquina"
                                             ItemsSource="{Binding MaquinasDisponiveis}"
                                             SelectedItem="{Binding SelectedMaquina, Mode=TwoWay}"
                                             IsEnabled="{Binding CanSelecionarMaquina}"
@@ -471,7 +471,7 @@
                                            FontFamily="OpenSansSemibold"
                                            FontSize="20"
                                            LineBreakMode="WordWrap" />
-                                    <Label Text="Segue aqui os ultimos registos desta peca, num formato mais facil de ler."
+                                <Label Text="Segue aqui os últimos registos desta peça, num formato mais fácil de ler."
                                            FontSize="13"
                                            LineBreakMode="WordWrap"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />

@@ -53,7 +53,7 @@
                                     </Grid>
                                 </HorizontalStackLayout>
 
-                                <Label Text="Inicie sessao e valide o acesso logo no arranque da aplicacao."
+                                <Label Text="Inicie sessão e valide o acesso logo no arranque da aplicação."
                                        FontFamily="OpenSansSemibold"
                                        FontSize="32"
                                        TextColor="White"
@@ -131,7 +131,7 @@
                                     </Border>
 
                                     <VerticalStackLayout Spacing="6">
-                                        <Label Text="Iniciar sessao"
+                                        <Label Text="Iniciar sessão"
                                            FontFamily="OpenSansSemibold"
                                            FontSize="28"
                                            TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -185,7 +185,7 @@
                                         ColumnSpacing="12">
                                         <CheckBox IsChecked="{Binding RememberSession}" />
                                         <Label Grid.Column="1"
-                                           Text="Manter sessao iniciada neste dispositivo"
+                                           Text="Manter sessão iniciada neste dispositivo"
                                            VerticalTextAlignment="Center"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}" />
                                     </Grid>

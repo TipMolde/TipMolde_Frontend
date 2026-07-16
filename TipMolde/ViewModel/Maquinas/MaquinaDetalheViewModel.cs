@@ -146,7 +146,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         : $"{SelectedPeca.NumeroPecaDisplay} - {SelectedPeca.DesignacaoDisplay}";
 
     public string SessaoAtivaDisplay => SessaoAtiva is null
-        ? "Sem peca ativa."
+        ? "Sem peça ativa."
         : $"{SessaoAtiva.PecaResumoDisplay} em {SessaoAtiva.FaseDisplay}";
 
     public string ProximaFasePlaneadaDisplay => SelectedProximaFase?.NomeDisplay
@@ -364,7 +364,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
 
             await _dialogService.ShowSuccessAsync(
                 "Contexto registado",
-                $"A maquina {Maquina.NumeroDisplay} ficou associada a {SelectedPeca.NumeroPecaDisplay}.");
+                $"A máquina {Maquina.NumeroDisplay} ficou associada a {SelectedPeca.NumeroPecaDisplay}.");
 
             SelectedPeca = null;
             await LoadAsync(Maquina.Maquina_id);
@@ -382,7 +382,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     [RelayCommand(CanExecute = nameof(CanConfirmarParagem))]
     private async Task ConfirmarPausaAsync()
     {
-        await ConfirmarParagemCoreAsync(false, "Paragem confirmada", "A maquina foi marcada como pausada.");
+        await ConfirmarParagemCoreAsync(false, "Paragem confirmada", "A máquina foi marcada como pausada.");
     }
 
     [RelayCommand(CanExecute = nameof(CanIniciarConclusao))]
@@ -403,7 +403,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
         await ConfirmarParagemCoreAsync(
             true,
             "Producao concluida",
-            "O trabalho ativo da maquina foi concluido.",
+            "O trabalho ativo da máquina foi concluído.",
             SelectedProximaFase?.FasesProducao_id);
     }
 
@@ -423,7 +423,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     {
         EventoPendente = await _industrialProducaoService.GetEventoPendenteMaquinaAsync(maquinaId);
         InfoMessage = EventoPendente is null
-            ? "Neste momento nao existe nenhum evento RUNNING/STOPPED pendente para esta maquina."
+            ? "Neste momento não existe nenhum evento RUNNING/STOPPED pendente para esta máquina."
             : string.Empty;
     }
 
@@ -435,7 +435,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     private async Task RefreshIndustrialStateAsync(int maquinaId)
     {
         Maquina = await _maquinasService.GetByIdAsync(maquinaId)
-            ?? throw new InvalidOperationException($"Nao foi possivel carregar a maquina {maquinaId}.");
+            ?? throw new InvalidOperationException($"Não foi possível carregar a máquina {maquinaId}.");
 
         await LoadEventoPendenteAsync(maquinaId);
         await LoadSessaoAtivaAsync(maquinaId);
@@ -479,7 +479,7 @@ public partial class MaquinaDetalheViewModel : PaginatedViewModel
     private async Task<List<FaseProducaoItem>> GetAllFasesAsync()
     {
         var primeiraPagina = await _fasesProducaoService.GetAllAsync(1, 100)
-            ?? throw new InvalidOperationException("Nao foi possivel carregar as fases de producao.");
+            ?? throw new InvalidOperationException("Não foi possível carregar as fases de produção.");
 
         var fases = primeiraPagina.Items.ToList();
 

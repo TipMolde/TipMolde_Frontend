@@ -156,7 +156,7 @@ public abstract partial class PaginatedViewModel : ObservableObject
 
         if (!int.TryParse(PageInput.Trim(), out var requestedPage))
         {
-            ErrorMessage = "A pagina tem de ser um numero valido.";
+            ErrorMessage = "A página tem de ser um número válido.";
             return;
         }
 
@@ -168,7 +168,7 @@ public abstract partial class PaginatedViewModel : ObservableObject
 
         if (requestedPage > TotalPages)
         {
-            ErrorMessage = $"A pagina nao pode ser maior que {TotalPages}.";
+            ErrorMessage = $"A página não pode ser maior que {TotalPages}.";
             return;
         }
 

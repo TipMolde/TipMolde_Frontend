@@ -244,7 +244,7 @@
 
                                         <VerticalStackLayout Grid.Row="3"
                                                              Spacing="4">
-                                            <Label Text="Acabamento da peca"
+                                            <Label Text="Acabamento da peça"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
                                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -372,7 +372,7 @@
                                                                     MaterialPendente="{Binding Dashboard.MaterialPendente}"
                                                                     EmEspera="{Binding Dashboard.EmEspera}" />
 
-                                    <Label Text="{Binding DistribuicaoTotal, StringFormat='Distribuicao visivel: {0} pecas'}"
+                                    <Label Text="{Binding DistribuicaoTotal, StringFormat='Distribuição visível: {0} peças'}"
                                            HorizontalOptions="Center"
                                            TextColor="{AppThemeBinding Light={StaticResource TextSecondary}, Dark={StaticResource SecondaryDarkText}}"
                                            FontSize="13" />
@@ -383,7 +383,7 @@
                                     <Grid ColumnDefinitions="*,*"
                                           ColumnSpacing="18">
                                         <VerticalStackLayout Spacing="4">
-                                            <Label Text="Total de pecas"
+                                            <Label Text="Total de peças"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
                                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -393,7 +393,7 @@
 
                                         <VerticalStackLayout Grid.Column="1"
                                                              Spacing="4">
-                                            <Label Text="Tempo total de producao"
+                                            <Label Text="Tempo total de produção"
                                                    FontFamily="OpenSansSemibold"
                                                    FontSize="13"
                                                    TextColor="{AppThemeBinding Light={StaticResource TextPrimary}, Dark={StaticResource White}}" />
@@ -600,7 +600,7 @@
                                 </VerticalStackLayout>
 
                                 <Button Grid.Column="1"
-                                        Text="Adicionar peca"
+                                        Text="Adicionar peça"
                                         Command="{Binding AdicionarPecaCommand}"
                                         IsVisible="{Binding CanManagePieces}"
                                         IsEnabled="{Binding CanAddPeca}"

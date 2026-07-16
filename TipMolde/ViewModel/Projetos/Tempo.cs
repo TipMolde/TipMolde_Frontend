@@ -123,7 +123,7 @@ public partial class ProjetoDetalheViewModel
         TempoRegistadoTotal = total;
         TempoSessaoAtiva = inicioSessao.HasValue
             ? $"Sessao ativa desde {inicioSessao.Value.ToLocalTime():dd/MM/yyyy HH:mm}"
-            : "Sem sessao ativa";
+            : "Sem sessão ativa";
     }
 
     private static string FormatDuration(TimeSpan duration)
