@@ -190,7 +190,7 @@ public class MaquinaDetalheViewModelTests
         _sut.Maquina!.Estado.Should().Be("DISPONIVEL");
         _dialogService.Verify(service => service.ShowSuccessAsync(
             "Producao concluida",
-            "O trabalho ativo da maquina foi concluido."),
+            "O trabalho ativo da máquina foi concluído."),
             Times.Once);
     }
 

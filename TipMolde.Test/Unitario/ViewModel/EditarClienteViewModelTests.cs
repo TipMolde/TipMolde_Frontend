@@ -81,7 +81,7 @@ public class EditarClienteViewModelTests
 
         await sut.SaveCommand.ExecuteAsync(null);
 
-        sut.ErrorMessage.Should().Be("O email introduzido nao e valido.");
+        sut.ErrorMessage.Should().Be("O email introduzido não é válido.");
         sut.IsSaving.Should().BeFalse();
         requests.Should().BeEmpty();
     }

@@ -29,9 +29,9 @@ public class ClienteFormDefaultsTests
     [Test(Description = "T3FRT - O email deve ser rejeitado quando nao cumpre o formato esperado.")]
     public void ValidateEmail_Should_ReturnMessage_When_EmailIsInvalid()
     {
-        var result = ClienteFormDefaults.ValidateEmail("cliente-invalido");
+        var result = ClienteFormDefaults.ValidateEmail("cliente-inválido");
 
-        result.Should().Be("O email introduzido nao e valido.");
+        result.Should().Be("O email introduzido não é válido.");
     }
 
     [Test(Description = "T4FRT - O telefone deve aceitar apenas digitos e um mais opcional no inicio.")]

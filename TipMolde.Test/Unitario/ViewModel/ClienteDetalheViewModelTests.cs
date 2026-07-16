@@ -118,7 +118,7 @@ public class ClienteDetalheViewModelTests
         // ASSERT
         sut.Encomendas.Should().BeEmpty();
         sut.HasNoEncomendas.Should().BeTrue();
-        sut.EmptyEncomendasMessage.Should().Be("Este cliente ainda nao tem encomendas associadas.");
+        sut.EmptyEncomendasMessage.Should().Be("Este cliente ainda não tem encomendas associadas.");
         sut.TotalPages.Should().Be(1);
     }
 
@@ -183,7 +183,7 @@ public class ClienteDetalheViewModelTests
         await _sut.GoToPageCommand.ExecuteAsync(null);
 
         _sut.Page.Should().Be(1);
-        _sut.ErrorMessage.Should().Be("A pagina nao pode ser maior que 2.");
+        _sut.ErrorMessage.Should().Be("A página não pode ser maior que 2.");
         _sut.Encomendas.Should().HaveCount(5);
     }
 
