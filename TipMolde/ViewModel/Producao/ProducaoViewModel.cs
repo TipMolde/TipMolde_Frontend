@@ -50,7 +50,8 @@ public partial class ProducaoViewModel : SearchableViewModel
         SelectedSearchModeIndex = 0;
     }
 
-    public ObservableCollection<ProducaoPecaDisponivelItem> PecasDisponiveis { get; } = new();
+    [ObservableProperty]
+    private ObservableCollection<ProducaoPecaDisponivelItem> pecasDisponiveis = new();
     public IReadOnlyList<string> SearchModes { get; } = [SearchModeMolde, SearchModePeca, SearchModeProximaFase];
 
     [ObservableProperty]
@@ -111,7 +112,7 @@ public partial class ProducaoViewModel : SearchableViewModel
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            PecasDisponiveis.Clear();
+            PecasDisponiveis = new();
             UpdatePagination(0, 1);
             OnPropertyChanged(nameof(HasPecasDisponiveis));
         }
@@ -132,15 +133,15 @@ public partial class ProducaoViewModel : SearchableViewModel
             if (pagina is null)
             {
                 ErrorMessage = "Nao foi possivel carregar a fila de trabalho das pecas.";
-                PecasDisponiveis.Clear();
+                PecasDisponiveis = new();
                 UpdatePagination(0, 1);
                 OnPropertyChanged(nameof(HasPecasDisponiveis));
                 return;
             }
 
-            PecasDisponiveis.Clear();
-            foreach (var item in pagina.Items)
-                PecasDisponiveis.Add(item);
+            // Publish a complete page once. Incremental Add events make the Windows
+            // CollectionView scroll during layout and can trigger AG_E_LAYOUT_CYCLE.
+            PecasDisponiveis = new ObservableCollection<ProducaoPecaDisponivelItem>(pagina.Items);
 
             UpdatePagination(pagina.TotalItems, pagina.TotalPages);
             OnPropertyChanged(nameof(HasPecasDisponiveis));

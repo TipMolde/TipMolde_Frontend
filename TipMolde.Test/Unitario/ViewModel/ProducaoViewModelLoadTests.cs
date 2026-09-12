@@ -66,6 +66,29 @@ public class ProducaoViewModelLoadTests
         _sut.PecasDisponiveis.Should().ContainSingle();
     }
 
+    [Test]
+    public async Task LoadAsync_ShouldPublishCompletePageWithoutMutatingDisplayedCollection()
+    {
+        await _sut.LoadAsync();
+        var displayedPage = _sut.PecasDisponiveis;
+        var collectionChanges = 0;
+        var publishedPages = new List<int[]>();
+        displayedPage.CollectionChanged += (_, _) => collectionChanges++;
+        _sut.PropertyChanged += (_, args) =>
+        {
+            if (args.PropertyName == nameof(ProducaoViewModel.PecasDisponiveis))
+                publishedPages.Add(_sut.PecasDisponiveis.Select(item => item.PecaId).ToArray());
+        };
+
+        await _sut.LoadAsync();
+
+        collectionChanges.Should().Be(0, "the bound Windows list must not receive intermediate Clear/Add events");
+        publishedPages.Should().ContainSingle();
+        publishedPages[0].Should().Equal(11);
+        _sut.PecasDisponiveis.Should().NotBeSameAs(displayedPage);
+        _sut.ErrorMessage.Should().BeEmpty();
+    }
+
     private HttpResponseMessage HandleRequest(HttpRequestMessage request)
     {
         return request.RequestUri?.PathAndQuery switch
