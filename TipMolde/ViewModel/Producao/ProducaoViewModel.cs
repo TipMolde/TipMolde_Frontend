@@ -46,7 +46,7 @@ public partial class ProducaoViewModel : SearchableViewModel
         _dialogService = dialogService;
         _navigationService = navigationService;
 
-        PageSize = 8;
+        PageSize = 10;
         SelectedSearchModeIndex = 0;
     }
 
@@ -123,7 +123,10 @@ public partial class ProducaoViewModel : SearchableViewModel
 
         await ExecutePagedLoadAsync(async () =>
         {
-            var searchMode = SearchModes[SelectedSearchModeIndex];
+            // Picker can briefly have no selection while its items are being bound.
+            var searchMode = SelectedSearchModeIndex >= 0 && SelectedSearchModeIndex < SearchModes.Count
+                ? SearchModes[SelectedSearchModeIndex]
+                : SearchModeMolde;
             var pagina = await _pecasService.GetFilaTrabalhoAsync(Page, PageSize, SearchTerm, searchMode);
 
             if (pagina is null)

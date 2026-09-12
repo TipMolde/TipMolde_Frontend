@@ -37,6 +37,7 @@ internal static class TaskMonitor
     public static void ReportException(string context, Exception exception)
     {
         var message = $"[{DateTimeOffset.Now:O}] {context}{Environment.NewLine}{exception}";
+        StartupCrashLogger.LogException(context, exception);
         Trace.TraceError(message);
         Debug.WriteLine(message);
     }

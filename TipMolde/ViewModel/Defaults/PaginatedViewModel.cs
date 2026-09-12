@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace TipMolde.ViewModel.Defaults;
@@ -81,9 +81,16 @@ public abstract partial class PaginatedViewModel : ObservableObject
 
         IsLoading = true;
 
+        ErrorMessage = string.Empty;
+
         try
         {
             await loadAction();
+        }
+        catch (Exception ex)
+        {
+            TipMolde.Diagnostics.TaskMonitor.ReportException(GetType().Name + nameof(ExecutePagedLoadAsync), ex);
+            ErrorMessage = ex.Message;
         }
         finally
         {

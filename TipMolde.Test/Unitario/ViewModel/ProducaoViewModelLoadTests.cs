@@ -53,7 +53,17 @@ public class ProducaoViewModelLoadTests
         _sut.PecasDisponiveis[0].PecaId.Should().Be(11);
         _sut.PecasDisponiveis[0].NumeroMolde.Should().Be("M-001");
         _requests.Should().Contain(request => request.Path == "/api/users/7");
-        _requests.Should().Contain(request => request.Path == "/api/pecas/fila-trabalho?page=1&pageSize=8&searchMode=Molde");
+        _requests.Should().Contain(request => request.Path == "/api/pecas/fila-trabalho?page=1&pageSize=10&searchMode=Molde");
+    }
+
+    [TestCase(-1)]
+    [TestCase(3)]
+    public async Task LoadAsync_WithInvalidPickerIndex_ShouldUseDefaultSearch(int index)
+    {
+        _sut.SelectedSearchModeIndex = index;
+        await _sut.LoadAsync();
+        _sut.ErrorMessage.Should().BeEmpty();
+        _sut.PecasDisponiveis.Should().ContainSingle();
     }
 
     private HttpResponseMessage HandleRequest(HttpRequestMessage request)
@@ -113,7 +123,7 @@ public class ProducaoViewModelLoadTests
                     Nome = "Gestor Teste",
                     Role = "ADMIN"
                 }),
-            "/api/pecas/fila-trabalho?page=1&pageSize=8&searchMode=Molde" => CreateJsonResponse(
+            "/api/pecas/fila-trabalho?page=1&pageSize=10&searchMode=Molde" => CreateJsonResponse(
                 HttpStatusCode.OK,
                 new PagedResult<ProducaoPecaDisponivelItem>
                 {
@@ -142,7 +152,7 @@ public class ProducaoViewModelLoadTests
                         }
                     ],
                     Page = 1,
-                    PageSize = 8,
+                    PageSize = 10,
                     TotalItems = 1
                 }),
             _ => new HttpResponseMessage(HttpStatusCode.NotFound)
